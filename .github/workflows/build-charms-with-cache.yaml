@@ -112,7 +112,7 @@ jobs:
       - name: Upload packed charm
         uses: actions/upload-artifact@v3
         with:
-          name: packed-charms
+          name: charms-packed-with-cache
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
