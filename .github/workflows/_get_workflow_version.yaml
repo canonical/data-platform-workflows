@@ -17,9 +17,9 @@
 # jobs:
 #   build:
 #     name: Build charms
-#     uses: canonical/data-platform-workflows/.github/workflows/build-charms-with-cache.yaml@1.0
+#     uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@1.0
 #
-# In this example, the reusable workflow `build-charms-with-cache.yaml` is called with ref "1.0".
+# In this example, the reusable workflow `build_charms_with_cache.yaml` is called with ref "1.0".
 # This workflow would output "1.0".
 
 on:
@@ -30,7 +30,7 @@ on:
         required: true
         type: string
       file-name:
-        description: Name of reusable workflow file (e.g. "build-charms-with-cache.yaml")
+        description: Name of reusable workflow file (e.g. "build_charms_with_cache.yaml")
         required: true
         type: string
     outputs:
@@ -59,7 +59,7 @@ jobs:
           
           # Example: "canonical/data-platform-workflows"
           REPOSITORY = "${{ inputs.repository-name }}"
-          # Example: "build-charms-with-cache.yaml"
+          # Example: "build_charms_with_cache.yaml"
           REUSABLE_WORKFLOW_FILE_NAME = "${{ inputs.file-name }}"
           CALL_PATTERN = re.compile(f"{REPOSITORY}/.github/workflows/{REUSABLE_WORKFLOW_FILE_NAME}@(.*)")
           
