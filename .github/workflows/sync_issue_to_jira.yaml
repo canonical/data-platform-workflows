@@ -28,7 +28,7 @@ jobs:
            ISSUE_TITLE: ${{ github.event.issue.title }}
            ISSUE_DESCRIPTION: ${{ github.event.issue.body }}
         run: |
-          if ${{ github.event.issue.labels.*.name == 'bug' }}; then
+          if ${{ contains(github.event.issue.labels.*.name, 'bug') }}; then
             ISSUE_TYPE=bug
           else
             ISSUE_TYPE=story
