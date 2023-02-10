@@ -1,0 +1,54 @@
+# Copyright 2022 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Context: https://support.atlassian.com/cloud-automation/docs/jira-automation-triggers/#Incoming-webhook
+# Source: https://github.com/beliaev-maksim/github-to-jira-automation
+
+on:
+  workflow_call:
+    inputs:
+      jira-component-name:
+        description: Name of Jira component (e.g. mysql-k8s)
+        required: true
+        type: string
+    secrets:
+      jira-webhook-url:
+        description: Jira webhook URL
+        required: true
+
+
+jobs:
+  sync:
+    name: Sync issue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Jira ticket
+        env:
+           # put into env vars to properly escape special bash chars
+           ISSUE_TITLE: ${{ github.event.issue.title }}
+           ISSUE_DESCRIPTION: ${{ github.event.issue.body }}
+        run: |
+          if ${{ github.event.issue.labels.*.name == 'bug' }}; then
+            ISSUE_TYPE=bug
+          else
+            ISSUE_TYPE=story
+          fi
+
+          # send Jira request
+
+          # Canonical doesn't encourage discussions in Jira on public project issues.
+          # Thus, it is NOT recommended to put description in Jira in order to push conversation to GitHub
+          # if strongly required, then replace '--arg body ""' with the next line
+          # --arg body "$ISSUE_DESCRIPTION"
+
+          data=$( jq -n \
+                  --arg title "$ISSUE_TITLE" \
+                  --arg url '${{ github.event.issue.html_url }}' \
+                  --arg submitter '${{ github.event.issue.user.login }}' \
+                  --arg body "" \
+                  --arg type "$ISSUE_TYPE" \
+                  --arg action '${{ github.event.action }}' \
+                  --arg component '${{ inputs.jira-component-name }}' \
+                  '{title: $title, url: $url, submitter: $submitter, body: $body, type: $type, action: $action, component: $component}' )
+
+          curl -X POST -H 'Content-type: application/json' --data "${data}" "${{ secrets.jira-webhook-url }}"
