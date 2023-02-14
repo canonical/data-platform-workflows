@@ -2,7 +2,15 @@
 # See LICENSE file for licensing details.
 on:
   workflow_call:
+    inputs:
+      artifact-name:
+        description: Packed charms are uploaded to this GitHub artifact name
+        default: charms-packed-with-cache
+        type: string
     outputs:
+      artifact-name:
+        description: Packed charms are uploaded to this GitHub artifact name
+        value: ${{ inputs.artifact-name }}
       charms:
         description: JSON string of charms built
         value: ${{ jobs.collect-charms.outputs.charms }}
@@ -112,7 +120,7 @@ jobs:
       - name: Upload packed charm
         uses: actions/upload-artifact@v3
         with:
-          name: charms-packed-with-cache
+          name: ${{ inputs.artifact-name }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
