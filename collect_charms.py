@@ -20,7 +20,13 @@ def get_base_versions(path_to_charmcraft_yaml: Path) -> list[str]:
     Returns:
         List of Ubuntu versions (e.g. ["20.04", "22.04"])
     """
-    bases = yaml.safe_load(path_to_charmcraft_yaml.read_text())["bases"]
+    yaml_data = yaml.safe_load(path_to_charmcraft_yaml.read_text())
+    if (type := yaml_data["type"]) != "charm":
+        logging.info(
+            f"{path_to_charmcraft_yaml} is {type=} instead of 'charm', skipping"
+        )
+        return []
+    bases = yaml_data["bases"]
     # Handle multiple bases formats
     # See https://discourse.charmhub.io/t/charmcraft-bases-provider-support/4713
     versions = [base.get("build-on", [base])[0]["channel"] for base in bases]
