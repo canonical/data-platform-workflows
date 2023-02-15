@@ -1,0 +1,37 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+name: Release workflows
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:     
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Check semantic version prefix for latest commit
+        run: python3 _check_semantic_version_prefix.py
+        env:
+          MESSAGE: ${{ github.event.head_commit.message }}
+      - name: Get release version
+        id: get-version
+        run: python3 _get_release_semantic_version.py
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release
+        run: gh release create ${{ steps.get-version.outputs.full_version }} --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update major version tag
+        run: |
+          git tag ${{ steps.get-version.outputs.major_version }} --force
+          git push origin ${{ steps.get-version.outputs.major_version }} --force
+    permissions:
+      contents: write  # Needed to create release
