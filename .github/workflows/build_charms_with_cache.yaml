@@ -118,7 +118,7 @@ jobs:
         working-directory: ${{ matrix.charm.directory_path }}
         run: charmcraft pack --bases-index=${{ matrix.charm.bases_index }}
       - name: Upload charmcraft logs
-        if: ${{ failure() && steps.pack.conclusion == 'failure' }}
+        if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.artifact-name }}-charmcraft-logs
