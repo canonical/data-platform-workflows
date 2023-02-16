@@ -19,6 +19,7 @@ jobs:
       - name: Check semantic version prefix for latest commit
         run: python3 _check_semantic_version_prefix.py
         env:
+          # Use env variable to avoid script injection
           MESSAGE: ${{ github.event.head_commit.message }}
       - name: Get release version
         id: get-version

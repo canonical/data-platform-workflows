@@ -20,4 +20,5 @@ jobs:
       - name: Check semantic version prefix
         run: python3 _check_semantic_version_prefix.py
         env:
+          # Use env variable to avoid script injection
           MESSAGE: ${{ github.event.pull_request.title }}
