@@ -114,8 +114,16 @@ jobs:
             lxc --project charmcraft move $container_name_without_inode $container_name_with_inode
           done
       - name: Pack charm
+        id: pack
         working-directory: ${{ matrix.charm.directory_path }}
         run: charmcraft pack --bases-index=${{ matrix.charm.bases_index }}
+      - name: Upload charmcraft logs
+        if: ${{ failure() && steps.pack.outcome == 'failure' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}-charmcraft-logs
+          path: ~/.local/state/charmcraft/log/
+          if-no-files-found: error
       - run: touch .empty
       - name: Upload packed charm
         uses: actions/upload-artifact@v3
