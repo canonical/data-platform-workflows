@@ -26,13 +26,13 @@ jobs:
         run: python3 _get_release_semantic_version.py
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create release
-        run: gh release create ${{ steps.get-version.outputs.full_version }} --generate-notes
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Update major version tag
         run: |
           git tag ${{ steps.get-version.outputs.major_version }} --force
           git push origin ${{ steps.get-version.outputs.major_version }} --force
+      - name: Create release
+        run: gh release create ${{ steps.get-version.outputs.full_version }} --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: write  # Needed to create release
