@@ -27,7 +27,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create release
-        run: gh release create ${{ steps.get-version.outputs.full_version }} --generate-notes
+        run: |
+          git tag ${{ steps.get-version.outputs.full_version }}
+          gh release create ${{ steps.get-version.outputs.full_version }} --verify-tag --generate-notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Update major version tag
