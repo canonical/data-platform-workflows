@@ -31,7 +31,9 @@ jobs:
           git tag ${{ steps.get-version.outputs.major_version }} --force
           git push origin ${{ steps.get-version.outputs.major_version }} --force
       - name: Create release
-        run: gh release create ${{ steps.get-version.outputs.full_version }} --generate-notes
+        run: |
+          git tag ${{ steps.get-version.outputs.full_version }}
+          gh release create ${{ steps.get-version.outputs.full_version }} --verify-tag --generate-notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
