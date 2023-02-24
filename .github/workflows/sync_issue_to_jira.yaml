@@ -1,6 +1,8 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
+# Usage documentation: sync_issue_to_jira.md
+
 on:
   workflow_call:
     inputs:
