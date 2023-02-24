@@ -1,54 +1,154 @@
-# Copyright 2022 Canonical Ltd.
+# Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
-
-# Context: https://support.atlassian.com/cloud-automation/docs/jira-automation-triggers/#Incoming-webhook
-# Source: https://github.com/beliaev-maksim/github-to-jira-automation
 
 on:
   workflow_call:
     inputs:
+      jira-base-url:
+        description: URL of Jira instance (e.g. https://warthogs.atlassian.net). Do not include trailing slash
+        required: true
+        type: string
+      jira-project-key:
+        description: Jira project key (e.g. DPE)
+        required: true
+        type: string
       jira-component-name:
         description: Name of Jira component (e.g. mysql-k8s)
         required: true
         type: string
     secrets:
-      jira-webhook-url:
-        description: Jira webhook URL
+      jira-api-token:
+        # https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/
+        description: Jira API token
+        required: true
+      jira-user-email:
+        description: User email address for Jira API token
         required: true
 
-
 jobs:
-  sync:
-    name: Sync issue
+  create-jira-issue:
+    name: Create Jira issue
+    if: ${{ github.event.action == 'opened' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Update Jira ticket
+      - name: Login to Jira API
+        uses: atlassian/gajira-login@v3
         env:
-           # put into env vars to properly escape special bash chars
-           ISSUE_TITLE: ${{ github.event.issue.title }}
-           ISSUE_DESCRIPTION: ${{ github.event.issue.body }}
+          JIRA_BASE_URL: ${{ inputs.jira-base-url }}
+          JIRA_USER_EMAIL: ${{ secrets.jira-user-email }}
+          JIRA_API_TOKEN: ${{ secrets.jira-api-token }}
+      - name: Determine Jira issue type
+        id: issue-type
         run: |
-          if ${{ contains(github.event.issue.labels.*.name, 'bug') }}; then
-            ISSUE_TYPE=bug
+          if ${{ contains(github.event.issue.labels.*.name, 'bug') }}
+          then
+            echo "type=Bug" >> $GITHUB_OUTPUT
           else
-            ISSUE_TYPE=story
+            echo "type=Story" >> $GITHUB_OUTPUT
           fi
+      - name: Create Jira issue
+        id: create
+        uses: atlassian/gajira-create@v3
+        with:
+          project: ${{ inputs.jira-project-key }}
+          issuetype: ${{ steps.issue-type.outputs.type }}
+          summary: ${{ github.event.issue.title }}
+          fields: '{"components": [{"name": "${{ inputs.jira-component-name }}" }], "assignee": null}'
+      - name: Add GitHub issue URL to Jira issue
+        run: |
+          curl --request POST \
+               --url "${{ inputs.jira-base-url }}/rest/api/3/issue/${{ steps.create.outputs.issue }}/remotelink" \
+               --user "${{ secrets.jira-user-email }}:${{ secrets.jira-api-token }}" \
+               --header "Accept: application/json" \
+               --header "Content-Type: application/json" \
+               --data '{"object": {"url": "${{ github.event.issue.html_url }}", "title": "Issue #${{ github.event.issue.number }} · ${{ github.repository }}"}}'
+      - name: Comment Jira issue URL on GitHub issue
+        run: gh issue comment ${{ github.event.issue.number }} --body "${{ inputs.jira-base-url }}/browse/${{ steps.create.outputs.issue }}" --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # send Jira request
+  update-jira-issue:
+    name: Update Jira issue
+    if: ${{ github.event.action != 'opened' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Jira issue key
+        id: get-jira-issue-key
+        shell: python
+        run: |
+          import json
+          import os
+          import subprocess
 
-          # Canonical doesn't encourage discussions in Jira on public project issues.
-          # Thus, it is NOT recommended to put description in Jira in order to push conversation to GitHub
-          # if strongly required, then replace '--arg body ""' with the next line
-          # --arg body "$ISSUE_DESCRIPTION"
 
-          data=$( jq -n \
-                  --arg title "$ISSUE_TITLE" \
-                  --arg url '${{ github.event.issue.html_url }}' \
-                  --arg submitter '${{ github.event.issue.user.login }}' \
-                  --arg body "" \
-                  --arg type "$ISSUE_TYPE" \
-                  --arg action '${{ github.event.action }}' \
-                  --arg component '${{ inputs.jira-component-name }}' \
-                  '{title: $title, url: $url, submitter: $submitter, body: $body, type: $type, action: $action, component: $component}' )
+          def run_gh_cli(*args):
+              """Run command with GitHub CLI"""
+              output = subprocess.check_output(
+                  [
+                      "gh",
+                      "api",
+                      "-H",
+                      "Accept: application/vnd.github+json",
+                      "-H",
+                      "X-GitHub-Api-Version: 2022-11-28",
+                      *args,
+                  ]
+              )
+              return json.loads(output)
 
-          curl -X POST -H 'Content-type: application/json' --data "${data}" "${{ secrets.jira-webhook-url }}"
+
+          # First five issue comments
+          github_issue_comments = run_gh_cli(
+              "${{ github.event.issue.comments_url }}",
+              "--method",
+              "GET",
+              "--raw-field",
+              "per_page=5",
+          )
+          for comment in github_issue_comments:
+              user = comment["user"]
+              if user["login"] == "github-actions[bot]":
+                  assert user["id"] == 41898282
+                  assert user["type"] == "Bot"
+                  # Example: https://warthogs.atlassian.net/browse/DPE-994
+                  jira_issue_link = comment["body"]
+                  # Example: DPE-994
+                  jira_issue_key = jira_issue_link.split("/")[-1]
+                  output_file = os.environ["GITHUB_OUTPUT"]
+                  with open(output_file, "a") as file:
+                      file.write(f"jira_issue_key={jira_issue_key}")
+                  break
+          else:
+              print("Jira issue not found")
+              exit(1)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Determine Jira issue transition ID
+        id: transition-id
+        run: |
+          if ${{ github.event.action == 'closed' && github.event.issue.state_reason == 'completed' }}
+          then
+            echo "name=Done" >> $GITHUB_OUTPUT
+            echo "id=61" >> $GITHUB_OUTPUT
+          elif ${{ github.event.action == 'closed' && github.event.issue.state_reason == 'not_planned' }}
+          then
+            echo "name=Rejected" >> $GITHUB_OUTPUT
+            echo "id=71" >> $GITHUB_OUTPUT
+          elif ${{ github.event.action == 'reopened'}}
+          then
+            echo "name=Untriaged" >> $GITHUB_OUTPUT
+            echo "id=81" >> $GITHUB_OUTPUT
+          else
+            echo "github.event.action=${{ github.event.action }}"
+            echo "github.event.issue.state_reason=${{ github.event.issue.state_reason }}"
+            echo "Unknown transition"
+            exit 1
+          fi
+      - name: Transition issue to ${{ steps.transition-id.outputs.name }}
+        run: |
+          curl --request POST \
+            --url "${{ inputs.jira-base-url }}/rest/api/3/issue/${{ steps.get-jira-issue-key.outputs.jira_issue_key }}/transitions" \
+            --user "${{ secrets.jira-user-email }}:${{ secrets.jira-api-token }}" \
+            --header "Accept: application/json" \
+            --header "Content-Type: application/json" \
+            --data '{"transition": {"id": "${{ steps.transition-id.outputs.id }}"}}'
