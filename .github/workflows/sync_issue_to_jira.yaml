@@ -7,11 +7,11 @@ on:
   workflow_call:
     inputs:
       jira-base-url:
-        description: URL of Jira instance (e.g. https://warthogs.atlassian.net). Do not include trailing slash
+        description: URL of Jira instance (e.g. "https://warthogs.atlassian.net"). Do not include trailing slash
         required: true
         type: string
       jira-project-key:
-        description: Jira project key (e.g. DPE)
+        description: Jira project key (e.g. "DPE")
         required: true
         type: string
       jira-component-names:
