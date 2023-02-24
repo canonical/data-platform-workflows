@@ -12,8 +12,8 @@ on:
         description: Jira project key (e.g. DPE)
         required: true
         type: string
-      jira-component-name:
-        description: Name of Jira component (e.g. mysql-k8s)
+      jira-component-names:
+        description: Comma separated list of Jira component names (e.g. "mysql-k8s,mysql-router-k8s")
         required: true
         type: string
     secrets:
@@ -46,6 +46,21 @@ jobs:
           else
             echo "type=Story" >> $GITHUB_OUTPUT
           fi
+      - name: Create components JSON
+        id: components
+        shell: python
+        run: |
+          import json
+          import os
+
+          components = [
+              {"name": component} for component in "${{ inputs.jira-component-names }}".split(",")
+          ]
+          output = f"components={json.dumps(components)}"
+          print(output)
+          output_file = os.environ["GITHUB_OUTPUT"]
+          with open(output_file, "a") as file:
+              file.write(output)
       - name: Create Jira issue
         id: create
         uses: atlassian/gajira-create@v3
@@ -53,7 +68,7 @@ jobs:
           project: ${{ inputs.jira-project-key }}
           issuetype: ${{ steps.issue-type.outputs.type }}
           summary: ${{ github.event.issue.title }}
-          fields: '{"components": [{"name": "${{ inputs.jira-component-name }}" }], "assignee": null}'
+          fields: '{"components": ${{ steps.components.outputs.components }}, "assignee": null}'
       - name: Add GitHub issue URL to Jira issue
         run: |
           curl --request POST \
