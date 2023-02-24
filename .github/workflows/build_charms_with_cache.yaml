@@ -1,5 +1,8 @@
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
+
+# Usage documentation: build_charms_with_cache.md
+
 on:
   workflow_call:
     inputs:
@@ -40,6 +43,7 @@ jobs:
     with:
       repository-name: canonical/data-platform-workflows
       file-name: build_charms_with_cache.yaml
+
   collect-charms:
     name: Collect charms
     needs:
@@ -157,7 +161,7 @@ jobs:
         # To avoid that situation, delete the cache on main and save
         # a new cache with the same key once per day.
         run: |
-          gh api -H "Accept: application/vnd.github+json" --method DELETE "/repos/{owner}/{repo}/actions/caches?key=${{ steps.restore-cache.outputs.cache-primary-key }}"
+          gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" --method DELETE "/repos/{owner}/{repo}/actions/caches?key=${{ steps.restore-cache.outputs.cache-primary-key }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Save cache of `charmcraft pack` LXC instance
