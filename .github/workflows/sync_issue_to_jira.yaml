@@ -16,7 +16,7 @@ on:
         type: string
       jira-component-names:
         description: Comma separated list of Jira component names (e.g. "mysql-k8s,mysql-router-k8s")
-        required: true
+        required: false
         type: string
     secrets:
       jira-api-token:
@@ -56,7 +56,9 @@ jobs:
           import os
 
           components = [
-              {"name": component} for component in "${{ inputs.jira-component-names }}".split(",")
+              {"name": component}
+              for component in "${{ inputs.jira-component-names }}".split(",")
+              if component
           ]
           output = f"components={json.dumps(components)}"
           print(output)
