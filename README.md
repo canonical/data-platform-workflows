@@ -1,6 +1,6 @@
 ## Usage
 
-[Reusable workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows) are located at [.github/workflows](.github/workflows)
+[Reusable workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows) (and documentation) are located at [.github/workflows](.github/workflows)
 
 Workflows that do **not** begin with an underscore (e.g. `foo.yaml`) may be called outside this repository.
 
