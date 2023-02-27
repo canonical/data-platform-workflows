@@ -129,6 +129,8 @@ jobs:
                   assert user["type"] == "Bot"
                   # Example: https://warthogs.atlassian.net/browse/DPE-994
                   jira_issue_link = comment["body"]
+                  if not jira_issue_link.startswith("${{ inputs.jira-base-url }}"):
+                      continue
                   # Example: DPE-994
                   jira_issue_key = jira_issue_link.split("/")[-1]
                   output_file = os.environ["GITHUB_OUTPUT"]

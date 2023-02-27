@@ -23,5 +23,5 @@ jobs:
       jira-api-token: ${{ secrets.JIRA_API_TOKEN }}
       jira-user-email: ${{ secrets.JIRA_USER_EMAIL }}
     permissions:
-      issues: write  # Needed to create issue comment
+      issues: write  # Needed to create GitHub issue comment
 ```
