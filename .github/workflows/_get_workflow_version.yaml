@@ -42,6 +42,7 @@ jobs:
   get-version:
     name: Get workflow version
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Install pyyaml
         run: python3 -m pip install pyyaml
