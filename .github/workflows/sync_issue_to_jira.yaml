@@ -32,6 +32,7 @@ jobs:
     name: Create Jira issue
     if: ${{ github.event.action == 'opened' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Login to Jira API
         uses: atlassian/gajira-login@v3
@@ -90,6 +91,7 @@ jobs:
     name: Update Jira issue
     if: ${{ github.event.action != 'opened' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Get Jira issue key
         id: get-jira-issue-key
