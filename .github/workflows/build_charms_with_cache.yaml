@@ -118,6 +118,13 @@ jobs:
             # Replace placeholder text "INODE" with inode
             container_name_with_inode=$(echo $container_name_without_inode | sed "s/INODE/$charm_repository_directory_inode/")
             lxc --project charmcraft move $container_name_without_inode $container_name_with_inode
+            # Force charmcraft to update all files
+            # By default, charmcraft only updates files that were modified after the last build.
+            # Source: https://github.com/canonical/craft-parts/blob/82038513adc861e30dc91783b573c86b87e58873/craft_parts/sources/local_source.py#L99-L123
+            # Why this is needed:
+            #   It is possible that a cache is created on the main branch after a file is modified on a PR branch.
+            #   Without this, if the cache from main were used, that file would not be updated in the build.
+            sudo touch --date="1970-01-01" /var/snap/lxd/common/lxd/containers/$container_name_with_inode/rootfs/root/parts/charm/state/pull
           done
       - name: Pack charm
         id: pack
