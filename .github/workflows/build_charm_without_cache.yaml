@@ -1,0 +1,59 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Usage documentation: build_charm_without_cache.md
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: Packed charm is uploaded to this GitHub artifact name
+        default: charm-packed-without-cache
+        type: string
+      path-to-charm-directory:
+        description: Relative path to charm directory from repository directory
+        default: .
+        type: string
+    outputs:
+      artifact-name:
+        description: Packed charm is uploaded to this GitHub artifact name
+        value: ${{ inputs.artifact-name }}
+
+jobs:
+  build:
+    name: Build charm
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup environment
+        # TODO: Replace with custom image on self-hosted runner
+        run: |
+          # Copied from https://github.com/charmed-kubernetes/actions-operator/blob/96fb0b07eb675f74cf1796be812bc7e67a0d62fc/src/bootstrap/index.ts#L151
+          sudo adduser $USER lxd
+          newgrp lxd
+          sudo lxd waitready
+          sudo lxd init --auto
+          sudo iptables -F FORWARD
+          sudo iptables -P FORWARD ACCEPT
+          sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
+          sudo snap install charmcraft --classic
+      - name: Pack charm
+        id: pack
+        working-directory: ${{ inputs.path-to-charm-directory }}
+        run: charmcraft pack
+      - name: Upload charmcraft logs
+        if: ${{ failure() && steps.pack.outcome == 'failure' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}-charmcraft-build-logs
+          path: ~/.local/state/charmcraft/log/
+          if-no-files-found: error
+      - name: Upload packed charm
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: |
+            ${{ inputs.path-to-charm-directory }}/*.charm
+          if-no-files-found: error
