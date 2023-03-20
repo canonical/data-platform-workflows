@@ -102,9 +102,7 @@ if len(charm_revisions) == 1:
 else:
     release_title = "Revisions "
 release_title += ", ".join(str(revision) for revision in charm_revisions)
-release_notes = f"""Released to {args.channel}
-OCI images:
-""" + "\n".join(
+release_notes = f"Released to {args.channel}\nOCI images:\n" + "\n".join(
     f"- {dataclasses.asdict(oci)}" for oci in oci_resources
 )
 with open("release_notes.txt", "w") as file:
