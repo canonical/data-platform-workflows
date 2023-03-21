@@ -65,6 +65,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.artifact-name }}
+          path: caller-repo
       - name: Upload & release charm
         id: release
         working-directory: caller-repo
@@ -73,6 +74,7 @@ jobs:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
       - name: Create GitHub release
         if: ${{ inputs.create-github-release }}
+        working-directory: caller-repo
         run: |
           git tag ${{ steps.release.outputs.release_tag }}
           git push origin ${{ steps.release.outputs.release_tag }}
