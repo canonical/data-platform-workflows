@@ -46,7 +46,6 @@ jobs:
         run: python3 -m pip install pyyaml
       - name: Install docker
         run: |
-          sudo addgroup docker
           sudo adduser $USER docker
           newgrp docker
           sudo snap install docker
