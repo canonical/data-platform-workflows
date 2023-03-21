@@ -63,6 +63,13 @@ for resource_name, resource in resources.items():
     logging.info(f"Downloading OCI image: {image_name}")
     run(["docker", "pull", image_name])
     logging.info(f"Uploading charm resource: {resource_name}")
+    # Remove digest or tag from image name before passing to charmcraft
+    # (charmcraft expects an image name without a digest or tag
+    # [Note: charmcraft can accept a digest without an image name, but we're not using that here.])
+    if "@" in image_name:
+        image_name = image_name.split("@")[0]
+    elif ":" in image_name:
+        image_name = image_name.split(":")[0]
     output = run(
         [
             "charmcraft",
