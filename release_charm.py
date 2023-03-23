@@ -62,14 +62,10 @@ for resource_name, resource in resources.items():
     image_name = resource["upstream-source"]
     logging.info(f"Downloading OCI image: {image_name}")
     run(["docker", "pull", image_name])
+    image_id = run(["docker", "image", "inspect", image_name, "--format", "'{{.Id}}'"])
+    image_id = image_id.rstrip("\n").strip("'").lstrip("sha256:")
+    assert "\n" not in image_id, f"Multiple local images found for {image_name}"
     logging.info(f"Uploading charm resource: {resource_name}")
-    # Remove digest or tag from image name before passing to charmcraft
-    # (charmcraft expects an image name without a digest or tag
-    # [Note: charmcraft can accept a digest without an image name, but we're not using that here.])
-    if "@" in image_name:
-        image_name = image_name.split("@")[0]
-    elif ":" in image_name:
-        image_name = image_name.split(":")[0]
     output = run(
         [
             "charmcraft",
@@ -79,7 +75,7 @@ for resource_name, resource in resources.items():
             charm_name,
             resource_name,
             "--image",
-            image_name,
+            image_id,
         ]
     )
     revision: int = json.loads(output)["revision"]
