@@ -88,16 +88,16 @@ jobs:
               try:
                   os.makedirs(repository_name)
               except FileExistsError:
-                  pass
+                  commands = [f"git checkout {ref}"]
               else:
                   commands = [
                       "git init",
                       "git sparse-checkout set --sparse-index .github/workflows/",
                       f"git remote add --fetch origin https://github.com/{repository_name}.git",
-                      f"git pull origin {ref}",
+                      f"git checkout {ref}",
                   ]
-                  for command in commands:
-                      subprocess.check_output(command.split(" "), cwd=repository_name)
+              for command in commands:
+                  subprocess.check_output(command.split(" "), cwd=repository_name)
           
               jobs = yaml.safe_load(caller_workflow_file_path.read_text())["jobs"]
               versions_ = set()

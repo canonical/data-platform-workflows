@@ -1,0 +1,90 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Usage documentation: release_charm.md
+
+on:
+  workflow_call:
+    inputs:
+      channel:
+        description: Charmhub channel to release to
+        required: true
+        type: string
+      artifact-name:
+        description: Name of GitHub artifact that contains the .charm file(s) (use another workflow to build the charm)
+        required: true
+        type: string
+      path-to-charm-directory:
+        description: Relative path to charm directory (from GitHub artifact root)
+        default: .
+        type: string
+      create-github-release:
+        description: Create git tag & GitHub release
+        default: true
+        type: boolean
+    secrets:
+      charmhub-token:
+        description: Charmhub login token
+        required: true
+
+jobs:
+  get-workflow-version:
+    name: Get workflow version
+    uses: ./.github/workflows/_get_workflow_version.yaml
+    with:
+      repository-name: canonical/data-platform-workflows
+      file-name: release_charm.yaml
+
+  release-charm:
+    name: Release charm
+    needs:
+      - get-workflow-version
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Install pyyaml
+        run: python3 -m pip install pyyaml
+      - name: Install docker
+        run: |
+          sudo adduser $USER docker
+          newgrp docker
+          sudo snap install docker
+      - name: Install charmcraft
+        run: sudo snap install charmcraft --classic
+      - name: Checkout caller repository
+        uses: actions/checkout@v3
+        with:
+          path: caller-repo
+      - name: Checkout release workflow repository
+        uses: actions/checkout@v3
+        with:
+          repository: canonical/data-platform-workflows
+          path: workflow-repo
+          ref: ${{ needs.get-workflow-version.outputs.version }}
+      - name: Download .charm file(s)
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: caller-repo
+      - name: Upload & release charm
+        id: release
+        working-directory: caller-repo
+        run: python3 ../workflow-repo/release_charm.py --charm-directory ${{ inputs.path-to-charm-directory }} --channel ${{ inputs.channel }}
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
+      - name: Create GitHub release
+        if: ${{ inputs.create-github-release }}
+        working-directory: caller-repo
+        run: |
+          git tag ${{ steps.release.outputs.release_tag }}
+          git push origin ${{ steps.release.outputs.release_tag }}
+          gh release create ${{ steps.release.outputs.release_tag }} --verify-tag --generate-notes --title "${{ steps.release.outputs.release_title }}" --notes-file release_notes.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload charmcraft logs
+        if: ${{ failure() && steps.release.outcome == 'failure' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}-charmcraft-release-logs
+          path: ~/.local/state/charmcraft/log/
+          if-no-files-found: error
