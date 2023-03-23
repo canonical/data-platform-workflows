@@ -71,7 +71,6 @@ jobs:
               """
               # Separate ref (e.g. "refs/heads/my_branch", "1.0", "my_branch")
               path, ref = caller_workflow_ref_path.split("@")
-              ref = ref.removeprefix("refs/heads/")
               # Separate repository name (e.g. "octocat/hello-world")
               repository_name = "/".join(path.split("/")[:2])
               path = path.split("/")[2:]
@@ -88,13 +87,17 @@ jobs:
               try:
                   os.makedirs(repository_name)
               except FileExistsError:
-                  commands = [f"git checkout {ref}"]
+                  commands = [
+                      f"git fetch origin {ref}",
+                      "git checkout FETCH_HEAD",
+                  ]
               else:
                   commands = [
                       "git init",
                       "git sparse-checkout set --sparse-index .github/workflows/",
                       f"git remote add --fetch origin https://github.com/{repository_name}.git",
-                      f"git checkout {ref}",
+                      f"git fetch origin {ref}",
+                      "git checkout FETCH_HEAD",
                   ]
               for command in commands:
                   subprocess.check_output(command.split(" "), cwd=repository_name)
