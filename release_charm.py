@@ -110,5 +110,7 @@ release_notes = f"Released to {args.channel}\nOCI images:\n" + "\n".join(
 )
 with open("release_notes.txt", "w") as file:
     file.write(release_notes)
+output = f"release_tag={release_tag}\nrelease_title={release_title}"
+logging.info(output)
 with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-    file.write(f"release_tag={release_tag}\nrelease_title={release_title}")
+    file.write(output)
