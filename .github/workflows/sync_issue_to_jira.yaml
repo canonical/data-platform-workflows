@@ -45,9 +45,9 @@ jobs:
         run: |
           if ${{ contains(github.event.issue.labels.*.name, 'bug') }}
           then
-            echo "type=Bug" >> $GITHUB_OUTPUT
+            echo "type=Bug" >> "$GITHUB_OUTPUT"
           else
-            echo "type=Story" >> $GITHUB_OUTPUT
+            echo "type=Story" >> "$GITHUB_OUTPUT"
           fi
       - name: Create components JSON
         id: components
@@ -151,16 +151,16 @@ jobs:
         run: |
           if ${{ github.event.action == 'closed' && github.event.issue.state_reason == 'completed' }}
           then
-            echo "name=Done" >> $GITHUB_OUTPUT
-            echo "id=61" >> $GITHUB_OUTPUT
+            echo "name=Done" >> "$GITHUB_OUTPUT"
+            echo "id=61" >> "$GITHUB_OUTPUT"
           elif ${{ github.event.action == 'closed' && github.event.issue.state_reason == 'not_planned' }}
           then
-            echo "name=Rejected" >> $GITHUB_OUTPUT
-            echo "id=71" >> $GITHUB_OUTPUT
+            echo "name=Rejected" >> "$GITHUB_OUTPUT"
+            echo "id=71" >> "$GITHUB_OUTPUT"
           elif ${{ github.event.action == 'reopened'}}
           then
-            echo "name=Untriaged" >> $GITHUB_OUTPUT
-            echo "id=81" >> $GITHUB_OUTPUT
+            echo "name=Untriaged" >> "$GITHUB_OUTPUT"
+            echo "id=81" >> "$GITHUB_OUTPUT"
           else
             echo "github.event.action=${{ github.event.action }}"
             echo "github.event.issue.state_reason=${{ github.event.issue.state_reason }}"

@@ -46,7 +46,7 @@ jobs:
         run: python3 -m pip install pyyaml
       - name: Install docker
         run: |
-          sudo adduser $USER docker
+          sudo adduser "$USER" docker
           newgrp docker
           sudo snap install docker
       - name: Install charmcraft
