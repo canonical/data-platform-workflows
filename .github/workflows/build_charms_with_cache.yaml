@@ -110,7 +110,7 @@ jobs:
           # Project setup copied from https://github.com/canonical/craft-providers/blob/20d154bb8fa9868a678c5621f124a02e2b9e72ad/craft_providers/lxd/project.py#L26
           lxc project create charmcraft
           lxc --project default profile show default | lxc --project charmcraft profile edit default
-          charm_repository_directory_inode=$(stat --format "%i" ${{ matrix.charm.directory_path }})
+          charm_repository_directory_inode=$(stat --format "%i" "${{ matrix.charm.directory_path }}")
           for container_tarball in ~/ga-charmcraft-cache/*
           do
             lxc --project charmcraft import "$container_tarball"
@@ -129,7 +129,7 @@ jobs:
       - name: Pack charm
         id: pack
         working-directory: ${{ matrix.charm.directory_path }}
-        run: charmcraft pack --bases-index=${{ matrix.charm.bases_index }}
+        run: charmcraft pack --bases-index="${{ matrix.charm.bases_index }}"
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
@@ -151,7 +151,7 @@ jobs:
       - name: Export `charmcraft pack` container to cache
         run: |
           mkdir -p ~/ga-charmcraft-cache
-          charm_repository_directory_inode=$(stat --format "%i" ${{ matrix.charm.directory_path }})
+          charm_repository_directory_inode=$(stat --format "%i" "${{ matrix.charm.directory_path }}")
           for container_name_with_inode in $(lxc --project charmcraft list --columns n --format csv)
           do
             # Replace inode with placeholder text "INODE"
