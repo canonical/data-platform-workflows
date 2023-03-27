@@ -62,13 +62,13 @@ jobs:
       - name: Update bundle file
         id: update-file
         working-directory: bundle-repo
-        run: python3 ../workflow-repo/update_bundle.py ${{ inputs.path-to-bundle-file }}
+        run: python3 ../workflow-repo/update_bundle.py "${{ inputs.path-to-bundle-file }}"
       - name: Push `update-bundle` branch
         if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
         working-directory: bundle-repo
         run: |
           git checkout -b update-bundle
-          git add ${{ inputs.path-to-bundle-file }}
+          git add "${{ inputs.path-to-bundle-file }}"
           git config user.name "GitHub Actions"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Update bundle"
@@ -86,6 +86,6 @@ jobs:
             echo Open pull request already exists
             exit 0
           fi
-          gh pr create --head update-bundle --title "Update bundle" --body "Update charm revisions in bundle YAML file" --reviewer ${{ inputs.reviewers }}
+          gh pr create --head update-bundle --title "Update bundle" --body "Update charm revisions in bundle YAML file" --reviewer "${{ inputs.reviewers }}"
         env:
           GH_TOKEN: ${{ secrets.token }}
