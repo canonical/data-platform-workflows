@@ -43,11 +43,11 @@ jobs:
       - name: Determine Jira issue type
         id: issue-type
         run: |
-          if ${{ contains(github.event.issue.labels.*.name, 'bug') }}
+          if "${{ contains(github.event.issue.labels.*.name, 'bug') }}"
           then
-            echo "type=Bug" >> $GITHUB_OUTPUT
+            echo "type=Bug" >> "$GITHUB_OUTPUT"
           else
-            echo "type=Story" >> $GITHUB_OUTPUT
+            echo "type=Story" >> "$GITHUB_OUTPUT"
           fi
       - name: Create components JSON
         id: components
@@ -82,7 +82,7 @@ jobs:
                --header "Content-Type: application/json" \
                --data '{"object": {"url": "${{ github.event.issue.html_url }}", "title": "Issue #${{ github.event.issue.number }} · ${{ github.repository }}"}}'
       - name: Comment Jira issue URL on GitHub issue
-        run: gh issue comment ${{ github.event.issue.number }} --body "${{ inputs.jira-base-url }}/browse/${{ steps.create.outputs.issue }}" --repo ${{ github.repository }}
+        run: gh issue comment "${{ github.event.issue.number }}" --body "${{ inputs.jira-base-url }}/browse/${{ steps.create.outputs.issue }}" --repo "${{ github.repository }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -149,18 +149,18 @@ jobs:
       - name: Determine Jira issue transition ID
         id: transition-id
         run: |
-          if ${{ github.event.action == 'closed' && github.event.issue.state_reason == 'completed' }}
+          if "${{ github.event.action == 'closed' && github.event.issue.state_reason == 'completed' }}"
           then
-            echo "name=Done" >> $GITHUB_OUTPUT
-            echo "id=61" >> $GITHUB_OUTPUT
-          elif ${{ github.event.action == 'closed' && github.event.issue.state_reason == 'not_planned' }}
+            echo "name=Done" >> "$GITHUB_OUTPUT"
+            echo "id=61" >> "$GITHUB_OUTPUT"
+          elif "${{ github.event.action == 'closed' && github.event.issue.state_reason == 'not_planned' }}"
           then
-            echo "name=Rejected" >> $GITHUB_OUTPUT
-            echo "id=71" >> $GITHUB_OUTPUT
-          elif ${{ github.event.action == 'reopened'}}
+            echo "name=Rejected" >> "$GITHUB_OUTPUT"
+            echo "id=71" >> "$GITHUB_OUTPUT"
+          elif "${{ github.event.action == 'reopened'}}"
           then
-            echo "name=Untriaged" >> $GITHUB_OUTPUT
-            echo "id=81" >> $GITHUB_OUTPUT
+            echo "name=Untriaged" >> "$GITHUB_OUTPUT"
+            echo "id=81" >> "$GITHUB_OUTPUT"
           else
             echo "github.event.action=${{ github.event.action }}"
             echo "github.event.issue.state_reason=${{ github.event.issue.state_reason }}"
