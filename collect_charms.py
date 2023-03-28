@@ -48,6 +48,5 @@ for charmcraft_yaml in Path(".").glob("**/charmcraft.yaml"):
             }
         )
 logging.info(f"Collected {charms=}")
-output_file = os.environ["GITHUB_OUTPUT"]
-with open(output_file, "a") as file:
+with open(os.environ["GITHUB_OUTPUT"], "a") as file:
     file.write(f"charms={json.dumps(charms)}")

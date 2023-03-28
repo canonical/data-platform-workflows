@@ -144,8 +144,7 @@ jobs:
           
           output = f"version={versions.pop()}"
           print(output)
-          output_file = os.environ["GITHUB_OUTPUT"]
-          with open(output_file, "a") as file:
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
     outputs:
       version: ${{ steps.get-version.outputs.version }}

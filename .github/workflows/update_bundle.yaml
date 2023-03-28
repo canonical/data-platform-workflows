@@ -1,0 +1,91 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Usage documentation: update_bundle.md
+
+on:
+  workflow_call:
+    inputs:
+      path-to-bundle-file:
+        description: Relative path to bundle file from repository directory
+        required: true
+        type: string
+      reviewers:
+        description: Comma separated list of GitHub usernames to request to review pull request (e.g. "canonical/data-platform-engineers,octocat")
+        required: false
+        type: string
+    secrets:
+      token:
+        description: |
+          GitHub App token or personal access token (not GITHUB_TOKEN)
+          
+          Permissions needed for App token:
+          - Access: Read & write for Repository permissions: Pull requests
+          - If GitHub team is requested for pull request review,
+            Access: Read-only for Organization permissions: Members
+          
+          Permissions needed for personal access token: write access to repository, member of organization
+          Personal access tokens with fine grained access are not supported (by GraphQL API, which is used by GitHub CLI).
+          
+          The GITHUB_TOKEN can create a pull request, but `on: pull_request` workflows will not be triggered.
+          
+          Source: https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
+        required: true
+
+jobs:
+  get-workflow-version:
+    name: Get workflow version
+    uses: ./.github/workflows/_get_workflow_version.yaml
+    with:
+      repository-name: canonical/data-platform-workflows
+      file-name: update_bundle.yaml
+
+  update-bundle:
+    name: Update bundle
+    needs:
+      - get-workflow-version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Install dependencies
+        run: python3 -m pip install requests pyyaml
+      - name: Checkout bundle repository
+        uses: actions/checkout@v3
+        with:
+          path: bundle-repo
+      - name: Checkout reusable workflow repository
+        uses: actions/checkout@v3
+        with:
+          repository: canonical/data-platform-workflows
+          path: workflow-repo
+          ref: ${{ needs.get-workflow-version.outputs.version }}
+      - name: Update bundle file
+        id: update-file
+        working-directory: bundle-repo
+        run: python3 ../workflow-repo/update_bundle.py "${{ inputs.path-to-bundle-file }}"
+      - name: Push `update-bundle` branch
+        if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
+        working-directory: bundle-repo
+        run: |
+          git checkout -b update-bundle
+          git add "${{ inputs.path-to-bundle-file }}"
+          git config user.name "GitHub Actions"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update bundle"
+          git push origin update-bundle -f
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create pull request
+        if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
+        working-directory: bundle-repo
+        run: |
+          # Capture output in variable so that step fails if `gh pr list` exits with non-zero code
+          prs=$(gh pr list --head update-bundle --state open --json number)
+          if [[ $prs != "[]" ]]
+          then
+            echo Open pull request already exists
+            exit 0
+          fi
+          gh pr create --head update-bundle --title "Update bundle" --body "Update charm revisions in bundle YAML file" --reviewer "${{ inputs.reviewers }}"
+        env:
+          GH_TOKEN: ${{ secrets.token }}

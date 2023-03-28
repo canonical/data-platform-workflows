@@ -63,8 +63,7 @@ jobs:
           ]
           output = f"components={json.dumps(components)}"
           print(output)
-          output_file = os.environ["GITHUB_OUTPUT"]
-          with open(output_file, "a") as file:
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
       - name: Create Jira issue
         id: create
@@ -137,9 +136,10 @@ jobs:
                       continue
                   # Example: DPE-994
                   jira_issue_key = jira_issue_link.split("/")[-1]
-                  output_file = os.environ["GITHUB_OUTPUT"]
-                  with open(output_file, "a") as file:
-                      file.write(f"jira_issue_key={jira_issue_key}")
+                  output = f"jira_issue_key={jira_issue_key}"
+                  print(output)
+                  with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+                      file.write(output)
                   break
           else:
               print("Jira issue not found")

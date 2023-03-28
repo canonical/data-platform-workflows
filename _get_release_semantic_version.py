@@ -44,6 +44,5 @@ else:
 
 output = f"full_version=v{major}.{minor}.{patch}\nmajor_version=v{major}"
 print(output)
-output_file = os.environ["GITHUB_OUTPUT"]
-with open(output_file, "a") as file:
+with open(os.environ["GITHUB_OUTPUT"], "a") as file:
     file.write(output)
