@@ -47,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: 'Foresight: Collect workflow telemetry'
+        uses: runforesight/foresight-workflow-kit-action@v1
       - name: Install dependencies
         run: python3 -m pip install requests pyyaml
       - name: Checkout bundle repository
