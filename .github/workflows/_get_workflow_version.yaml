@@ -44,6 +44,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: 'Foresight: Collect workflow telemetry'
+        uses: runforesight/foresight-workflow-kit-action@v1
       - name: Install pyyaml
         run: python3 -m pip install pyyaml
       - name: Get reusable workflow version
