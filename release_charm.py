@@ -63,7 +63,7 @@ for resource_name, resource in resources.items():
     logging.info(f"Downloading OCI image: {image_name}")
     run(["docker", "pull", image_name])
     image_id = run(["docker", "image", "inspect", image_name, "--format", "'{{.Id}}'"])
-    image_id = image_id.rstrip("\n").strip("'").lstrip("sha256:")
+    image_id = image_id.rstrip("\n").strip("'").removeprefix("sha256:")
     assert "\n" not in image_id, f"Multiple local images found for {image_name}"
     logging.info(f"Uploading charm resource: {resource_name}")
     output = run(
