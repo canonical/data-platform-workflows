@@ -24,7 +24,7 @@ on:
           - If GitHub team is requested for pull request review,
             Access: Read-only for Organization permissions: Members
           
-          Permissions needed for personal access token: write access to repository, member of organization
+          Permissions needed for personal access token: write access to repository, read:org
           Personal access tokens with fine grained access are not supported (by GraphQL API, which is used by GitHub CLI).
           
           The GITHUB_TOKEN can create a pull request, but `on: pull_request` workflows will not be triggered.
