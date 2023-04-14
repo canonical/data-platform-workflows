@@ -35,7 +35,9 @@ jobs:
         uses: runforesight/foresight-workflow-kit-action@v1
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Install tox
-        run: python3 -m pip install tox
+      - name: Install tox & poetry
+        run: |
+          pipx install tox
+          pipx install poetry
       - name: Run linters
         run: tox run -e lint
