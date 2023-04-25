@@ -34,8 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: 'Foresight: Collect workflow telemetry'
-        uses: runforesight/foresight-workflow-kit-action@v1
       - name: Login to Jira API
         uses: atlassian/gajira-login@v3
         env:
@@ -94,8 +92,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: 'Foresight: Collect workflow telemetry'
-        uses: runforesight/foresight-workflow-kit-action@v1
       - name: Get Jira issue key
         id: get-jira-issue-key
         shell: python
