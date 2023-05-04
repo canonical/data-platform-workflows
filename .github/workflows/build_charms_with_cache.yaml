@@ -93,7 +93,8 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
           sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
-          sudo snap install charmcraft --classic
+          # TODO: migrate to charmcraft 2.3
+          sudo snap install charmcraft --classic --channel 2.2/stable
       - name: Get charmcraft version
         id: charmcraft-version
         # Major and minor versions (e.g. "2.1")
