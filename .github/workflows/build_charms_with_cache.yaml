@@ -161,7 +161,7 @@ jobs:
           for container_name_with_inode in $(lxc --project charmcraft list --columns n --format csv)
           do
             # charmcraft 2.3.0 added a "base instance" LXC container that is not specific to a charm (and doesn't contain an inode)
-            if [[ $container_name_without_inode == charmcraft-* ]]
+            if [[ $container_name_with_inode == charmcraft-* ]]
             then
               # LXC container is for a charm (not the "base instance")
               # Replace inode with placeholder text "INODE"
