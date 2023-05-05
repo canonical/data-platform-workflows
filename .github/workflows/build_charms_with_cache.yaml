@@ -104,7 +104,7 @@ jobs:
         with:
           path: ~/ga-charmcraft-cache/**
           key: charmcraft-pack-${{ matrix.charm.directory_path }}-${{ matrix.charm.bases_index }}-${{ steps.charmcraft-version.outputs.version }}-${{ hashFiles(format('{0}/charmcraft.yaml', matrix.charm.directory_path), format('{0}/requirements.txt', matrix.charm.directory_path)) }}
-      - name: Import cached container
+      - name: Import cached containers
         if: ${{ steps.restore-cache.outputs.cache-hit }}
         run: |
           # Project setup copied from https://github.com/canonical/craft-providers/blob/20d154bb8fa9868a678c5621f124a02e2b9e72ad/craft_providers/lxd/project.py#L26
@@ -154,7 +154,7 @@ jobs:
             ${{ matrix.charm.directory_path }}/*.charm
             .empty
           if-no-files-found: error
-      - name: Export `charmcraft pack` container to cache
+      - name: Export `charmcraft pack` containers to cache
         run: |
           mkdir -p ~/ga-charmcraft-cache
           charm_repository_directory_inode=$(stat --format "%i" "${{ matrix.charm.directory_path }}")
