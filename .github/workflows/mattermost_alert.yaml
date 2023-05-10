@@ -39,18 +39,18 @@ jobs:
           export SERVER_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           
           # queries github API, formats failed jobs as `:x:   **[repo](job-link)**`
-          export JOBS=$(
+          JOBS=$(
             curl -s \
               --request GET \
               --header "Authorization: token ${{ github.token }}" \
               --url "${API_URL}/jobs"
           )
-          export FAILED=$(
+          FAILED=$(
             echo "$JOBS" | \
-              jq -r '.jobs[] | select(.status == "completed" and .conclusion == "failure") | ":x:   **[\(.name)](\(.html_url))**"')
+              jq -r '.jobs[] | select(.status == "completed" and .conclusion == "failure") | ":x:   **[\(.name)](\(.html_url))**"'
           )
 
-          export BODY="#### [${{ github.repository }}](${SERVER_URL}) has failing jobs\n${FAILED}\n\n---\n\n${{ inputs.mention-users }}"
+          BODY="#### [${{ github.repository }}](${SERVER_URL}) has failing jobs\n${FAILED}\n\n---\n\n${{ inputs.mention-users }}"
           
           # don't post if nothing failed
           [[ ! -z "$FAILED" ]] && curl -s --request POST \
