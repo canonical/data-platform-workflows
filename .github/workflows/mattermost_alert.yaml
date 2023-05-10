@@ -1,0 +1,57 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Usage documentation: mattermost_alert.md
+
+on:
+  workflow_call:
+    inputs:
+      server:
+        description: The Mattermost address to post to
+        required: false
+        default: "chat.canonical.com"
+      channel-id:
+        description: The Mattermost channel ID to post to
+        required: true
+      mention-users:
+        description: The Mattermost usernames you want to mention
+        required: false
+        default: ""
+    secrets:
+      mattermost-token:
+        description: The Mattermost bot token to post using
+        required: true
+
+jobs:
+  alert-on-failure-mm:
+    name: Alert On Failure Mattermost
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: always()
+    steps:
+      - name: Post Alert
+        id: post-alert
+        run: |
+          API_URL=${{ github.api_url }}/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SERVER_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          
+          # queries github API, formats failed jobs as `:x:   **[repo](job-link)**`
+          JOBS=$(
+            curl -s \
+              --request GET \
+              --header "Authorization: token ${{ github.token }}"
+              --url "${API_URL}/jobs"
+          )
+          FAILED=$(
+            echo "$JOBS" | \
+              jq -r '.jobs[] | select(.status == "completed" and .conclusion == "failure") | ":x:   **[\(.name)](\(.html_url))**"')
+          )
+
+          BODY="#### [${{ github.repository }}](${SERVER_URL}) has failing jobs\n${FAILED}\n\n---\n\n${{ inputs.mention-users }}"
+          
+          # don't post if nothing failed
+          [[ ! -z "$FAILED" ]] && curl -s --request POST \
+            --url "https://${{ inputs.server }}/api/v4/posts"\
+            --header "Content-Type: application/json" \
+            --header "Authorization: Bearer {bot_access_token}" \
+            --data '{"channel_id": "${{ inputs.channel-id }}", "message": "$BODY"}'
