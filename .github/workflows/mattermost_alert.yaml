@@ -53,8 +53,8 @@ jobs:
           BODY="#### [${{ github.repository }}](${SERVER_URL}) has failing jobs\n${FAILED}\n\n---\n\n${{ inputs.mention-users }}"
           
           # don't post if nothing failed
-          [[ ! -z "$FAILED" ]] && curl -s --request POST \
-            --url "https://${{ inputs.server }}/api/v4/posts"\
+          [[ -n "$FAILED" ]] && curl -s --request POST \
+            --url "https://${{ inputs.server }}/api/v4/posts" \
             --header "Content-Type: application/json" \
-            --header "Authorization: Bearer {bot_access_token}" \
+            --header "Authorization: Bearer ${{ secrets.mattermost-token }}" \
             --data '{"channel_id": "${{ inputs.channel-id }}", "message": "$BODY"}'
