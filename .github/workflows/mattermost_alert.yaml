@@ -57,4 +57,4 @@ jobs:
             --url "https://${{ inputs.server }}/api/v4/posts" \
             --header "Content-Type: application/json" \
             --header "Authorization: Bearer ${{ secrets.mattermost-token }}" \
-            --data '{"channel_id": "${{ inputs.channel-id }}", "message": "$BODY"}'
+            --data '{"channel_id": "${{ inputs.channel-id }}", "message": '"${BODY}"'}'
