@@ -10,13 +10,16 @@ on:
         description: The Mattermost address to post to
         required: false
         default: "chat.canonical.com"
+        type: string
       channel-id:
         description: The Mattermost channel ID to post to
         required: true
+        type: string
       mention-users:
         description: The Mattermost usernames you want to mention
         required: false
         default: ""
+        type: string
     secrets:
       mattermost-token:
         description: The Mattermost bot token to post using
@@ -32,22 +35,22 @@ jobs:
       - name: Post Alert
         id: post-alert
         run: |
-          API_URL=${{ github.api_url }}/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          SERVER_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          export API_URL=${{ github.api_url }}/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          export SERVER_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           
           # queries github API, formats failed jobs as `:x:   **[repo](job-link)**`
-          JOBS=$(
+          export JOBS=$(
             curl -s \
               --request GET \
-              --header "Authorization: token ${{ github.token }}"
+              --header "Authorization: token ${{ github.token }}" \
               --url "${API_URL}/jobs"
           )
-          FAILED=$(
+          export FAILED=$(
             echo "$JOBS" | \
               jq -r '.jobs[] | select(.status == "completed" and .conclusion == "failure") | ":x:   **[\(.name)](\(.html_url))**"')
           )
 
-          BODY="#### [${{ github.repository }}](${SERVER_URL}) has failing jobs\n${FAILED}\n\n---\n\n${{ inputs.mention-users }}"
+          export BODY="#### [${{ github.repository }}](${SERVER_URL}) has failing jobs\n${FAILED}\n\n---\n\n${{ inputs.mention-users }}"
           
           # don't post if nothing failed
           [[ ! -z "$FAILED" ]] && curl -s --request POST \
