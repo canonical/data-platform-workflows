@@ -20,6 +20,4 @@ jobs:
       reviewers: canonical/data-platform-engineers,octocat
     secrets:
       token: ${{ secrets.CREATE_PR_APP_TOKEN }}
-    permissions:
-      contents: write  # Needed to push branch to GitHub
 ```

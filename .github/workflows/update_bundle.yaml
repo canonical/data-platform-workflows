@@ -21,13 +21,14 @@ on:
           
           Permissions needed for App token:
           - Access: Read & write for Repository permissions: Pull requests
+          - Access: Read & write for Repository permissions: Contents
           - If GitHub team is requested for pull request review,
             Access: Read-only for Organization permissions: Members
           
           Permissions needed for personal access token: write access to repository, read:org
           Personal access tokens with fine grained access are not supported (by GraphQL API, which is used by GitHub CLI).
           
-          The GITHUB_TOKEN can create a pull request, but `on: pull_request` workflows will not be triggered.
+          The GITHUB_TOKEN can create a pull request or push a branch, but `on: pull_request` workflows will not be triggered.
           
           Source: https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
         required: true
@@ -74,7 +75,7 @@ jobs:
           git commit -m "Update bundle"
           git push origin update-bundle -f
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.token }}
       - name: Create pull request
         if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
         working-directory: bundle-repo
