@@ -57,5 +57,6 @@ jobs:
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
-            ${{ matrix.charm.directory_path }}/*.charm
+            ${{ inputs.path-to-charm-directory }}/*.charm
             .empty
+          if-no-files-found: error
