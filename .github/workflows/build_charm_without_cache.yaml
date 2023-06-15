@@ -54,6 +54,9 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.artifact-name }}
+          # .empty file required to preserve directory structure
+          # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
             ${{ inputs.path-to-charm-directory }}/*.charm
+            .empty
           if-no-files-found: error

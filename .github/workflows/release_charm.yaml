@@ -11,11 +11,15 @@ on:
         required: true
         type: string
       artifact-name:
-        description: Name of GitHub artifact that contains the .charm file(s) (use another workflow to build the charm)
+        description: |
+          Name of GitHub artifact that contains the .charm file(s) (use another workflow to build the charm)
+          
+          Relative to the GitHub artifact root, the .charm file(s) must be located at `path-to-charm-directory` input
+          (The reusable build workflows in this repository (e.g. build_charm_without_cache.yaml) follow this structure.)
         required: true
         type: string
       path-to-charm-directory:
-        description: Relative path to charm directory (from GitHub artifact root)
+        description: Relative path to charm directory from repository directory
         default: .
         type: string
       create-github-release:
