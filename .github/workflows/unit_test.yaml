@@ -1,0 +1,22 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Usage documentation: unit_test.md
+
+on:
+  workflow_call:
+
+jobs:
+  unit-test:
+    name: tox run -e unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install tox & poetry
+        run: |
+          pipx install tox
+          pipx install poetry
+      - name: Run unit tests
+        run: tox run -e unit
