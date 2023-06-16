@@ -48,7 +48,7 @@ for charm_file in charm_directory.glob("*.charm"):
     revision: int = json.loads(output)["revision"]
     logging.info(f"Uploaded charm {revision=}")
     charm_revisions.append(revision)
-assert len(charm_revisions) > 0, "No .charm files found"
+assert len(charm_revisions) > 0, "No charm packages found"
 
 metadata_file = yaml.safe_load((charm_directory / "metadata.yaml").read_text())
 charm_name = metadata_file["name"]
