@@ -155,6 +155,8 @@ jobs:
             .empty
           if-no-files-found: error
       - name: Export `charmcraft pack` containers to cache
+        id: export-containers
+        if: ${{ !steps.restore-cache.outputs.cache-hit || github.event_name == 'schedule' }}
         run: |
           mkdir -p ~/ga-charmcraft-cache
           charm_repository_directory_inode=$(stat --format "%i" "${{ matrix.charm.directory_path }}")
@@ -188,7 +190,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Save cache of `charmcraft pack` LXC instance
-        if: ${{ !steps.restore-cache.outputs.cache-hit || github.event_name == 'schedule' }}
+        if: ${{ steps.export-containers.outcome == 'success' }}
         uses: actions/cache/save@v3
         with:
           path: ~/ga-charmcraft-cache/**
