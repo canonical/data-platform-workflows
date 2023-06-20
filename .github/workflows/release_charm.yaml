@@ -12,9 +12,9 @@ on:
         type: string
       artifact-name:
         description: |
-          Name of GitHub artifact that contains the .charm file(s) (use another workflow to build the charm)
+          Name of GitHub artifact that contains the charm package(s) (use another workflow to build the charm)
           
-          Relative to the GitHub artifact root, the .charm file(s) must be located at `path-to-charm-directory` input
+          Relative to the GitHub artifact root, the charm package(s) must be located at `path-to-charm-directory` input
           (The reusable build workflows in this repository (e.g. build_charm_without_cache.yaml) follow this structure.)
         required: true
         type: string
@@ -65,7 +65,7 @@ jobs:
           repository: canonical/data-platform-workflows
           path: workflow-repo
           ref: ${{ needs.get-workflow-version.outputs.version }}
-      - name: Download .charm file(s)
+      - name: Download charm package(s)
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.artifact-name }}

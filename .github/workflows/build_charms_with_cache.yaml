@@ -7,12 +7,12 @@ on:
   workflow_call:
     inputs:
       artifact-name:
-        description: Packed charms are uploaded to this GitHub artifact name
+        description: Charm packages are uploaded to this GitHub artifact name
         default: charms-packed-with-cache
         type: string
     outputs:
       artifact-name:
-        description: Packed charms are uploaded to this GitHub artifact name
+        description: Charm packages are uploaded to this GitHub artifact name
         value: ${{ inputs.artifact-name }}
       charms:
         description: JSON string of charms built
@@ -82,7 +82,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup environment
+      - name: Set up environment
         # TODO: Replace with custom image on self-hosted runner
         run: |
           # Copied from https://github.com/charmed-kubernetes/actions-operator/blob/96fb0b07eb675f74cf1796be812bc7e67a0d62fc/src/bootstrap/index.ts#L151
@@ -144,7 +144,7 @@ jobs:
           path: ~/.local/state/charmcraft/log/
           if-no-files-found: error
       - run: touch .empty
-      - name: Upload packed charm
+      - name: Upload charm package
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.artifact-name }}

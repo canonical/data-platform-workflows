@@ -1,36 +1,38 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Usage documentation: build_charm_without_cache.md
+# Usage documentation: build_snap_without_cache.md
 
 on:
   workflow_call:
     inputs:
       artifact-name:
-        description: Charm package is uploaded to this GitHub artifact name
-        default: charm-packed-without-cache
+        description: Snap package is uploaded to this GitHub artifact name
+        default: snap-packed-without-cache
         type: string
-      path-to-charm-directory:
-        description: Relative path to charm directory from repository directory
+      path-to-snap-project-directory:
+        description: |
+          Relative path to snap project directory from repository directory
+          
+          The "snap project directory" is the directory that contains the `snap` directory, not the `snap` directory itself.
         default: .
         type: string
     outputs:
       artifact-name:
-        description: Charm package is uploaded to this GitHub artifact name
+        description: Snap package is uploaded to this GitHub artifact name
         value: ${{ inputs.artifact-name }}
 
 jobs:
   build:
-    name: Build charm
+    name: Build snap
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up environment
         # TODO: Replace with custom image on self-hosted runner
         run: |
-          # Copied from https://github.com/charmed-kubernetes/actions-operator/blob/96fb0b07eb675f74cf1796be812bc7e67a0d62fc/src/bootstrap/index.ts#L151
           sudo adduser "$USER" lxd
           newgrp lxd
           sudo lxd waitready
@@ -38,25 +40,25 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
           sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
-          sudo snap install charmcraft --classic
-      - name: Pack charm
+          sudo snap install snapcraft --classic
+      - name: Pack snap
         id: pack
-        working-directory: ${{ inputs.path-to-charm-directory }}
-        run: charmcraft pack
-      - name: Upload charmcraft logs
+        working-directory: ${{ inputs.path-to-snap-project-directory }}
+        run: snapcraft pack
+      - name: Upload snapcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.artifact-name }}-charmcraft-build-logs
-          path: ~/.local/state/charmcraft/log/
+          name: ${{ inputs.artifact-name }}-snapcraft-build-logs
+          path: ~/.local/state/snapcraft/log/
           if-no-files-found: error
-      - name: Upload charm package
+      - name: Upload snap package
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.artifact-name }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
-            ${{ inputs.path-to-charm-directory }}/*.charm
+            ${{ inputs.path-to-snap-project-directory }}/*.snap
             .empty
           if-no-files-found: error
