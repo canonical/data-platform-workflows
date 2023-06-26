@@ -10,6 +10,10 @@ on:
         description: Charm packages are uploaded to this GitHub artifact name
         default: charms-packed-with-cache
         type: string
+      ubuntu-version:
+        description: Ubuntu version to be used by the GitHub runners
+        default: ubuntu-latest
+        type: string
     outputs:
       artifact-name:
         description: Charm packages are uploaded to this GitHub artifact name
@@ -48,7 +52,7 @@ jobs:
     name: Collect charms
     needs:
       - get-workflow-version
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.ubuntu-version }}
     timeout-minutes: 5
     steps:
       - name: Install pyyaml
@@ -77,7 +81,7 @@ jobs:
     name: ${{ matrix.charm._job_display_name }}
     needs:
       - collect-charms
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.ubuntu-version }}
     timeout-minutes: 60
     steps:
       - name: Checkout
