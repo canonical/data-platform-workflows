@@ -83,16 +83,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up environment
-        # TODO: Replace with custom image on self-hosted runner
         run: |
-          # Copied from https://github.com/charmed-kubernetes/actions-operator/blob/96fb0b07eb675f74cf1796be812bc7e67a0d62fc/src/bootstrap/index.ts#L151
           sudo adduser "$USER" lxd
-          newgrp lxd
-          sudo lxd waitready
-          sudo lxd init --auto
+          # `newgrp` does not work in GitHub Actions; use `sg` instead
+          sg lxd -c "lxd waitready"
+          sg lxd -c "lxd init --auto"
+          # Workaround for Docker & LXD on same machine
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
-          sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
+          
           sudo snap install charmcraft --classic
       - name: Get charmcraft version
         id: charmcraft-version
@@ -135,7 +134,7 @@ jobs:
       - name: Pack charm
         id: pack
         working-directory: ${{ matrix.charm.directory_path }}
-        run: charmcraft pack --bases-index="${{ matrix.charm.bases_index }}"
+        run: sg -c "charmcraft pack --bases-index='${{ matrix.charm.bases_index }}'"
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
