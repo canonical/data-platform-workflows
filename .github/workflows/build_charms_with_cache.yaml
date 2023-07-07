@@ -134,7 +134,7 @@ jobs:
       - name: Pack charm
         id: pack
         working-directory: ${{ matrix.charm.directory_path }}
-        run: sg -c "charmcraft pack --bases-index='${{ matrix.charm.bases_index }}'"
+        run: sg lxd -c "charmcraft pack --bases-index='${{ matrix.charm.bases_index }}'"
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
