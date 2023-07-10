@@ -31,20 +31,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up environment
-        # TODO: Replace with custom image on self-hosted runner
         run: |
           sudo adduser "$USER" lxd
-          newgrp lxd
-          sudo lxd waitready
-          sudo lxd init --auto
+          # `newgrp` does not work in GitHub Actions; use `sg` instead
+          sg lxd -c "lxd waitready"
+          sg lxd -c "lxd init --auto"
+          # Workaround for Docker & LXD on same machine
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
-          sudo chmod a+wr /var/snap/lxd/common/lxd/unix.socket
+          
           sudo snap install snapcraft --classic
       - name: Pack snap
         id: pack
         working-directory: ${{ inputs.path-to-snap-project-directory }}
-        run: snapcraft pack
+        run: sg lxd -c "snapcraft pack"
       - name: Upload snapcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
