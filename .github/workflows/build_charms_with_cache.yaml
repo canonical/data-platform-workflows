@@ -109,7 +109,7 @@ jobs:
           # Project setup copied from https://github.com/canonical/craft-providers/blob/20d154bb8fa9868a678c5621f124a02e2b9e72ad/craft_providers/lxd/project.py#L26
           sg lxd -c "lxc project create charmcraft"
           sg lxd -c "lxc --project default profile show default | lxc --project charmcraft profile edit default"
-          charm_repository_directory_inode=$(stat --format "%i" "${{ matrix.charm.directory_path }}")
+          charm_repository_directory_inode=$(stat --format "%i" '${{ matrix.charm.directory_path }}')
           for container_tarball in ~/ga-charmcraft-cache/*
           do
             sg lxd -c "lxc --project charmcraft import \"$container_tarball\""
@@ -158,7 +158,7 @@ jobs:
         if: ${{ !steps.restore-cache.outputs.cache-hit || github.event_name == 'schedule' }}
         run: |
           mkdir -p ~/ga-charmcraft-cache
-          charm_repository_directory_inode=$(stat --format "%i" "${{ matrix.charm.directory_path }}")
+          charm_repository_directory_inode=$(stat --format "%i" '${{ matrix.charm.directory_path }}')
           for container_name_with_inode in $(sg lxd -c "lxc --project charmcraft list --columns n --format csv")
           do
             # charmcraft 2.3.0 added a "base instance" LXC container that is not specific to a charm (and doesn't contain an inode)
