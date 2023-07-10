@@ -73,16 +73,16 @@ jobs:
       - name: Upload & release charm
         id: release
         working-directory: caller-repo
-        run: python3 ../workflow-repo/release_charm.py --charm-directory "${{ inputs.path-to-charm-directory }}" --channel "${{ inputs.channel }}"
+        run: python3 ../workflow-repo/release_charm.py --charm-directory '${{ inputs.path-to-charm-directory }}' --channel '${{ inputs.channel }}'
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
       - name: Create GitHub release
         if: ${{ inputs.create-github-release }}
         working-directory: caller-repo
         run: |
-          git tag "${{ steps.release.outputs.release_tag }}"
-          git push origin "${{ steps.release.outputs.release_tag }}"
-          gh release create "${{ steps.release.outputs.release_tag }}" --verify-tag --generate-notes --title "${{ steps.release.outputs.release_title }}" --notes-file release_notes.txt
+          git tag '${{ steps.release.outputs.release_tag }}'
+          git push origin '${{ steps.release.outputs.release_tag }}'
+          gh release create '${{ steps.release.outputs.release_tag }}' --verify-tag --generate-notes --title '${{ steps.release.outputs.release_title }}' --notes-file release_notes.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload charmcraft logs

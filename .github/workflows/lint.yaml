@@ -22,7 +22,7 @@ jobs:
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
       - name: Run actionlint
         run: |
-          "${{ steps.install.outputs.executable }}" -color
+          '${{ steps.install.outputs.executable }}' -color
 
   tox-lint:
     name: tox run -e lint
