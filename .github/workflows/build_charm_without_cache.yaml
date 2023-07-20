@@ -38,10 +38,18 @@ jobs:
           sudo iptables -P FORWARD ACCEPT
           
           sudo snap install charmcraft --classic
+          pipx install tox
+          pipx install poetry
       - name: Pack charm
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
-        run: sg lxd -c "charmcraft pack"
+        run: |
+          if tox list --no-desc | grep --fixed-strings --line-regexp build
+          then
+            sg lxd -c "tox run -e build"
+          else
+            sg lxd -c "charmcraft pack"
+          fi
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
