@@ -48,25 +48,26 @@ def fetch_latest_revision(charm, charm_channel, series=None) -> int:
     return max(revisions)
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("file_path")
-file_path = pathlib.Path(parser.parse_args().file_path)
-old_file_data = yaml.safe_load(file_path.read_text())
-file_data = copy.deepcopy(old_file_data)
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file_path")
+    file_path = pathlib.Path(parser.parse_args().file_path)
+    old_file_data = yaml.safe_load(file_path.read_text())
+    file_data = copy.deepcopy(old_file_data)
 
-# Charm series detection is only supported for top-level and application-level "series" keys
-# Other charm series config (e.g. machine-level key) is not supported
-# Full list of possible series config (unsupported) can be found under "Charm series" at https://juju.is/docs/olm/bundle
-default_series = file_data.get("series")
-for app in file_data["applications"].values():
-    app["revision"] = fetch_latest_revision(
-        app["charm"], app["channel"], app.get("series", default_series)
-    )
+    # Charm series detection is only supported for top-level and application-level "series" keys
+    # Other charm series config (e.g. machine-level key) is not supported
+    # Full list of possible series config (unsupported) can be found under "Charm series" at https://juju.is/docs/olm/bundle
+    default_series = file_data.get("series")
+    for app in file_data["applications"].values():
+        app["revision"] = fetch_latest_revision(
+            app["charm"], app["channel"], app.get("series", default_series)
+        )
 
-with open(file_path, "w") as file:
-    yaml.dump(file_data, file)
+    with open(file_path, "w") as file:
+        yaml.dump(file_data, file)
 
-output = f"updates_available={json.dumps(old_file_data != file_data)}"
-print(output)
-with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-    file.write(output)
+    output = f"updates_available={json.dumps(old_file_data != file_data)}"
+    print(output)
+    with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+        file.write(output)

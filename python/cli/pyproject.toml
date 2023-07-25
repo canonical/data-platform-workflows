@@ -7,9 +7,9 @@ authors = ["Carl Csaposs <carl.csaposs@canonical.com>"]
 readme = "README.md"
 
 [tool.poetry.scripts]
-collect-charms = "cli.collect_charms:__main__"
-release-charm = "cli.release_charm:__main__"
-update-bundle = "cli.update_bundle:__main__"
+collect-charms = "cli.collect_charms:main"
+release-charm = "cli.release_charm:main"
+update-bundle = "cli.update_bundle:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"
