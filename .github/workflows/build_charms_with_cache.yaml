@@ -97,8 +97,7 @@ jobs:
           pipx install poetry
       - name: Get charmcraft version
         id: charmcraft-version
-        # Major and minor versions (e.g. "2.1")
-        run: echo "version=$(charmcraft version | cut --delimiter '.' --fields 1,2)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(charmcraft version)" >> "$GITHUB_OUTPUT"
       - name: Restore cache of `charmcraft pack` LXC instance
         id: restore-cache
         uses: actions/cache/restore@v3
