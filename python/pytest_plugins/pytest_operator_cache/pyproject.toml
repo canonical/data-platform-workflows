@@ -4,10 +4,17 @@ version = "0.1.0"
 description = ""
 authors = ["Carl Csaposs <carl.csaposs@canonical.com>"]
 readme = "README.md"
+classifiers = [
+    "Framework :: Pytest",
+]
 packages = [{include = "pytest_operator_cache"}]
+
+[tool.poetry.plugins."pytest11"]
+operator_cache = "pytest_operator_cache.plugin"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+pyyaml = "*"
 
 
 [build-system]
