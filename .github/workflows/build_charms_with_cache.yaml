@@ -62,22 +62,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Install pyyaml
-        run: python3 -m pip install pyyaml
-      - name: Checkout charm repository
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${{ needs.get-workflow-version.outputs.version }}"#subdirectory=python/cli
+      - name: Checkout
         uses: actions/checkout@v3
-        with:
-          path: charm-repo
-      - name: Checkout build workflow repository
-        uses: actions/checkout@v3
-        with:
-          repository: canonical/data-platform-workflows
-          path: workflow-repo
-          ref: ${{ needs.get-workflow-version.outputs.version }}
       - name: Collect charms to build from charmcraft.yaml file(s)
         id: collect
-        working-directory: charm-repo
-        run: python3 ../workflow-repo/collect_charms.py
+        run: collect-charms
     outputs:
       charms: ${{ steps.collect.outputs.charms }}
 

@@ -77,9 +77,8 @@ jobs:
           print(output)
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
-
-      - name: Install pyyaml
-        run: python3 -m pip install pyyaml
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${{ needs.get-workflow-version.outputs.version }}"#subdirectory=python/cli
       - name: Install docker
         run: |
           sudo adduser "$USER" docker
@@ -87,36 +86,17 @@ jobs:
           sudo snap install docker
       - name: Install charmcraft
         run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
-      - name: Checkout caller repository
+      - name: Checkout
         uses: actions/checkout@v3
-        with:
-          path: caller-repo
-      - name: Checkout release workflow repository
-        uses: actions/checkout@v3
-        with:
-          repository: canonical/data-platform-workflows
-          path: workflow-repo
-          ref: ${{ needs.get-workflow-version.outputs.version }}
       - name: Download charm package(s)
         uses: actions/download-artifact@v3
         with:
           name: ${{ inputs.artifact-name }}
-          path: caller-repo
       - name: Upload & release charm
         id: release
-        working-directory: caller-repo
-        run: python3 ../workflow-repo/release_charm.py --charm-directory '${{ inputs.path-to-charm-directory }}' --channel '${{ inputs.channel }}'
+        run: release-charm --charm-directory '${{ inputs.path-to-charm-directory }}' --channel '${{ inputs.channel }}'
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
-      - name: Create GitHub release
-        if: ${{ inputs.create-github-release }}
-        working-directory: caller-repo
-        run: |
-          git tag '${{ steps.release.outputs.release_tag }}'
-          git push origin '${{ steps.release.outputs.release_tag }}'
-          gh release create '${{ steps.release.outputs.release_tag }}' --verify-tag --generate-notes --title '${{ steps.release.outputs.release_title }}' --notes-file release_notes.txt
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.release.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
@@ -124,3 +104,11 @@ jobs:
           name: ${{ inputs.artifact-name }}-charmcraft-release-logs
           path: ~/.local/state/charmcraft/log/
           if-no-files-found: error
+      - name: Create GitHub release
+        if: ${{ inputs.create-github-release }}
+        run: |
+          git tag '${{ steps.release.outputs.release_tag }}'
+          git push origin '${{ steps.release.outputs.release_tag }}'
+          gh release create '${{ steps.release.outputs.release_tag }}' --verify-tag --generate-notes --title '${{ steps.release.outputs.release_title }}' --notes-file release_notes.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

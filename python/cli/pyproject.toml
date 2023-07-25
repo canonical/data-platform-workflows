@@ -6,8 +6,15 @@ license = "Apache-2.0"
 authors = ["Carl Csaposs <carl.csaposs@canonical.com>"]
 readme = "README.md"
 
+[tool.poetry.scripts]
+collect-charms = "cli.collect_charms:__main__"
+release-charm = "cli.release_charm:__main__"
+update-bundle = "cli.update_bundle:__main__"
+
 [tool.poetry.dependencies]
 python = "^3.10"
+pyyaml = "^6.0.1"
+requests = "^2.31.0"
 
 
 [build-system]
