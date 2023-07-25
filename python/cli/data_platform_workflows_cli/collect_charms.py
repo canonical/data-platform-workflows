@@ -34,8 +34,8 @@ def get_base_versions(path_to_charmcraft_yaml: Path) -> list[str]:
 
 
 def main():
-    charms = []
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    charms = []
     for charmcraft_yaml in Path(".").glob("**/charmcraft.yaml"):
         path = charmcraft_yaml.parent
         charm_name = yaml.safe_load((path / "metadata.yaml").read_text())["name"]
