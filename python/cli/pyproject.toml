@@ -1,15 +1,16 @@
 [tool.poetry]
-name = "cli"
+name = "data-platform-workflows-cli"
 version = "0.1.0"
 description = ""
 license = "Apache-2.0"
 authors = ["Carl Csaposs <carl.csaposs@canonical.com>"]
 readme = "README.md"
+packages = [{include = "data_platform_workflows_cli"}]
 
 [tool.poetry.scripts]
-collect-charms = "cli.collect_charms:main"
-release-charm = "cli.release_charm:main"
-update-bundle = "cli.update_bundle:main"
+collect-charms = "data_platform_workflows_cli.collect_charms:main"
+release-charm = "data_platform_workflows_cli.release_charm:main"
+update-bundle = "data_platform_workflows_cli.update_bundle:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"
