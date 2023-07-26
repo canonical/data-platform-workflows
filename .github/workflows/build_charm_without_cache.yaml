@@ -14,6 +14,17 @@ on:
         description: Relative path to charm directory from repository directory
         default: .
         type: string
+      charmcraft-snap-revision:
+        description: charmcraft snap revision
+        required: false
+        type: string
+      charmcraft-snap-channel:
+        description: |
+          charmcraft snap channel
+
+          Cannot be used if `charmcraft-snap-revision` input is passed
+        required: false
+        type: string
     outputs:
       artifact-name:
         description: Charm package is uploaded to this GitHub artifact name
@@ -25,6 +36,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
+      - name: Parse charmcraft version inputs
+        id: charmcraft-snap-version
+        shell: python
+        run: |
+          import os
+
+          SNAP_REVISION = "${{ inputs.charmcraft-snap-revision }}"
+          snap_channel = "${{ inputs.charmcraft-snap-channel }}"
+          output = "install_flag="
+          if SNAP_REVISION:
+              assert (
+                  not snap_channel
+              ), "`charmcraft-snap-channel` input cannot be used if `charmcraft-snap-revision` input is passed"
+              output += f"--revision={SNAP_REVISION}"
+          else:
+              snap_channel = snap_channel or "latest/stable"
+              output += f"--channel={snap_channel}"
+
+          print(output)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(output)
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up environment
@@ -37,7 +69,7 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
           
-          sudo snap install charmcraft --classic
+          sudo snap install charmcraft --classic "${{ steps.charmcraft-snap-version.outputs.install_flag }}"
           pipx install tox
           pipx install poetry
       - name: Pack charm
