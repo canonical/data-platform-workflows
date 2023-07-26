@@ -8,6 +8,7 @@ packages = [{include = "pytest_operator_groups"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+pytest = "*"
 
 
 [build-system]
