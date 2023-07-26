@@ -86,7 +86,7 @@ jobs:
           newgrp docker
           sudo snap install docker
       - name: Install charmcraft
-        run: sudo snap install charmcraft --classic "${{ steps.charmcraft-snap-version.outputs.install_flag }}"
+        run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
       - name: Checkout caller repository
         uses: actions/checkout@v3
         with:
