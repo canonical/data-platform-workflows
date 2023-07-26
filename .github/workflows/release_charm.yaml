@@ -26,6 +26,17 @@ on:
         description: Create git tag & GitHub release
         default: true
         type: boolean
+      charmcraft-snap-revision:
+        description: charmcraft snap revision
+        required: false
+        type: string
+      charmcraft-snap-channel:
+        description: |
+          charmcraft snap channel
+
+          Cannot be used if `charmcraft-snap-revision` input is passed
+        required: false
+        type: string
     secrets:
       charmhub-token:
         description: Charmhub login token
@@ -46,6 +57,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: Parse charmcraft version inputs
+        id: charmcraft-snap-version
+        shell: python
+        run: |
+          import os
+
+          SNAP_REVISION = "${{ inputs.charmcraft-snap-revision }}"
+          SNAP_CHANNEL = "${{ inputs.charmcraft-snap-channel }}"
+          output = "install_flag="
+          if SNAP_REVISION:
+              assert (
+                  not SNAP_CHANNEL
+              ), "`charmcraft-snap-channel` input cannot be used if `charmcraft-snap-revision` input is passed"
+              output += f"--revision={SNAP_REVISION}"
+          elif SNAP_CHANNEL:
+              output += f"--channel={SNAP_CHANNEL}"
+
+          print(output)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(output)
+
       - name: Install pyyaml
         run: python3 -m pip install pyyaml
       - name: Install docker
@@ -54,7 +86,7 @@ jobs:
           newgrp docker
           sudo snap install docker
       - name: Install charmcraft
-        run: sudo snap install charmcraft --classic
+        run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
       - name: Checkout caller repository
         uses: actions/checkout@v3
         with:
