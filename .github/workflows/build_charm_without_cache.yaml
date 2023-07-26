@@ -43,16 +43,15 @@ jobs:
           import os
 
           SNAP_REVISION = "${{ inputs.charmcraft-snap-revision }}"
-          snap_channel = "${{ inputs.charmcraft-snap-channel }}"
+          SNAP_CHANNEL = "${{ inputs.charmcraft-snap-channel }}"
           output = "install_flag="
           if SNAP_REVISION:
               assert (
-                  not snap_channel
+                  not SNAP_CHANNEL
               ), "`charmcraft-snap-channel` input cannot be used if `charmcraft-snap-revision` input is passed"
               output += f"--revision={SNAP_REVISION}"
-          else:
-              snap_channel = snap_channel or "latest/stable"
-              output += f"--channel={snap_channel}"
+          elif SNAP_CHANNEL:
+              output += f"--channel={SNAP_CHANNEL}"
 
           print(output)
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
