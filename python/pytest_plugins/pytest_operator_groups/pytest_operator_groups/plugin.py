@@ -77,17 +77,17 @@ def _collect_groups(items):
 def pytest_collection_modifyitems(config, items):
     if config.option.collect_groups:
         _collect_groups(items)
-    elif selected_group_number := config.option.group:
+    elif config.option.group:
         # Remove tests that do not match the selected group number
         filtered_items = []
         for function in items:
             group_number = _get_group_number(function)
-            if not group_number:
+            if group_number is None:
                 function.add_marker(pytest.mark.skip("Missing group number"))
                 filtered_items.append(function)
-            elif group_number == selected_group_number:
+            elif group_number == config.option.group:
                 filtered_items.append(function)
         assert (
             len({function.module.__name__ for function in filtered_items}) == 1
-        ), "Only 1 test module can be run if --group is specified"
+        ), "Only 1 test module can be ran if --group is specified"
         items[:] = filtered_items
