@@ -69,5 +69,5 @@ jobs:
     steps:
       - name: Checkout
       - name: Run integration tests
-        run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group ${{ matrix.groups.group_number }}
+        run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}"
 ```
