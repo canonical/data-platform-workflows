@@ -6,6 +6,15 @@ This plugin allows further parallelization—an individual test file can be spli
 
 ## Usage
 
+### Installation
+Add
+```
+git+https://github.com/canonical/data-platform-workflows@v2#subdirectory=python/pytest_plugins/pytest_operator_groups
+```
+to your integration test Python dependencies.
+
+If your dependencies are managed with tox, replace `#` with `\#` (to escape comment syntax).
+
 ### Split test functions into groups
 Add
 ```python
