@@ -35,7 +35,7 @@ pytest test_file.py --group=1
 ```
 pytest --collect-groups
 ```
-saves a JSON-encoded string to `GITHUB_OUTPUT`. Example:
+saves a JSON string to `GITHUB_OUTPUT`. Example JSON data:
 ```json
 [
   {
