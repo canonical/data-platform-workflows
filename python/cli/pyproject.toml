@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "data-platform-workflows-cli"
+# Version unused; repository has its own versioning system. (See .github/workflows/__release.yaml)
+version = "0.1.0"
+description = ""
+license = "Apache-2.0"
+authors = ["Carl Csaposs <carl.csaposs@canonical.com>"]
+readme = "README.md"
+packages = [{include = "data_platform_workflows_cli"}]
+
+[tool.poetry.scripts]
+collect-charms = "data_platform_workflows_cli.collect_charms:main"
+release-charm = "data_platform_workflows_cli.release_charm:main"
+update-bundle = "data_platform_workflows_cli.update_bundle:main"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pyyaml = "^6.0.1"
+requests = "^2.31.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

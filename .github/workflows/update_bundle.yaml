@@ -48,26 +48,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Install dependencies
-        run: python3 -m pip install requests pyyaml
-      - name: Checkout bundle repository
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${{ needs.get-workflow-version.outputs.version }}"#subdirectory=python/cli
+      - name: Checkout
         uses: actions/checkout@v3
         with:
-          path: bundle-repo
           token: ${{ secrets.token }}
-      - name: Checkout reusable workflow repository
-        uses: actions/checkout@v3
-        with:
-          repository: canonical/data-platform-workflows
-          path: workflow-repo
-          ref: ${{ needs.get-workflow-version.outputs.version }}
       - name: Update bundle file
         id: update-file
-        working-directory: bundle-repo
-        run: python3 ../workflow-repo/update_bundle.py '${{ inputs.path-to-bundle-file }}'
+        run: update-bundle '${{ inputs.path-to-bundle-file }}'
       - name: Push `update-bundle` branch
         if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
-        working-directory: bundle-repo
         run: |
           git checkout -b update-bundle
           git add '${{ inputs.path-to-bundle-file }}'
@@ -78,7 +69,6 @@ jobs:
           git push origin update-bundle -f
       - name: Create pull request
         if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
-        working-directory: bundle-repo
         run: |
           # Capture output in variable so that step fails if `gh pr list` exits with non-zero code
           prs=$(gh pr list --head update-bundle --state open --json number)
