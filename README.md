@@ -8,7 +8,7 @@ Workflows that begin with one underscore (e.g. `_foo.yaml`) are internal and are
 Workflows that begin with two underscores (e.g. `__foo.yaml`) are for this repository only. They may only be (triggered by an event on this repository or) called by workflows in this repository that begin with two underscores.
 
 ### Version
-Recommendation: Pin the latest version (e.g. `v1.0.0`) and use [Renovate](https://docs.renovatebot.com/) to stay up-to-date.
+Recommendation: pin the latest version (e.g. `v1.0.0`) and use [Renovate](https://docs.renovatebot.com/) to stay up-to-date.
 
 Bug fixes will **not** be backported.
 
