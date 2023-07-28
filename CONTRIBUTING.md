@@ -8,12 +8,12 @@ This requires pull requests to be named according to the following convention.
 ### Public interface
 *Public workflows*: workflows in [.github/workflows](.github/workflows) that do not begin with an underscore
 
-The public interface consists of (explicit and implicit) input and output for the *public workflows*.
-
-This includes:
-- *Public workflow* file names
-- *Public workflow* `inputs` and `outputs` under `workflow_call`
-- Any assumptions made about the caller workflow repository layout (e.g. existence of tox.ini file). This applies to any workflows or scripts called by a *public workflow*, **even if they begin with an underscore**.
+The public interface consists of 
+- (Explicit and implicit) input and output for the *public workflows*. This includes:
+  - *Public workflow* file names
+  - *Public workflow* `inputs` and `outputs` under `workflow_call`
+  - Any assumptions made about the caller workflow repository layout (e.g. existence of tox.ini file). This applies to any workflows or scripts called by a *public workflow* (e.g. [python/cli](python/cli))
+- [python/pytest_plugins/](python/pytest_plugins/)
 
 ### Pull request name convention
 Pull request titles must begin with one of these prefixes:
