@@ -1,4 +1,51 @@
 Workflow file: [build_charms_with_cache.yaml](build_charms_with_cache.yaml)
 
 ## Usage
-See https://discourse.charmhub.io/t/faster-integration-tests-with-github-caching/8782
+### Step 1: Create your workflow
+```yaml
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+jobs:
+  build:
+    name: Build charms
+    uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@v2
+    permissions:
+      actions: write  # Needed to manage GitHub Actions cache
+
+  integration-test:
+    name: Integration tests
+    needs:
+      - build
+    steps:
+      - name: Checkout
+      - name: Download packed charm(s)
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ needs.build.outputs.artifact-name }}
+      - name: Run integration tests
+        run: tox run -e integration
+```
+If any workflows call your workflow (i.e. your workflow includes `on: workflow_call`), recursively add
+```yaml
+permissions:
+  actions: write  # Needed to manage GitHub Actions cache
+```
+to every calling workflow job.
+
+### Step 2: Install plugin for pytest-operator
+Add
+```
+git+https://github.com/canonical/data-platform-workflows@v2#subdirectory=python/pytest_plugins/pytest_operator_cache
+```
+to your integration test Python dependencies.
+
+If your dependencies are managed with tox, replace `#` with `\#` (to escape comment syntax).
+
+### Step 3: Pass the CI environment variable
+If you're using tox, pass in the `CI` environment variable in `tox.ini`.
+```ini
+[testenv:integration]
+pass_env =
+    {[testenv]pass_env}
+    CI
+```
