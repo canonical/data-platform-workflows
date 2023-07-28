@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Checkout
       - name: Download packed charm(s)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v0
         with:
           name: ${{ needs.build.outputs.artifact-name }}
       - name: Run integration tests
