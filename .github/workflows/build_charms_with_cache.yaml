@@ -99,7 +99,7 @@ jobs:
       - name: Get charmcraft version
         id: charmcraft-version
         run: echo "version=$(charmcraft version)" >> "$GITHUB_OUTPUT"
-      - name: Export charm requirements (for charms with poetry.lock)
+      - name: Export charm requirements from poetry.lock
         # `tox run -e pack-wrapper` will create a `requirements-last-build.txt` that is identical
         # to the `requirements.txt` file that will be used later during `charmcraft pack`.
         # We use `requirements-last-build.txt` instead of `poetry.lock` to generate the cache key.
