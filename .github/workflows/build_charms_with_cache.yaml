@@ -99,12 +99,26 @@ jobs:
       - name: Get charmcraft version
         id: charmcraft-version
         run: echo "version=$(charmcraft version)" >> "$GITHUB_OUTPUT"
+      - name: Export charm requirements from poetry.lock
+        # `tox run -e pack-wrapper` will create a `requirements-last-build.txt` that is identical
+        # to the `requirements.txt` file that will be used later during `charmcraft pack`.
+        # We use `requirements-last-build.txt` instead of `poetry.lock` to generate the cache key.
+        # This is because `poetry.lock` contains dependencies that are not part of the charm.
+        # (e.g. lint, unit test, and integration test dependencies)
+        # When dependencies that aren't part of the charm change, we do not need to create a new
+        # cache.
+        working-directory: ${{ matrix.charm.directory_path }}
+        run: |
+          if tox list --no-desc | grep --fixed-strings --line-regexp build
+          then
+            tox run -e pack-wrapper
+          fi
       - name: Restore cache of `charmcraft pack` LXC instance
         id: restore-cache
         uses: actions/cache/restore@v3
         with:
           path: ~/ga-charmcraft-cache/**
-          key: charmcraft-pack-${{ matrix.charm.directory_path }}-${{ matrix.charm.bases_index }}-${{ steps.charmcraft-version.outputs.version }}-${{ hashFiles(format('{0}/charmcraft.yaml', matrix.charm.directory_path), format('{0}/poetry.lock', matrix.charm.directory_path), format('{0}/requirements.txt', matrix.charm.directory_path)) }}
+          key: charmcraft-pack-${{ matrix.charm.directory_path }}-${{ matrix.charm.bases_index }}-${{ steps.charmcraft-version.outputs.version }}-${{ hashFiles(format('{0}/charmcraft.yaml', matrix.charm.directory_path), format('{0}/requirements-last-build.txt', matrix.charm.directory_path), format('{0}/requirements.txt', matrix.charm.directory_path)) }}
       - name: Import cached containers
         if: ${{ steps.restore-cache.outputs.cache-hit }}
         run: |
