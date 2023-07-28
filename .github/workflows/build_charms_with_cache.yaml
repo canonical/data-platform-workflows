@@ -25,27 +25,6 @@ on:
       artifact-name:
         description: Charm packages are uploaded to this GitHub artifact name
         value: ${{ inputs.artifact-name }}
-      charms:
-        description: JSON string of charms built
-        value: ${{ jobs.collect-charms.outputs.charms }}
-        # Example:
-        # [
-        #   {
-        #     "bases_index": 0, # corresponds to charmcraft.yaml file
-        #     "directory_path": ".",
-        #     "file_path": "./mysql_ubuntu-20.04-amd64.charm"
-        #   },
-        #   {
-        #     "bases_index": 1,
-        #     "directory_path": ".",
-        #     "file_path": "./mysql_ubuntu-22.04-amd64.charm"
-        #   },
-        #   {
-        #     "bases_index": 0,
-        #     "directory_path": "tests/integration/relations/application-charm",
-        #     "file_path": "./tests/integration/relations/application-charm/application_ubuntu-22.04-amd64.charm"
-        #   }
-        # ]
 
 jobs:
   get-workflow-version:
@@ -76,7 +55,7 @@ jobs:
     strategy:
       matrix:
         charm: ${{ fromJSON(needs.collect-charms.outputs.charms) }}
-    name: ${{ matrix.charm._job_display_name }}
+    name: ${{ matrix.charm.job_display_name }}
     needs:
       - collect-charms
     runs-on: ubuntu-latest
