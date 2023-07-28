@@ -15,13 +15,13 @@ on:
 jobs:
   build:
     name: Build charm
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm_without_cache.yaml@v2
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm_without_cache.yaml@v0
 
   release:
     name: Release charm
     needs:
       - build
-    uses: canonical/data-platform-workflows/.github/workflows/release_charm.yaml@v2
+    uses: canonical/data-platform-workflows/.github/workflows/release_charm.yaml@v0
     with:
       channel: latest/edge
       artifact-name: ${{ needs.build.outputs.artifact-name }}

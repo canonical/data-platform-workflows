@@ -7,5 +7,5 @@ Workflow file: [build_snap_without_cache.yaml](build_snap_without_cache.yaml)
 jobs:
   build:
     name: Build snap
-    uses: canonical/data-platform-workflows/.github/workflows/build_snap_without_cache.yaml@v2
+    uses: canonical/data-platform-workflows/.github/workflows/build_snap_without_cache.yaml@v0
 ```

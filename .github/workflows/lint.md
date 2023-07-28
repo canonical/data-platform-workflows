@@ -7,5 +7,5 @@ Workflow file: [lint.yaml](lint.yaml)
 jobs:
   lint:
     name: Lint
-    uses: canonical/data-platform-workflows/.github/workflows/lint.yaml@v2
+    uses: canonical/data-platform-workflows/.github/workflows/lint.yaml@v0
 ```

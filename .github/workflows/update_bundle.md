@@ -14,7 +14,7 @@ on:
 jobs:
   update-bundle:
     name: Update bundle
-    uses: canonical/data-platform-workflows/.github/workflows/update_bundle.yaml@v2
+    uses: canonical/data-platform-workflows/.github/workflows/update_bundle.yaml@v0
     with:
       path-to-bundle-file: bundle.yaml
       reviewers: canonical/data-platform-engineers,octocat
