@@ -32,14 +32,25 @@ permissions:
 ```
 to every calling workflow job.
 
-### Step 2: Install plugin for pytest-operator
+### Step 2: Install plugin for pytest-operator (Poetry)
+#### Step A
 Add
+```toml
+pytest-operator-cache = {git = "https://github.com/canonical/data-platform-workflows", tag = "v0.0.0", subdirectory = "python/pytest_plugins/pytest_operator_cache"}
 ```
-git+https://github.com/canonical/data-platform-workflows@v0#subdirectory=python/pytest_plugins/pytest_operator_cache
-```
-to your integration test Python dependencies.
+to your integration test dependencies in `pyproject.toml`.
 
-If your dependencies are managed with tox, replace `#` with `\#` (to escape comment syntax).
+#### Step B
+Disable Poetry's parallel installation for integration test dependencies.
+
+Example `tox.ini`:
+```ini
+[testenv:integration]
+set_env =
+    {[testenv]set_env}
+    # Workaround for https://github.com/python-poetry/poetry/issues/6958
+    POETRY_INSTALLER_PARALLEL = false
+```
 
 ### Step 3: Pass the CI environment variable
 If you're using tox, pass in the `CI` environment variable in `tox.ini`.

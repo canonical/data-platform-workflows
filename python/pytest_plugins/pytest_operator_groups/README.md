@@ -4,17 +4,36 @@ By default, [pytest-operator](https://github.com/charmed-kubernetes/pytest-opera
 
 This plugin allows further parallelization—an individual test file can be split into multiple groups. Each group can run on a separate GitHub runner.
 
-## Usage
-
-### Installation
+## Installation (Poetry)
+### Step 1
 Add
+```toml
+pytest-operator-groups = {git = "https://github.com/canonical/data-platform-workflows", tag = "v0.0.0", subdirectory = "python/pytest_plugins/pytest_operator_groups"}
 ```
-git+https://github.com/canonical/data-platform-workflows@v2#subdirectory=python/pytest_plugins/pytest_operator_groups
+to your integration test dependencies in `pyproject.toml`.
+
+### Step 2
+Disable Poetry's parallel installation for integration test dependencies.
+
+Example `tox.ini`:
+```ini
+[testenv:integration]
+set_env =
+    {[testenv]set_env}
+    # Workaround for https://github.com/python-poetry/poetry/issues/6958
+    POETRY_INSTALLER_PARALLEL = false
 ```
-to your integration test Python dependencies.
 
-If your dependencies are managed with tox, replace `#` with `\#` (to escape comment syntax).
+### Step 3
+If you're using tox, pass in the `GITHUB_OUTPUT` environment variable in `tox.ini`.
+```ini
+[testenv:integration]
+pass_env =
+    {[testenv]pass_env}
+    GITHUB_OUTPUT
+```
 
+## Usage
 ### Split test functions into groups
 Add
 ```python
@@ -23,7 +42,6 @@ Add
 to every test function. Replace `1` with the group number.
 
 #### Deciding how to split tests into groups
-
 Take a look at this Discourse post: https://discourse.charmhub.io/t/faster-ci-results-by-running-integration-tests-in-parallel/8816
 
 ### Run tests
