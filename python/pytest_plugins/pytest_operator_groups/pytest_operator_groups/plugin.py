@@ -78,6 +78,9 @@ def pytest_collection_modifyitems(config, items):
     if config.option.collect_groups:
         _collect_groups(items)
     elif config.option.group:
+        assert (
+            len({function.module.__name__ for function in items}) == 1
+        ), "Only 1 test module can be ran if --group is specified"
         # Remove tests that do not match the selected group number
         filtered_items = []
         for function in items:
@@ -87,7 +90,4 @@ def pytest_collection_modifyitems(config, items):
                 filtered_items.append(function)
             elif group_number == config.option.group:
                 filtered_items.append(function)
-        assert (
-            len({function.module.__name__ for function in filtered_items}) == 1
-        ), "Only 1 test module can be ran if --group is specified"
         items[:] = filtered_items
