@@ -7,5 +7,5 @@ Workflow file: [build_charm_without_cache.yaml](build_charm_without_cache.yaml)
 jobs:
   build:
     name: Build charm
-    uses: canonical/data-platform-workflows/.github/workflows/build_charm_without_cache.yaml@v2
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm_without_cache.yaml@v0
 ```

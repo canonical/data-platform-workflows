@@ -8,7 +8,7 @@ Workflow file: [build_charms_with_cache.yaml](build_charms_with_cache.yaml)
 jobs:
   build:
     name: Build charms
-    uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@v2
+    uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@v0
     permissions:
       actions: write  # Needed to manage GitHub Actions cache
 
@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Checkout
       - name: Download packed charm(s)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v0
         with:
           name: ${{ needs.build.outputs.artifact-name }}
       - name: Run integration tests
@@ -35,7 +35,7 @@ to every calling workflow job.
 ### Step 2: Install plugin for pytest-operator
 Add
 ```
-git+https://github.com/canonical/data-platform-workflows@v2#subdirectory=python/pytest_plugins/pytest_operator_cache
+git+https://github.com/canonical/data-platform-workflows@v0#subdirectory=python/pytest_plugins/pytest_operator_cache
 ```
 to your integration test Python dependencies.
 
