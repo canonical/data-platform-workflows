@@ -60,6 +60,16 @@ saves a JSON string to `GITHUB_OUTPUT`. Example JSON data:
     "path_to_test_file": "tests/integration/relations/test_database.py",
     "group_number": 1,
     "job_name": "relations/test_database.py | group 1"
+  },
+  {
+    "path_to_test_file": "tests/integration/relations/test_database.py",
+    "group_number": 2,
+    "job_name": "relations/test_database.py | group 2"
+  },
+  {
+    "path_to_test_file": "tests/integration/test_backups.py",
+    "group_number": 1,
+    "job_name": "test_backups.py | group 1"
   }
 ]
 ```
