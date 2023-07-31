@@ -11,7 +11,9 @@ def pytest_configure(config):
         plugin.OpsTest.build_charm = build_charm
 
 
-async def build_charm(self, charm_path: str | os.PathLike, bases_index: int = None) -> str:
+async def build_charm(
+    self, charm_path: str | os.PathLike, bases_index: int = None
+) -> str:
     charm_path = pathlib.Path(charm_path)
     if bases_index is not None:
         charmcraft_yaml = yaml.safe_load((charm_path / "charmcraft.yaml").read_text())

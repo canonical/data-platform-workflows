@@ -16,7 +16,9 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    config.addinivalue_line("markers", "group: Parallelize tests in a file across GitHub runners")
+    config.addinivalue_line(
+        "markers", "group: Parallelize tests in a file across GitHub runners"
+    )
     if config.option.collect_groups:
         config.option.collectonly = True
 
