@@ -12,10 +12,9 @@ on:
         type: string
       artifact-name:
         description: |
-          Name of GitHub artifact that contains the charm package(s) (use another workflow to build the charm)
+          Name of GitHub artifact that contains the charm package(s)
           
-          Relative to the GitHub artifact root, the charm package(s) must be located at `path-to-charm-directory` input
-          (The reusable build workflows in this repository (e.g. build_charm_without_cache.yaml) follow this structure.)
+          Use another canonical/data-platform-workflows workflow to build the charm(s)
         required: true
         type: string
       path-to-charm-directory:
