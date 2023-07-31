@@ -8,7 +8,7 @@ Workflow file: [build_charms_with_cache.yaml](build_charms_with_cache.yaml)
 jobs:
   build:
     name: Build charms
-    uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@v0
+    uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@v0.0.0
     permissions:
       actions: write  # Needed to manage GitHub Actions cache
 
