@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "pytest-operator-groups"
+# Version unused; repository has its own versioning system. (See .github/workflows/__release.yaml)
+version = "0.1.0"
+description = ""
+authors = ["Carl Csaposs <carl.csaposs@canonical.com>"]
+readme = "README.md"
+classifiers = [
+    "Framework :: Pytest",
+]
+packages = [{include = "pytest_operator_groups"}]
+
+[tool.poetry.plugins."pytest11"]
+operator_groups = "pytest_operator_groups.plugin"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pytest = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
