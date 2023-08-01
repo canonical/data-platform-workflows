@@ -10,6 +10,12 @@ def pytest_configure(config):
         plugin = config.pluginmanager.get_plugin("pytest-operator")
         plugin.OpsTest.build_charm = build_charm
 
+        # Remove charmcraft dependency from `ops_test` fixture
+        check_deps = plugin.check_deps
+        plugin.check_deps = lambda *deps: check_deps(
+            *(dep for dep in deps if dep != "charmcraft")
+        )
+
 
 async def build_charm(self, charm_path: str | os.PathLike, bases_index: int = None) -> str:
     charm_path = pathlib.Path(charm_path)
