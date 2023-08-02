@@ -21,6 +21,9 @@ def pytest_configure(config):
     )
     if config.option.collect_groups:
         config.option.collectonly = True
+        assert (
+            config.option.group is None
+        ), "--group should not be used with --collect-groups"
 
 
 def _get_group_number(function) -> typing.Optional[int]:
@@ -77,6 +80,7 @@ def _collect_groups(items):
         file.write(output)
 
 
+@pytest.hookimpl(trylast=True)  # Run after tests are deselected with `-m`
 def pytest_collection_modifyitems(config, items):
     if config.option.collect_groups:
         _collect_groups(items)
