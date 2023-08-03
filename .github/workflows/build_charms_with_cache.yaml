@@ -183,6 +183,12 @@ jobs:
           charm_repository_directory_inode=$(stat --format "%i" '${{ matrix.charm.directory_path }}')
           for container_name_with_inode in $(sg lxd -c "lxc --project charmcraft list --columns n --format csv")
           do
+            # Disable charmcraft snap updates
+            # Workaround (unconfirmed) for https://github.com/canonical/charmcraft/issues/1202
+            sg lxd -c "lxc --project charmcraft start \"$container_name_with_inode\""
+            sg lxd -c "lxc --project charmcraft exec \"$container_name_with_inode\" -- snap refresh --hold=forever charmcraft"
+            sg lxd -c "lxc --project charmcraft stop \"$container_name_with_inode\""
+
             # charmcraft 2.3.0 added a "base instance" LXC container that is not specific to a charm (and doesn't contain an inode)
             if [[ $container_name_with_inode == charmcraft-* ]]
             then
