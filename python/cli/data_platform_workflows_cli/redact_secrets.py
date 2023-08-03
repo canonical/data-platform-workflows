@@ -38,4 +38,4 @@ def main():
         # An exception could leak secrets
         print("Uncaught exception")
         exit(1)
-    print(f"Redacted secrets: {', '.join(secrets.keys())}")
+    print(f"{len(secrets)} secrets redacted")
