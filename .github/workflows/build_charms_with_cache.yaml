@@ -188,6 +188,7 @@ jobs:
             # Disable charmcraft snap updates
             # Workaround (unconfirmed) for https://github.com/canonical/charmcraft/issues/1202
             sg lxd -c "lxc --project charmcraft start \"$container_name_with_inode\""
+            sg lxd -c "lxc --project charmcraft exec \"$container_name_with_inode\" -- bash -c 'while ! systemctl is-active snapd.service; do sleep 0.5; done'"
             sg lxd -c "lxc --project charmcraft exec \"$container_name_with_inode\" -- snap refresh --hold=forever charmcraft"
             sg lxd -c "lxc --project charmcraft stop \"$container_name_with_inode\""
 
