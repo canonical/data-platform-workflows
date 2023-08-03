@@ -46,10 +46,19 @@ on:
         description: |
           Secrets needed in integration tests
           
-          Passed to tests with `INTEGRATION_TEST_SECRETS` environment variable
+          Passed to tests with `SECRETS_FROM_GITHUB` environment variable
           
-          Use a string representation of a Python dictionary built from multiple GitHub secrets
-          Do NOT put the string into a single GitHub secret—build the string from multiple GitHub secrets so that GitHub is more likely to redact the secret in GitHub Actions logs.
+          Use a string representation of a Python dict[str, str] built from multiple GitHub secrets
+          Do NOT put the string into a single GitHub secret—build the string from multiple GitHub secrets so that GitHub is more likely to redact the secrets in GitHub Actions logs.
+          
+          Python code to verify the string format:
+          ```
+          import ast
+          secrets = ast.literal_eval("")
+          assert isinstance(secrets, dict)
+          for key, value in secrets.items():
+              assert isinstance(key, str) and isinstance(value, str)
+          ```
         required: false
 
 jobs:
@@ -191,4 +200,4 @@ jobs:
       - name: Run integration tests
         run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test
         env:
-          INTEGRATION_TEST_SECRETS: ${{ secrets.integration-test }}
+          SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}

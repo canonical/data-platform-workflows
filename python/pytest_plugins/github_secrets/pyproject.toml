@@ -1,10 +1,17 @@
 [tool.poetry]
 name = "github-secrets"
+# Version unused; repository has its own versioning system. (See .github/workflows/__release.yaml)
 version = "0.1.0"
 description = ""
 authors = ["Carl Csaposs <carl.csaposs@canonical.com>"]
 readme = "README.md"
+classifiers = [
+    "Framework :: Pytest",
+]
 packages = [{include = "github_secrets"}]
+
+[tool.poetry.plugins."pytest11"]
+github_secrets = "github_secrets.plugin"
 
 [tool.poetry.dependencies]
 python = "^3.10"
