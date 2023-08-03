@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "github-secrets"
+version = "0.1.0"
+description = ""
+authors = ["Carl Csaposs <carl.csaposs@canonical.com>"]
+readme = "README.md"
+packages = [{include = "github_secrets"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
