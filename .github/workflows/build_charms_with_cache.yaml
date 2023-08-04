@@ -98,7 +98,9 @@ jobs:
           pipx install poetry
       - name: Get charmcraft version
         id: charmcraft-version
-        run: echo "version=$(charmcraft version)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "version=$(charmcraft version)" >> "$GITHUB_OUTPUT"
+          echo "revision=$(readlink /var/snap/charmcraft/current)" >> "$GITHUB_OUTPUT"
       - name: Export charm requirements from poetry.lock
         # `tox run -e pack-wrapper` will create a `requirements-last-build.txt` that is identical
         # to the `requirements.txt` file that will be used later during `charmcraft pack`.
@@ -118,7 +120,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ~/ga-charmcraft-cache/**
-          key: charmcraft-pack-${{ matrix.charm.directory_path }}-${{ matrix.charm.bases_index }}-${{ steps.charmcraft-version.outputs.version }}-${{ hashFiles(format('{0}/charmcraft.yaml', matrix.charm.directory_path), format('{0}/requirements-last-build.txt', matrix.charm.directory_path), format('{0}/requirements.txt', matrix.charm.directory_path)) }}
+          key: charmcraft-pack-${{ matrix.charm.directory_path }}-${{ matrix.charm.bases_index }}-${{ steps.charmcraft-version.outputs.version }}-${{ steps.charmcraft-version.outputs.revision }}-${{ hashFiles(format('{0}/charmcraft.yaml', matrix.charm.directory_path), format('{0}/requirements-last-build.txt', matrix.charm.directory_path), format('{0}/requirements.txt', matrix.charm.directory_path)) }}
       - name: Import cached containers
         if: ${{ steps.restore-cache.outputs.cache-hit }}
         run: |
@@ -183,6 +185,13 @@ jobs:
           charm_repository_directory_inode=$(stat --format "%i" '${{ matrix.charm.directory_path }}')
           for container_name_with_inode in $(sg lxd -c "lxc --project charmcraft list --columns n --format csv")
           do
+            # Disable charmcraft snap updates
+            # Workaround (unconfirmed) for https://github.com/canonical/charmcraft/issues/1202
+            sg lxd -c "lxc --project charmcraft start \"$container_name_with_inode\""
+            sg lxd -c "lxc --project charmcraft exec \"$container_name_with_inode\" -- bash -c 'while ! systemctl is-active snapd.service; do sleep 0.5; done'"
+            sg lxd -c "lxc --project charmcraft exec \"$container_name_with_inode\" -- snap refresh --hold=forever charmcraft"
+            sg lxd -c "lxc --project charmcraft stop \"$container_name_with_inode\""
+
             # charmcraft 2.3.0 added a "base instance" LXC container that is not specific to a charm (and doesn't contain an inode)
             if [[ $container_name_with_inode == charmcraft-* ]]
             then
