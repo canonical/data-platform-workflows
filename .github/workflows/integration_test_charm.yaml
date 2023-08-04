@@ -47,13 +47,6 @@ on:
           To test older major Juju versions, override the version constraint with this input.
         required: false
         type: string
-      log-artifact-suffix:
-        description: |
-          Suffix for log GitHub artifact name
-
-          Use to create unique artifacts if this workflow is called with a matrix
-        required: false
-        type: string
     secrets:
       integration-test:
         description: |
@@ -226,6 +219,6 @@ jobs:
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v3
         with:
-          name: intergration-test-charm-logs${{ inputs.log-artifact-suffix }}
+          name: intergration-test-charm-logs-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}
           path: ~/logs/
           if-no-files-found: error
