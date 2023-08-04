@@ -55,7 +55,7 @@ def _collect_groups(items):
         path_to_test_file: str
         group_number: int
         job_name: str
-        log_artifact_name: str
+        log_artifact_path: str
 
     groups: set[Group] = set()
     for function in items:
@@ -70,10 +70,11 @@ def _collect_groups(items):
         job_name = (
             f"{'/'.join(path_to_test_file.split('/')[2:])} | group {group_number}"
         )
-        log_artifact_name = (
-            f"{'-'.join(path_to_test_file.split('/')[2:])}-group-{group_number}"
+        # Example: "relations/test_database.py/group-1"
+        log_artifact_path = (
+            f"{'/'.join(path_to_test_file.split('/')[2:])}/group-{group_number}"
         )
-        groups.add(Group(path_to_test_file, group_number, job_name, log_artifact_name))
+        groups.add(Group(path_to_test_file, group_number, job_name, log_artifact_path))
     sorted_groups: list[dict] = [
         dataclasses.asdict(group) for group in sorted(list(groups))
     ]
