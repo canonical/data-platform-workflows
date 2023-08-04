@@ -200,12 +200,25 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
       - name: Run integration tests
+        id: tests
         run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
       - name: Select model
-        run: juju switch test
+        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
+        run: |
+          juju switch test
+          mkdir ~/logs
       - name: juju status
-        run: juju status --relations
+        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
+        run: juju status --relations | tee ~/logs/juju-status.txt
       - name: juju debug-log
-        run: juju debug-log --replay --no-tail
+        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
+        run: juju debug-log --replay --no-tail | tee ~/logs/juju-debug-log.txt
+      - name: Upload logs
+        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: intergration-test-charm-logs-${{ matrix.groups.job_name }}
+          path: ~/logs/
+          if-no-files-found: error
