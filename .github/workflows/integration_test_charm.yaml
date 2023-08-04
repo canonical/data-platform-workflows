@@ -9,7 +9,7 @@ on:
       artifact-name:
         description: |
           Name of GitHub artifact that contains the charm package(s)
-          
+
           Use another canonical/data-platform-workflows workflow to build the charm(s)
         required: true
         type: string
@@ -17,9 +17,9 @@ on:
         # Keep description synchronized with "Validate input" step
         description: |
           Juju cloud
-          
+
           Must be one of: "lxd"
-          
+
           https://juju.is/docs/olm/cloud
         required: true
         type: string
@@ -30,7 +30,7 @@ on:
       juju-snap-channel:
         description: |
           Juju CLI snap channel
-          
+
           Required if `juju-agent-version` input is not passed
         required: false
         type: string
@@ -45,12 +45,12 @@ on:
       integration-test:
         description: |
           Secrets needed in integration tests
-          
+
           Passed to tests with `SECRETS_FROM_GITHUB` environment variable
-          
+
           Use a string representation of a Python dict[str, str] built from multiple GitHub secrets
           Do NOT put the string into a single GitHub secret—build the string from multiple GitHub secrets so that GitHub is more likely to redact the secrets in GitHub Actions logs.
-          
+
           Python code to verify the string format:
           ```
           import ast
@@ -68,7 +68,7 @@ jobs:
     with:
       repository-name: canonical/data-platform-workflows
       file-name: integration_test_charm.yaml
-  
+
   collect-integration-tests:
     name: Collect integration test groups
     runs-on: ubuntu-latest

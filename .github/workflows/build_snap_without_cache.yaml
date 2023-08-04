@@ -13,7 +13,7 @@ on:
       path-to-snap-project-directory:
         description: |
           Relative path to snap project directory from repository directory
-          
+
           The "snap project directory" is the directory that contains the `snap` directory, not the `snap` directory itself.
         default: .
         type: string
@@ -39,7 +39,7 @@ jobs:
           # Workaround for Docker & LXD on same machine
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
-          
+
           sudo snap install snapcraft --classic
       - name: Pack snap
         id: pack
