@@ -42,7 +42,7 @@ on:
           Overrides python-libjuju version constraint in Poetry `integration` dependency group
 
           Each version of python-libjuju is only compatible with one major Juju version
-          
+
           Recommendation: With Poetry, pin python-libjuju for the latest major Juju version.
           To test older major Juju versions, override the version constraint with this input.
         required: false
