@@ -115,7 +115,7 @@ jobs:
     needs:
       - get-workflow-version
       - collect-integration-tests
-    runs-on: [self-hosted, linux, X64, jammy, xlarge] # TODO size
+    runs-on: [self-hosted, linux, X64, jammy, two-xlarge]
     timeout-minutes: 120
     steps:
       - name: Install CLI
