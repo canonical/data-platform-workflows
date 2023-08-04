@@ -219,6 +219,6 @@ jobs:
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v3
         with:
-          name: intergration-test-charm-logs-${{ matrix.groups.path_to_test_file }}-group-${{ matrix.groups.group_number }}
+          name: intergration-test-charm-logs-${{ matrix.groups.log_artifact_name }}
           path: ~/logs/
           if-no-files-found: error
