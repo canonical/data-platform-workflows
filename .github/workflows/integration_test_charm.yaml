@@ -85,7 +85,6 @@ jobs:
         run: |
           pipx install tox
           pipx install poetry
-      # TODO: CLI?
       - name: Select test stability level
         id: select-test-stability
         shell: python
@@ -108,7 +107,6 @@ jobs:
       groups: ${{ steps.collect-groups.outputs.groups }}
 
   integration-test:
-    # TODO logging
     strategy:
       fail-fast: false
       matrix:
@@ -135,7 +133,6 @@ jobs:
         # Keep synchronized with inputs.cloud description
         run: assert "${{ inputs.cloud }}" in ("lxd")
       - name: Parse Juju agent version & snap channel
-        # TODO: CLI
         id: parse-versions
         shell: python3 {0}
         run: |
@@ -174,7 +171,6 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
       - name: Set up environment
-        # TODO: install jhack at end?
         run: |
           juju bootstrap "${{ inputs.cloud }}" "${{ steps.parse-versions.outputs.agent_bootstrap_option }}"
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
@@ -207,3 +203,9 @@ jobs:
         run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
+      - name: Select model
+        run: juju switch test
+      - name: juju status
+        run: juju status --relations
+      - name: juju debug-log
+        run: juju debug-log --replay --no-tail
