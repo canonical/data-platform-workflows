@@ -161,6 +161,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Set up environment
         run: |
+          # `--classic` applies to juju 2 snap; ignored for juju 3 snap
           sudo snap install juju --classic --channel="${{ steps.parse-versions.outputs.snap_channel }}"
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
@@ -172,6 +173,7 @@ jobs:
           sudo iptables -P FORWARD ACCEPT
       - name: Set up environment
         run: |
+          mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
           juju bootstrap "${{ inputs.cloud }}" "${{ steps.parse-versions.outputs.agent_bootstrap_option }}"
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
           juju add-model test
