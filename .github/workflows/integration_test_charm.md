@@ -68,7 +68,7 @@ Take a look at this Discourse post: https://discourse.charmhub.io/t/faster-ci-re
 
 ### (Optional) Step 4: Add secrets
 #### Step A
-Pass in a string representation of a Python dict[str, str] built from multiple GitHub secrets
+Pass in a string representation of a Python dict[str, str] built from multiple GitHub secrets.
 
 Do **not** put the string into a single GitHub secret—build the string from multiple GitHub secrets so that GitHub is more likely to redact the secrets in GitHub Actions logs.
 ```yaml
@@ -111,4 +111,14 @@ pass_env =
     {[testenv]pass_env}
     # ...
     SECRETS_FROM_GITHUB
+```
+
+#### Step D
+Access the secrets from the `github_secrets` [pytest fixture](https://docs.pytest.org/en/stable/how-to/fixtures.html).
+```python
+def test_foo(github_secrets):
+    do_something(
+        access_key_id=github_secrets["AWS_ACCESS_KEY_ID"],
+        secret_access_key=github_secrets["AWS_SECRET_ACCESS_KEY"],
+    )
 ```
