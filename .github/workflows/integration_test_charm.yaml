@@ -211,14 +211,14 @@ jobs:
           mkdir ~/logs
       - name: juju status
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju status --relations | tee ~/logs/juju-status.txt
+        run: juju status --color --relations | tee ~/logs/juju-status.txt
       - name: juju debug-log
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju debug-log --replay --no-tail | tee ~/logs/juju-debug-log.txt
+        run: juju debug-log --color --replay --no-tail | tee ~/logs/juju-debug-log.txt
       - name: Upload logs
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v3
         with:
-          name: intergration-test-charm-logs-${{ matrix.groups.job_name }}
+          name: intergration-test-charm-logs-${{ matrix.groups.path_to_test_file }}-group-${{ matrix.groups.group_number }}
           path: ~/logs/
           if-no-files-found: error
