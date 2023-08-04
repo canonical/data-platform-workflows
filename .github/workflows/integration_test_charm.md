@@ -96,7 +96,7 @@ for key, value in secrets.items():
     assert isinstance(key, str) and isinstance(value, str)
 ```
 
-#### Step B
+#### Step B (Poetry)
 Add
 ```toml
 pytest-github-secrets = {git = "https://github.com/canonical/data-platform-workflows", tag = "v0.0.0", subdirectory = "python/pytest_plugins/github_secrets"}
