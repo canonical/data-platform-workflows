@@ -35,10 +35,16 @@ on:
         required: false
         type: string
       libjuju-version-constraint:
-        # TODO: document how it overrides poetry pin
         description: |
           Poetry-compatible python-libjuju version constraint (e.g. "^1.2.3", ">= 1.2, < 1.5")
           https://python-poetry.org/docs/dependency-specification/#version-constraints
+
+          Overrides python-libjuju version constraint in Poetry `integration` dependency group
+
+          Each version of python-libjuju is only compatible with one major Juju version
+          
+          Recommendation: With Poetry, pin python-libjuju for the latest major Juju version.
+          To test older major Juju versions, override the version constraint with this input.
         required: false
         type: string
     secrets:
