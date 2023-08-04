@@ -55,7 +55,7 @@ pass_env =
 ```
 
 ### Step 3: Split test functions into groups
-Groups allow a test file (Python module) to be split across parallel GitHub runners. Each group gets its own runner.
+Groups allow a test file (Python module) to be split across parallel GitHub runners. Each group (for each file) gets its own runner.
 
 Add
 ```python
