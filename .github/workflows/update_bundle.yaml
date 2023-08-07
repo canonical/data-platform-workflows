@@ -18,18 +18,18 @@ on:
       token:
         description: |
           GitHub App token or personal access token (not GITHUB_TOKEN)
-          
+
           Permissions needed for App token:
           - Access: Read & write for Repository permissions: Pull requests
           - Access: Read & write for Repository permissions: Contents
           - If GitHub team is requested for pull request review,
             Access: Read-only for Organization permissions: Members
-          
+
           Permissions needed for personal access token: write access to repository, read:org
           Personal access tokens with fine grained access are not supported (by GraphQL API, which is used by GitHub CLI).
-          
+
           The GITHUB_TOKEN can create a pull request or push a branch, but `on: pull_request` workflows will not be triggered.
-          
+
           Source: https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
         required: true
 
