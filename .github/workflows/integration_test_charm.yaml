@@ -129,12 +129,12 @@ jobs:
         env:
           SECRETS: ${{ secrets.integration-test }}
       - name: Validate cloud input
-        shell: python3 {0}
+        shell: python
         # Keep synchronized with inputs.cloud description
         run: assert "${{ inputs.cloud }}" in ("lxd")
       - name: Parse Juju agent version & snap channel
         id: parse-versions
-        shell: python3 {0}
+        shell: python
         run: |
           import os
 
@@ -188,7 +188,7 @@ jobs:
           name: ${{ inputs.artifact-name }}
       - name: Select test stability level
         id: select-test-stability
-        shell: python3 {0}
+        shell: python
         run: |
           import os
 
