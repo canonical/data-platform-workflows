@@ -78,6 +78,9 @@ def _collect_groups(items):
     sorted_groups: list[dict] = [
         dataclasses.asdict(group) for group in sorted(list(groups))
     ]
+    assert (
+        len(sorted_groups) > 0
+    ), "Zero groups found. Add `pytest.mark.group(1)` to every test"
     output = f"groups={json.dumps(sorted_groups)}"
     print(f"\n\n{output}\n")
     output_file = os.environ["GITHUB_OUTPUT"]
