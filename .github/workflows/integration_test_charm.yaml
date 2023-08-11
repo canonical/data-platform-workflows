@@ -175,7 +175,10 @@ jobs:
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
           juju bootstrap "${{ inputs.cloud }}" "${{ steps.parse-versions.outputs.agent_bootstrap_option }}"
-          juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
+          # `https-proxy` sets `HTTPS_PROXY` environment variable inside Juju machines
+          # (same for `http-proxy` -> `HTTP_PROXY` and `no-proxy` -> `NO_PROXY`)
+          # Self-hosted runners require proxy
+          juju model-defaults logging-config='<root>=INFO; unit=DEBUG' http-proxy="$HTTP_PROXY" https-proxy="$HTTPS_PROXY" no-proxy="$NO_PROXY"
           juju add-model test
           pipx install tox
           pipx install poetry
