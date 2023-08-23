@@ -14,7 +14,7 @@ packages = [{include = "github_secrets"}]
 github_secrets = "github_secrets.plugin"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 
 
 [build-system]

@@ -14,7 +14,7 @@ packages = [{include = "pytest_operator_cache"}]
 operator_cache = "pytest_operator_cache.plugin"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 pyyaml = "*"
 
 
