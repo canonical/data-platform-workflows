@@ -19,7 +19,7 @@ def pytest_configure(config):
 
 async def build_charm(
     self, charm_path: str | os.PathLike, bases_index: int = None
-) -> str:
+) -> pathlib.Path:
     charm_path = pathlib.Path(charm_path)
     if bases_index is not None:
         charmcraft_yaml = yaml.safe_load((charm_path / "charmcraft.yaml").read_text())
@@ -32,7 +32,14 @@ async def build_charm(
     else:
         packed_charms = list(charm_path.glob("*.charm"))
     if len(packed_charms) == 1:
-        return f"./{packed_charms[0]}"
+        # python-libjuju's model.deploy(), juju deploy, and juju bundle files expect local charms
+        # to begin with `./` or `/` to distinguish them from Charmhub charms.
+        # Therefore, we need to return an absolute path—a relative `pathlib.Path` does not start
+        # with `./` when cast to a str.
+        # (python-libjuju model.deploy() expects a str but will cast any input to a str as a
+        # workaround for pytest-operator's non-compliant `build_charm` return type of
+        # `pathlib.Path`.)
+        return packed_charms[0].resolve(strict=True)
     elif len(packed_charms) > 1:
         message = f"More than one matching .charm file found at {charm_path=}: {packed_charms}."
         if bases_index is None:
