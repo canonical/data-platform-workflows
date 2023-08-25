@@ -11,9 +11,9 @@ import os
 
 
 class PrefixValueError(ValueError):
-    def __init__(self, message: str):
+    def __init__(self, message_: str):
         super().__init__(
-            f"Message does not contain valid semantic version prefix (see CONTRIBUTING.md). {message=}"
+            f"Message does not contain valid semantic version prefix (see CONTRIBUTING.md). {message_=}"
         )
 
 

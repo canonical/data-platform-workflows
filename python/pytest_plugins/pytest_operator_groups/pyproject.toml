@@ -14,7 +14,7 @@ packages = [{include = "pytest_operator_groups"}]
 operator_groups = "pytest_operator_groups.plugin"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 pytest = "*"
 
 

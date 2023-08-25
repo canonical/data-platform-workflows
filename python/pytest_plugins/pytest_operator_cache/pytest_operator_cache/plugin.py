@@ -1,5 +1,6 @@
 import os
 import pathlib
+import typing
 
 import yaml
 
@@ -18,7 +19,7 @@ def pytest_configure(config):
 
 
 async def build_charm(
-    self, charm_path: str | os.PathLike, bases_index: int = None
+    self, charm_path: typing.Union[str, os.PathLike], bases_index: int = None
 ) -> pathlib.Path:
     charm_path = pathlib.Path(charm_path)
     if bases_index is not None:
