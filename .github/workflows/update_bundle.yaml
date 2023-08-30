@@ -65,15 +65,15 @@ jobs:
       - name: Update bundle file
         id: update-file
         run: |
-          CMD="update-bundle '${{ inputs.path-to-bundle-file }}'"
+          CMD="update-bundle ${{ inputs.path-to-bundle-file }}"
           
-          if [ ! -z "${{ inputs.include }}" ]; then CMD="${CMD} --include ${{ inputs.include }}"; fi
+          if [ -n "${{ inputs.include }}" ]; then CMD="${CMD} --include ${{ inputs.include }}"; fi
           
-          if [ ! -z "${{ inputs.exclude }}" ]; then CMD="${CMD} --exclude ${{ inputs.exclude }}"; fi
+          if [ -n "${{ inputs.exclude }}" ]; then CMD="${CMD} --exclude ${{ inputs.exclude }}"; fi
           
           echo "Executing command $CMD"
           
-          $CMD
+          ${CMD}
       - name: Push `update-bundle` branch
         if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
         run: |
