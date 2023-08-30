@@ -67,9 +67,9 @@ jobs:
         run: |
           CMD="update-bundle '${{ inputs.path-to-bundle-file }}'"
           
-          if [ ! -z ${{ inputs.include }} ]; then CMD="${CMD} --include ${{ inputs.include }}"; fi
+          if [ ! -z "${{ inputs.include }}" ]; then CMD="${CMD} --include ${{ inputs.include }}"; fi
           
-          if [ ! -z ${{ inputs.exclude }} ]; then CMD="${CMD} --exclude ${{ inputs.exclude }}"; fi
+          if [ ! -z "${{ inputs.exclude }}" ]; then CMD="${CMD} --exclude ${{ inputs.exclude }}"; fi
           
           echo "Executing command $CMD"
           
