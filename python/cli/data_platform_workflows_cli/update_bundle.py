@@ -7,6 +7,7 @@ import json
 import os
 import pathlib
 import subprocess
+import typing
 
 import requests
 import yaml
@@ -34,8 +35,8 @@ def fetch_latest_revision(charm, charm_channel, series=None) -> int:
     for channel in channel_map:
         if channel["channel"]["risk"] == risk and channel["channel"]["track"] == track:
             if (
-                series is None
-                or get_ubuntu_version(series) == channel["channel"]["base"]["channel"]
+                    series is None
+                    or get_ubuntu_version(series) == channel["channel"]["base"]["channel"]
             ):
                 revisions.append(channel["revision"]["revision"])
     if not revisions:
@@ -48,10 +49,59 @@ def fetch_latest_revision(charm, charm_channel, series=None) -> int:
     return max(revisions)
 
 
+def filter_application(name: str, include: typing.Sequence[str],
+                       exclude: typing.Sequence[str]) -> bool:
+    """Return boolean if the application needs to be filtered
+
+    Args:
+        name: name of the application
+        include: list of inclusion rules
+        exclude: list of exclusion rules
+
+    Returns:
+        boolean, with the filtering condition
+    """
+    if include:
+        return name in include
+
+    return not name in exclude
+
+
+class CommaSeparatedList(argparse.Action):
+    """Custom parser to create list out of comma-separated values and consecutive options."""
+    def __call__(self, parser, namespace, values, option_string=None):
+        aggregate = getattr(namespace, self.dest) + [app.strip() for app in values.split(",")]
+        setattr(namespace, self.dest, aggregate)
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("file_path")
+
+parser.add_argument(
+    "--include",
+    action=CommaSeparatedList,
+    default=[],
+    type=str,
+    help="If this option is provided, only explicitly provided applications will be "
+         "included in the monitoring. The list can be provided as comma-separated list or "
+         "consecutive options.",
+)
+
+parser.add_argument(
+    "--exclude",
+    action=CommaSeparatedList,
+    default=[],
+    type=str,
+    help="Application to be excluded in the monitoring. It is ignored if --included is used. "
+         "The list can be provided as comma-separated list or "
+         "consecutive options.",
+)
+
+
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("file_path")
-    file_path = pathlib.Path(parser.parse_args().file_path)
+    args = parser.parse_args()
+
+    file_path = pathlib.Path(args.file_path)
     old_file_data = yaml.safe_load(file_path.read_text())
     file_data = copy.deepcopy(old_file_data)
 
@@ -60,9 +110,10 @@ def main():
     # Full list of possible series config (unsupported) can be found under "Charm series" at https://juju.is/docs/olm/bundle
     default_series = file_data.get("series")
     for app in file_data["applications"].values():
-        app["revision"] = fetch_latest_revision(
-            app["charm"], app["channel"], app.get("series", default_series)
-        )
+        if filter_application(app["charm"], args.include, args.exclude):
+            app["revision"] = fetch_latest_revision(
+                app["charm"], app["channel"], app.get("series", default_series)
+            )
 
     with open(file_path, "w") as file:
         yaml.dump(file_data, file)

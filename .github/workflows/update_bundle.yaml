@@ -14,6 +14,14 @@ on:
         description: Comma separated list of GitHub usernames to request to review pull request (e.g. "canonical/data-platform-engineers,octocat")
         required: false
         type: string
+      include:
+        description: Comma separated list of applications to be checked against updates
+        required: false
+        type: string
+      exclude:
+        description: Comma separated list of applications to NOT be checked against updates
+        required: false
+        type: string
     secrets:
       token:
         description: |
@@ -56,7 +64,16 @@ jobs:
           token: ${{ secrets.token }}
       - name: Update bundle file
         id: update-file
-        run: update-bundle '${{ inputs.path-to-bundle-file }}'
+        run: |
+          CMD="update-bundle '${{ inputs.path-to-bundle-file }}'"
+          
+          if [ ! -z ${{ inputs.include }} ]; then CMD="${CMD} --include ${{ inputs.include }}"; fi
+          
+          if [ ! -z ${{ inputs.exclude }} ]; then CMD="${CMD} --exclude ${{ inputs.exclude }}"; fi
+          
+          echo "Executing command $CMD"
+          
+          $CMD
       - name: Push `update-bundle` branch
         if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
         run: |
