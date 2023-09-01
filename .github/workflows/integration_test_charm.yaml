@@ -67,6 +67,9 @@ on:
           ```
         required: false
 
+env:
+  FORCE_COLOR: 1
+
 jobs:
   get-workflow-version:
     name: Get workflow version
@@ -217,10 +220,10 @@ jobs:
           mkdir -p ~/logs/"${{ matrix.groups.log_artifact_path }}"
       - name: juju status
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju status --color --relations | tee ~/logs/"${{ matrix.groups.log_artifact_path }}"/juju-status.txt
+        run: juju status --relations | tee ~/logs/"${{ matrix.groups.log_artifact_path }}"/juju-status.txt
       - name: juju debug-log
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju debug-log --color --replay --no-tail | tee ~/logs/"${{ matrix.groups.log_artifact_path }}"/juju-debug-log.txt
+        run: juju debug-log --replay --no-tail | tee ~/logs/"${{ matrix.groups.log_artifact_path }}"/juju-debug-log.txt
       - name: jhack tail
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: jhack tail --replay --length=50000 --no-watch | tee ~/logs/"${{ matrix.groups.log_artifact_path }}"/jhack-tail.txt
