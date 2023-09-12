@@ -25,6 +25,22 @@ on:
           Cannot be used if `charmcraft-snap-revision` input is passed
         required: false
         type: string
+      lxd-snap-revision:
+        description: |
+          LXD snap revision
+
+          LXD from base runner image will be used if neither `lxd-snap-revision` or `lxd-snap-channel` is passed
+        required: false
+        type: string
+      lxd-snap-channel:
+        description: |
+          LXD snap channel
+
+          Cannot be used if `lxd-snap-revision` input is passed
+
+          LXD from base runner image will be used if neither `lxd-snap-revision` or `lxd-snap-channel` is passed
+        required: false
+        type: string
     outputs:
       artifact-name:
         description: Charm package is uploaded to this GitHub artifact name
@@ -50,10 +66,22 @@ jobs:
       - name: Parse charmcraft version inputs
         id: charmcraft-snap-version
         run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
+      - name: Parse LXD version inputs
+        id: lxd-snap-version
+        run: parse-snap-version --revision='${{ inputs.lxd-snap-revision }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revision --channel-input-name=lxd-snap-channel
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up environment
         run: |
+          # Placeholder (so that shellcheck disable does not apply to entire script)
+          # https://github.com/koalaman/shellcheck/issues/960#issuecomment-318918175
+          true
+          # shellcheck disable=SC2078
+          # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
+          if [[ '${{ steps.lxd-snap-version.outputs.install_flag }}' ]]
+          then
+            sudo snap refresh lxd '${{ steps.lxd-snap-version.outputs.install_flag }}'
+          fi
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sg` instead
           sg lxd -c "lxd waitready"
