@@ -31,31 +31,25 @@ on:
         value: ${{ inputs.artifact-name }}
 
 jobs:
+  get-workflow-version:
+    name: Get workflow version
+    uses: ./.github/workflows/_get_workflow_version.yaml
+    with:
+      repository-name: canonical/data-platform-workflows
+      file-name: build_charm_without_cache.yaml
+
   build:
     name: Build charm
+    needs:
+      - get-workflow-version
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Parse charmcraft version inputs
         id: charmcraft-snap-version
-        shell: python
-        run: |
-          import os
-
-          SNAP_REVISION = "${{ inputs.charmcraft-snap-revision }}"
-          SNAP_CHANNEL = "${{ inputs.charmcraft-snap-channel }}"
-          output = "install_flag="
-          if SNAP_REVISION:
-              assert (
-                  not SNAP_CHANNEL
-              ), "`charmcraft-snap-channel` input cannot be used if `charmcraft-snap-revision` input is passed"
-              output += f"--revision={SNAP_REVISION}"
-          elif SNAP_CHANNEL:
-              output += f"--channel={SNAP_CHANNEL}"
-
-          print(output)
-          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-              file.write(output)
+        run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up environment
@@ -68,7 +62,7 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
 
-          sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+          sudo snap install charmcraft --classic '${{ steps.charmcraft-snap-version.outputs.install_flag }}'
           pipx install tox
           pipx install poetry
       - name: Pack charm

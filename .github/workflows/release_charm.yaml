@@ -56,35 +56,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Parse charmcraft version inputs
         id: charmcraft-snap-version
-        shell: python
-        run: |
-          import os
-
-          SNAP_REVISION = "${{ inputs.charmcraft-snap-revision }}"
-          SNAP_CHANNEL = "${{ inputs.charmcraft-snap-channel }}"
-          output = "install_flag="
-          if SNAP_REVISION:
-              assert (
-                  not SNAP_CHANNEL
-              ), "`charmcraft-snap-channel` input cannot be used if `charmcraft-snap-revision` input is passed"
-              output += f"--revision={SNAP_REVISION}"
-          elif SNAP_CHANNEL:
-              output += f"--channel={SNAP_CHANNEL}"
-
-          print(output)
-          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-              file.write(output)
-      - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${{ needs.get-workflow-version.outputs.version }}"#subdirectory=python/cli
-      - name: Install docker
-        run: |
-          sudo adduser "$USER" docker
-          newgrp docker
-          sudo snap install docker
+        run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
       - name: Install charmcraft
-        run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+        run: sudo snap install charmcraft --classic '${{ steps.charmcraft-snap-version.outputs.install_flag }}'
       - name: Checkout
         uses: actions/checkout@v3
       - name: Download charm package(s)
@@ -93,7 +71,7 @@ jobs:
           name: ${{ inputs.artifact-name }}
       - name: Upload & release charm
         id: release
-        run: release-charm --charm-directory '${{ inputs.path-to-charm-directory }}' --channel '${{ inputs.channel }}'
+        run: release-charm --charm-directory='${{ inputs.path-to-charm-directory }}' --channel='${{ inputs.channel }}'
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
       - name: Upload charmcraft logs

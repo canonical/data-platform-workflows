@@ -123,7 +123,7 @@ jobs:
           sudo apt-get install python3-pip python3-venv -y
           python3 -m pip install --user pipx
           python3 -m pipx ensurepath
-          pipx install git+https://github.com/canonical/data-platform-workflows@"${{ needs.get-workflow-version.outputs.version }}"#subdirectory=python/cli
+          pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Redact secrets from log
         run: redact-secrets
         env:
@@ -162,7 +162,7 @@ jobs:
       - name: Set up environment
         run: |
           # `--classic` applies to juju 2 snap; ignored for juju 3 snap
-          sudo snap install juju --classic --channel="${{ steps.parse-versions.outputs.snap_channel }}"
+          sudo snap install juju --classic --channel='${{ steps.parse-versions.outputs.snap_channel }}'
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
@@ -174,7 +174,7 @@ jobs:
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
-          juju bootstrap "${{ inputs.cloud }}" "${{ steps.parse-versions.outputs.agent_bootstrap_option }}"
+          juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'
           # `https-proxy` sets `HTTPS_PROXY` environment variable inside Juju machines
           # (same for `http-proxy` -> `HTTP_PROXY` and `no-proxy` -> `NO_PROXY`)
           # Self-hosted runners require proxy
@@ -184,7 +184,7 @@ jobs:
           pipx install poetry
       - name: Update python-libjuju version
         if: ${{ inputs.libjuju-version-constraint }}
-        run: poetry add --lock --group integration juju@"${{ inputs.libjuju-version-constraint }}"
+        run: poetry add --lock --group integration juju@'${{ inputs.libjuju-version-constraint }}'
       - name: Download packed charm(s)
         uses: actions/download-artifact@v3
         with:
@@ -206,20 +206,20 @@ jobs:
               file.write(output)
       - name: Run integration tests
         id: tests
-        run: tox run -e integration -- "${{ matrix.groups.path_to_test_file }}" --group="${{ matrix.groups.group_number }}" -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test
+        run: tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_number }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
       - name: Select model
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: |
           juju switch test
-          mkdir -p ~/logs/"${{ matrix.groups.log_artifact_path }}"
+          mkdir -p ~/logs/'${{ matrix.groups.log_artifact_path }}'
       - name: juju status
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju status --color --relations | tee ~/logs/"${{ matrix.groups.log_artifact_path }}"/juju-status.txt
+        run: juju status --color --relations | tee ~/logs/'${{ matrix.groups.log_artifact_path }}'/juju-status.txt
       - name: juju debug-log
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju debug-log --color --replay --no-tail | tee ~/logs/"${{ matrix.groups.log_artifact_path }}"/juju-debug-log.txt
+        run: juju debug-log --color --replay --no-tail | tee ~/logs/'${{ matrix.groups.log_artifact_path }}'/juju-debug-log.txt
       - name: Upload logs
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v3
