@@ -73,6 +73,7 @@ jobs:
         charm: ${{ fromJSON(needs.collect-charms.outputs.charms) }}
     name: ${{ matrix.charm.job_display_name }}
     needs:
+      - get-workflow-version
       - collect-charms
     runs-on: ubuntu-latest
     timeout-minutes: 120
