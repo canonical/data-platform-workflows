@@ -36,8 +36,8 @@ def run(command_: list):
 def main():
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     parser = argparse.ArgumentParser()
-    parser.add_argument("--charm-directory")
-    parser.add_argument("--channel")
+    parser.add_argument("--charm-directory", required=True)
+    parser.add_argument("--channel", required=True)
     args = parser.parse_args()
     charm_directory = pathlib.Path(args.charm_directory)
 

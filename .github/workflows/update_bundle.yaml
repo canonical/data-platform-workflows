@@ -49,7 +49,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${{ needs.get-workflow-version.outputs.version }}"#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Checkout
         uses: actions/checkout@v3
         with:

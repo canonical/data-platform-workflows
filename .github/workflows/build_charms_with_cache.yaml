@@ -21,6 +21,22 @@ on:
           Cannot be used if `charmcraft-snap-revision` input is passed
         required: false
         type: string
+      lxd-snap-revision:
+        description: |
+          LXD snap revision
+
+          LXD from base runner image will be used if neither `lxd-snap-revision` or `lxd-snap-channel` is passed
+        required: false
+        type: string
+      lxd-snap-channel:
+        description: |
+          LXD snap channel
+
+          Cannot be used if `lxd-snap-revision` input is passed
+
+          LXD from base runner image will be used if neither `lxd-snap-revision` or `lxd-snap-channel` is passed
+        required: false
+        type: string
     outputs:
       artifact-name:
         description: Charm packages are uploaded to this GitHub artifact name
@@ -42,7 +58,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${{ needs.get-workflow-version.outputs.version }}"#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Checkout
         uses: actions/checkout@v3
       - name: Collect charms to build from charmcraft.yaml file(s)
@@ -57,34 +73,32 @@ jobs:
         charm: ${{ fromJSON(needs.collect-charms.outputs.charms) }}
     name: ${{ matrix.charm.job_display_name }}
     needs:
+      - get-workflow-version
       - collect-charms
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Parse charmcraft version inputs
         id: charmcraft-snap-version
-        shell: python
-        run: |
-          import os
-
-          SNAP_REVISION = "${{ inputs.charmcraft-snap-revision }}"
-          SNAP_CHANNEL = "${{ inputs.charmcraft-snap-channel }}"
-          output = "install_flag="
-          if SNAP_REVISION:
-              assert (
-                  not SNAP_CHANNEL
-              ), "`charmcraft-snap-channel` input cannot be used if `charmcraft-snap-revision` input is passed"
-              output += f"--revision={SNAP_REVISION}"
-          elif SNAP_CHANNEL:
-              output += f"--channel={SNAP_CHANNEL}"
-
-          print(output)
-          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-              file.write(output)
+        run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
+      - name: Parse LXD version inputs
+        id: lxd-snap-version
+        run: parse-snap-version --revision='${{ inputs.lxd-snap-revision }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revision --channel-input-name=lxd-snap-channel
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up environment
         run: |
+          # Placeholder (so that shellcheck disable does not apply to entire script)
+          # https://github.com/koalaman/shellcheck/issues/960#issuecomment-318918175
+          true
+          # shellcheck disable=SC2078
+          # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
+          if [[ '${{ steps.lxd-snap-version.outputs.install_flag }}' ]]
+          then
+            sudo snap refresh lxd '${{ steps.lxd-snap-version.outputs.install_flag }}'
+          fi
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sg` instead
           sg lxd -c "lxd waitready"
@@ -93,7 +107,7 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
 
-          sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+          sudo snap install charmcraft --classic '${{ steps.charmcraft-snap-version.outputs.install_flag }}'
           pipx install tox
           pipx install poetry
       - name: Get charmcraft version
