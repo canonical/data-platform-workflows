@@ -80,7 +80,7 @@ jobs:
           # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
           if [[ '${{ steps.lxd-snap-version.outputs.install_flag }}' ]]
           then
-            sudo snap refresh lxd '${{ steps.lxd-snap-version.outputs.install_flag }}'
+            sudo snap refresh lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
           fi
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sg` instead
@@ -90,7 +90,7 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
 
-          sudo snap install charmcraft --classic '${{ steps.charmcraft-snap-version.outputs.install_flag }}'
+          sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
           pipx install tox
           pipx install poetry
       - name: Pack charm

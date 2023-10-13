@@ -14,9 +14,9 @@ def main():
         assert (
             not args.channel
         ), f"`{args.channel_input_name}` input cannot be used if `{args.revision_input_name}` input is passed"
-        output += f"--revision={args.revision}"
+        output += f"'--revision={args.revision}'"
     elif args.channel:
-        output += f"--channel={args.channel}"
+        output += f"'--channel={args.channel}'"
 
     print(output)
     with open(os.environ["GITHUB_OUTPUT"], "a") as file:
