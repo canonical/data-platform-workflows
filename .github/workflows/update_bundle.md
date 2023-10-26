@@ -18,8 +18,7 @@ jobs:
     with:
       path-to-bundle-file: bundle.yaml
       reviewers: canonical/data-platform-engineers,octocat
-      include: app1       # If include is not provided, all apps will be updated
-      exclude: app3,app4  # Except those provided in the exclude option. 
+      exclude: app1,app2  # Do not update these apps. 
     secrets:
       token: ${{ secrets.CREATE_PR_APP_TOKEN }}
 ```
