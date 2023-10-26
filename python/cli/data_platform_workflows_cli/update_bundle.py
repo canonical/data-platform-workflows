@@ -49,21 +49,16 @@ def fetch_latest_revision(charm, charm_channel, series=None) -> int:
     return max(revisions)
 
 
-def filter_application(name: str, include: typing.Sequence[str],
-                       exclude: typing.Sequence[str]) -> bool:
+def filter_application(name: str, exclude: typing.Sequence[str]) -> bool:
     """Return boolean if the application needs to be filtered
 
     Args:
         name: name of the application
-        include: list of inclusion rules
         exclude: list of exclusion rules
 
     Returns:
         boolean, with the filtering condition
     """
-    if include:
-        return name in include
-
     return not name in exclude
 
 
@@ -83,9 +78,8 @@ parser.add_argument(
     action=CommaSeparatedList,
     default=[],
     type=str,
-    help="Application to be excluded in the monitoring. It is ignored if --included is used. "
-         "The list can be provided as comma-separated list or "
-         "consecutive options.",
+    help="Application to be excluded in the monitoring. " + \
+         "The list can be provided as comma-separated list or consecutive options.",
 )
 
 
@@ -101,7 +95,7 @@ def main():
     # Full list of possible series config (unsupported) can be found under "Charm series" at https://juju.is/docs/olm/bundle
     default_series = file_data.get("series")
     for app in file_data["applications"].values():
-        if filter_application(app["charm"], args.include, args.exclude):
+        if filter_application(app["charm"], args.exclude):
             app["revision"] = fetch_latest_revision(
                 app["charm"], app["channel"], app.get("series", default_series)
             )
