@@ -14,12 +14,8 @@ on:
         description: Comma separated list of GitHub usernames to request to review pull request (e.g. "canonical/data-platform-engineers,octocat")
         required: false
         type: string
-      include:
-        description: Comma separated list of applications to be checked against updates
-        required: false
-        type: string
       exclude:
-        description: Comma separated list of applications to NOT be checked against updates
+        description: Comma separated list of applications to not update
         required: false
         type: string
     secrets:
