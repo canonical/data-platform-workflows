@@ -70,22 +70,13 @@ def filter_application(name: str, include: typing.Sequence[str],
 class CommaSeparatedList(argparse.Action):
     """Custom parser to create list out of comma-separated values and consecutive options."""
     def __call__(self, parser, namespace, values, option_string=None):
-        aggregate = getattr(namespace, self.dest) + [app.strip() for app in values.split(",")]
+        aggregate = getattr(namespace, self.dest) + \
+                    [app.strip() for app in values.split(",") if app]
         setattr(namespace, self.dest, aggregate)
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("file_path")
-
-parser.add_argument(
-    "--include",
-    action=CommaSeparatedList,
-    default=[],
-    type=str,
-    help="If this option is provided, only explicitly provided applications will be "
-         "included in the monitoring. The list can be provided as comma-separated list or "
-         "consecutive options.",
-)
 
 parser.add_argument(
     "--exclude",

@@ -25,25 +25,6 @@ class TestUpdateBundle(unittest.TestCase):
             "my-file"
         ])
         self.assertEqual("my-file", args.file_path)
-        self.assertEqual([], args.include)
-        self.assertEqual([], args.exclude)
-
-    def test_argument_parsing_include(self):
-        args = parser.parse_args([
-            "my-file",
-            "--include", "package1", "--include", "package2"
-        ])
-        self.assertEqual("my-file", args.file_path)
-        self.assertEqual(["package1", "package2"], args.include)
-        self.assertEqual([], args.exclude)
-
-    def test_argument_parsing_include_comma_separated(self):
-        args = parser.parse_args([
-            "my-file",
-            "--include", "package1,package2"
-        ])
-        self.assertEqual("my-file", args.file_path)
-        self.assertEqual(["package1", "package2"], args.include)
         self.assertEqual([], args.exclude)
 
     def test_argument_parsing_exclude(self):
@@ -52,7 +33,6 @@ class TestUpdateBundle(unittest.TestCase):
             "--exclude", "package1", "--exclude", "package2"
         ])
         self.assertEqual("my-file", args.file_path)
-        self.assertEqual([], args.include)
         self.assertEqual(["package1", "package2"], args.exclude)
 
     def test_argument_parsing_exclude_comma_separated(self):
@@ -61,14 +41,12 @@ class TestUpdateBundle(unittest.TestCase):
             "--exclude", "package1,package2"
         ])
         self.assertEqual("my-file", args.file_path)
-        self.assertEqual([], args.include)
         self.assertEqual(["package1", "package2"], args.exclude)
 
-    def test_argument_parsing_combined(self):
+    def test_argument_parsing_exclude_empty_argument(self):
         args = parser.parse_args([
             "my-file",
-            "--exclude", "package1", "--include", "package2"
+            "--exclude", ""
         ])
         self.assertEqual("my-file", args.file_path)
-        self.assertEqual(["package2"], args.include)
-        self.assertEqual(["package1"], args.exclude)
+        self.assertEqual([], args.exclude)
