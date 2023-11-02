@@ -162,6 +162,7 @@ jobs:
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
+          sudo adduser "$USER" lxd
           sg lxd -c "lxd waitready"
           sg lxd -c "lxd init --auto"
           sg lxd -c "lxc network set lxdbr0 ipv6.address none"
