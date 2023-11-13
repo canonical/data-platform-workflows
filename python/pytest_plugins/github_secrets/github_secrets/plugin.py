@@ -27,6 +27,8 @@ def github_secrets() -> dict[str, str]:
                 "Invalid format for `SECRETS_FROM_GITHUB`—must be a Python dict[str, str]"
             )
     if set(secrets.values()) == {""}:
-        warnings.warn("No GitHub secrets available: skipping tests that require GitHub secrets")
+        warnings.warn(
+            "No GitHub secrets available: skipping tests that require GitHub secrets"
+        )
         pytest.skip("Running on fork: no access to GitHub secrets")
     return secrets
