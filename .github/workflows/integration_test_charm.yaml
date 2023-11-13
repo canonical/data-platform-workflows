@@ -115,15 +115,11 @@ jobs:
     needs:
       - get-workflow-version
       - collect-integration-tests
-    runs-on: [self-hosted, linux, X64, jammy, two-xlarge]
+    runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
       - name: Install CLI
-        run: |
-          sudo apt-get install python3-pip python3-venv -y
-          python3 -m pip install --user pipx
-          python3 -m pipx ensurepath
-          pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Redact secrets from log
         run: redact-secrets
         env:
@@ -166,19 +162,17 @@ jobs:
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
-          lxd waitready
-          lxd init --auto
-          lxc network set lxdbr0 ipv6.address none
+          sudo adduser "$USER" lxd
+          sg lxd -c "lxd waitready"
+          sg lxd -c "lxd init --auto"
+          sg lxd -c "lxc network set lxdbr0 ipv6.address none"
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
-          juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'
-          # `https-proxy` sets `HTTPS_PROXY` environment variable inside Juju machines
-          # (same for `http-proxy` -> `HTTP_PROXY` and `no-proxy` -> `NO_PROXY`)
-          # Self-hosted runners require proxy
-          juju model-defaults logging-config='<root>=INFO; unit=DEBUG' http-proxy="$HTTP_PROXY" https-proxy="$HTTPS_PROXY" no-proxy="$NO_PROXY"
+          sg lxd -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
+          juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
           juju add-model test
           pipx install tox
           pipx install poetry
@@ -206,7 +200,7 @@ jobs:
               file.write(output)
       - name: Run integration tests
         id: tests
-        run: tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_number }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test
+        run: sg lxd -c "tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_number }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test"
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
       - name: Select model
