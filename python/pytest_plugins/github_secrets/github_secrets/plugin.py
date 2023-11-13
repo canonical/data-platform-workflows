@@ -1,8 +1,10 @@
 import ast
+import logging
 import os
-import warnings
 
 import pytest
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
@@ -27,7 +29,7 @@ def github_secrets() -> dict[str, str]:
                 "Invalid format for `SECRETS_FROM_GITHUB`—must be a Python dict[str, str]"
             )
     if set(secrets.values()) == {""}:
-        warnings.warn(
+        logger.warning(
             "No GitHub secrets available: skipping tests that require GitHub secrets"
         )
         pytest.skip("Running on fork: no access to GitHub secrets")
