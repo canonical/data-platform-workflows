@@ -76,7 +76,14 @@ jobs:
       file-name: integration_test_charm.yaml
 
   collect-integration-tests:
-    name: Collect integration test groups
+    # In nested CI calls (e.g. release.yaml calls ci.yaml calls this workflow) the job name in
+    # ci.yaml will not show up on the GitHub Actions sidebar.
+    # If this workflow is called with a matrix (e.g. to test multiple juju versions), the ci.yaml
+    # job name containing the Juju version will be lost.
+    # So, we add the Juju version to one of the first jobs in this workflow.
+    # (In the UI, when this workflow is called with a matrix, GitHub will separate each matrix
+    # combination and preserve job ordering within a matrix combination.)
+    name: ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | Collect integration test groups
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
