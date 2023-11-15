@@ -18,10 +18,17 @@ on:
         description: |
           Juju cloud
 
-          Must be one of: "lxd"
+          Must be one of: "lxd", "microk8s"
 
           https://juju.is/docs/olm/cloud
         required: true
+        type: string
+      microk8s-snap-channel:
+        description: |
+          microk8s snap channel
+
+          Required if `cloud` input is "microk8s"
+        required: false
         type: string
       juju-agent-version:
         description: Juju agent version
@@ -124,10 +131,31 @@ jobs:
         run: redact-secrets
         env:
           SECRETS: ${{ secrets.integration-test }}
-      - name: Validate cloud input
+      - name: Parse cloud input
+        id: parse-cloud
         shell: python
         # Keep synchronized with inputs.cloud description
-        run: assert "${{ inputs.cloud }}" in ("lxd")
+        run: |
+          import os
+
+          CLOUD = "${{ inputs.cloud }}"
+          if CLOUD == "lxd":
+              group = "lxd"
+          elif CLOUD == "microk8s":
+              SNAP_CHANNEL = "${{ inputs.microk8s-snap-channel }}"
+              assert (
+                  SNAP_CHANNEL != ""
+              ), '`microk8s-snap-channel` input required if `cloud` is "microk8s"'
+              if "strict" in SNAP_CHANNEL.lower():
+                  group = "snap_microk8s"
+              else:
+                  group = "microk8s"
+          else:
+              raise ValueError(f"`cloud` input not recognized: {CLOUD}")
+          output = f"group={group}"
+          print(output)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(output)
       - name: Parse Juju agent version & snap channel
         id: parse-versions
         shell: python
@@ -162,16 +190,34 @@ jobs:
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
-          sudo adduser "$USER" lxd
-          sg lxd -c "lxd waitready"
-          sg lxd -c "lxd init --auto"
-          sg lxd -c "lxc network set lxdbr0 ipv6.address none"
+          sudo adduser "$USER" '${{ steps.parse-cloud.outputs.group }}'
+          # `newgrp` does not work in GitHub Actions; use `sg` instead
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "lxd waitready"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "lxd init --auto"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc network set lxdbr0 ipv6.address none"
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
+      - name: Set up microk8s
+        if: ${{ inputs.cloud == 'microk8s' }}
+        run: |
+          sudo apt-get install retry -y
+          # `--classic` ignored for strict channel snap
+          sudo snap install microk8s --classic --channel='${{ inputs.microk8s-snap-channel }}'
+          sudo adduser "$USER" '${{ steps.parse-cloud.outputs.group }}'
+          # `newgrp` does not work in GitHub Actions; use `sg` instead
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s status --wait-ready"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microk8s enable dns"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s status --wait-ready"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/coredns"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microk8s enable hostpath-storage"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/hostpath-provisioner"
+          mkdir ~/.kube
+          # Used by lightkube and kubernetes (Python package)
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s config > ~/.kube/config"
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
-          sg lxd -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
           juju add-model test
           pipx install tox
