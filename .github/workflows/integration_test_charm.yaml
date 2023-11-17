@@ -187,7 +187,6 @@ jobs:
         run: |
           # `--classic` applies to juju 2 snap; ignored for juju 3 snap
           sudo snap install juju --classic --channel='${{ steps.parse-versions.outputs.snap_channel }}'
-          sudo adduser "$USER" lxd
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
