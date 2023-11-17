@@ -146,10 +146,8 @@ jobs:
               assert (
                   SNAP_CHANNEL != ""
               ), '`microk8s-snap-channel` input required if `cloud` is "microk8s"'
-              if "strict" in SNAP_CHANNEL.lower():
-                  group = "snap_microk8s"
-              else:
-                  group = "microk8s"
+              assert "strict" in SNAP_CHANNEL.lower(), "Only strict microk8s snap supported"
+              group = "snap_microk8s"
           else:
               raise ValueError(f"`cloud` input not recognized: {CLOUD}")
           output = f"group={group}"
@@ -201,8 +199,7 @@ jobs:
         if: ${{ inputs.cloud == 'microk8s' }}
         run: |
           sudo apt-get install retry -y
-          # `--classic` ignored for strict channel snap
-          sudo snap install microk8s --classic --channel='${{ inputs.microk8s-snap-channel }}'
+          sudo snap install microk8s --channel='${{ inputs.microk8s-snap-channel }}'
           sudo adduser "$USER" '${{ steps.parse-cloud.outputs.group }}'
           # `newgrp` does not work in GitHub Actions; use `sg` instead
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s status --wait-ready"
