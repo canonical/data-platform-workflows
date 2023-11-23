@@ -1,0 +1,236 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Usage documentation: integration_test_charm.md
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        description: |
+          Name of GitHub artifact that contains the charm package(s)
+
+          Use another canonical/data-platform-workflows workflow to build the charm(s)
+        required: true
+        type: string
+      cloud:
+        # Keep description synchronized with "Validate input" step
+        description: |
+          Juju cloud
+
+          Must be one of: "lxd"
+
+          https://juju.is/docs/olm/cloud
+        required: true
+        type: string
+      juju-agent-version:
+        description: Juju agent version
+        required: false
+        type: string
+      juju-snap-channel:
+        description: |
+          Juju CLI snap channel
+
+          Required if `juju-agent-version` input is not passed
+        required: false
+        type: string
+      libjuju-version-constraint:
+        description: |
+          Poetry-compatible python-libjuju version constraint (e.g. "^1.2.3", ">= 1.2, < 1.5")
+          https://python-poetry.org/docs/dependency-specification/#version-constraints
+
+          Overrides python-libjuju version constraint in Poetry `integration` dependency group
+
+          Each version of python-libjuju is only compatible with one major Juju version
+
+          Recommendation: With Poetry, pin python-libjuju for the latest major Juju version.
+          To test older major Juju versions, override the version constraint with this input.
+        required: false
+        type: string
+    secrets:
+      integration-test:
+        description: |
+          Secrets needed in integration tests
+
+          Passed to tests with `SECRETS_FROM_GITHUB` environment variable
+
+          Use a string representation of a Python dict[str, str] built from multiple GitHub secrets
+          Do NOT put the string into a single GitHub secret—build the string from multiple GitHub secrets so that GitHub is more likely to redact the secrets in GitHub Actions logs.
+
+          Python code to verify the string format:
+          ```
+          import ast
+          secrets = ast.literal_eval("")
+          assert isinstance(secrets, dict)
+          for key, value in secrets.items():
+              assert isinstance(key, str) and isinstance(value, str)
+          ```
+        required: false
+
+jobs:
+  get-workflow-version:
+    name: Get workflow version
+    uses: ./.github/workflows/_get_workflow_version.yaml
+    with:
+      repository-name: canonical/data-platform-workflows
+      file-name: integration_test_charm.yaml
+
+  collect-integration-tests:
+    # In nested CI calls (e.g. release.yaml calls ci.yaml calls this workflow) the job name in
+    # ci.yaml will not show up on the GitHub Actions sidebar.
+    # If this workflow is called with a matrix (e.g. to test multiple juju versions), the ci.yaml
+    # job name containing the Juju version will be lost.
+    # So, we add the Juju version to one of the first jobs in this workflow.
+    # (In the UI, when this workflow is called with a matrix, GitHub will separate each matrix
+    # combination and preserve job ordering within a matrix combination.)
+    name: ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | Collect integration test groups
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install tox & poetry
+        run: |
+          pipx install tox
+          pipx install poetry
+      - name: Select test stability level
+        id: select-test-stability
+        shell: python
+        run: |
+          import os
+
+          if "${{ github.event_name }}" == "schedule":
+              print("Running unstable and stable tests")
+              output = "mark_expression="
+          else:
+              print("Skipping unstable tests")
+              output = "mark_expression=not unstable"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(output)
+      - name: Collect test groups
+        id: collect-groups
+        run: tox run -e integration -- tests/integration -m '${{ steps.select-test-stability.outputs.mark_expression }}' --collect-groups
+    outputs:
+      groups: ${{ steps.collect-groups.outputs.groups }}
+
+  integration-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        groups: ${{ fromJSON(needs.collect-integration-tests.outputs.groups) }}
+    name: ${{ matrix.groups.job_name }}
+    needs:
+      - get-workflow-version
+      - collect-integration-tests
+    runs-on: [self-hosted, linux, X64, jammy, large]
+    timeout-minutes: 120
+    steps:
+      - name: Install CLI
+        run: |
+          sudo apt-get install python3-pip python3-venv -y
+          python3 -m pip install --user pipx
+          python3 -m pipx ensurepath
+          pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
+      - name: Redact secrets from log
+        run: redact-secrets
+        env:
+          SECRETS: ${{ secrets.integration-test }}
+      - name: Validate cloud input
+        shell: python
+        # Keep synchronized with inputs.cloud description
+        run: assert "${{ inputs.cloud }}" in ("lxd")
+      - name: Parse Juju agent version & snap channel
+        id: parse-versions
+        shell: python
+        run: |
+          import os
+
+          AGENT_VERSION = "${{ inputs.juju-agent-version }}"
+          snap_channel = "${{ inputs.juju-snap-channel }}"
+          if not snap_channel:
+              if AGENT_VERSION:
+                  major, minor, patch = AGENT_VERSION.split(".")
+                  snap_channel = f"{major}.{minor}/stable"
+              else:
+                  raise Exception(
+                      "`juju-snap-channel` required if `juju-agent-version` is not passed"
+                  )
+
+          output = "agent_bootstrap_option="
+          if AGENT_VERSION:
+              output += f"--agent-version={AGENT_VERSION}"
+          output += f"\nsnap_channel={snap_channel}"
+
+          print(output)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(output)
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up environment
+        run: |
+          # `--classic` applies to juju 2 snap; ignored for juju 3 snap
+          sudo snap install juju --classic --channel='${{ steps.parse-versions.outputs.snap_channel }}'
+      - name: Set up lxd
+        if: ${{ inputs.cloud == 'lxd' }}
+        run: |
+          lxd waitready
+          lxd init --auto
+          lxc network set lxdbr0 ipv6.address none
+          sudo iptables -F FORWARD
+          sudo iptables -P FORWARD ACCEPT
+      - name: Set up environment
+        run: |
+          mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
+          juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'
+          # `https-proxy` sets `HTTPS_PROXY` environment variable inside Juju machines
+          # (same for `http-proxy` -> `HTTP_PROXY` and `no-proxy` -> `NO_PROXY`)
+          # Self-hosted runners require proxy
+          juju model-defaults logging-config='<root>=INFO; unit=DEBUG' http-proxy="$HTTP_PROXY" https-proxy="$HTTPS_PROXY" no-proxy="$NO_PROXY"
+          juju add-model test
+          pipx install tox
+          pipx install poetry
+      - name: Update python-libjuju version
+        if: ${{ inputs.libjuju-version-constraint }}
+        run: poetry add --lock --group integration juju@'${{ inputs.libjuju-version-constraint }}'
+      - name: Download packed charm(s)
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}
+      - name: Select test stability level
+        id: select-test-stability
+        shell: python
+        run: |
+          import os
+
+          if "${{ github.event_name }}" == "schedule":
+              print("Running unstable and stable tests")
+              output = "mark_expression="
+          else:
+              print("Skipping unstable tests")
+              output = "mark_expression=not unstable"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(output)
+      - name: Run integration tests
+        id: tests
+        run: tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_number }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test
+        env:
+          SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
+      - name: Select model
+        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
+        run: |
+          juju switch test
+          mkdir -p ~/logs/'${{ matrix.groups.log_artifact_path }}'
+      - name: juju status
+        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
+        run: juju status --color --relations | tee ~/logs/'${{ matrix.groups.log_artifact_path }}'/juju-status.txt
+      - name: juju debug-log
+        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
+        run: juju debug-log --color --replay --no-tail | tee ~/logs/'${{ matrix.groups.log_artifact_path }}'/juju-debug-log.txt
+      - name: Upload logs
+        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: intergration-test-charm-logs-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}
+          path: ~/logs/
+          if-no-files-found: error
