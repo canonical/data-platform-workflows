@@ -110,6 +110,8 @@ jobs:
           sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
           pipx install tox
           pipx install poetry
+          pipx inject poetry poetry-plugin-export
+          poetry config warnings.export false
       - name: Get charmcraft version
         id: charmcraft-version
         run: |
