@@ -70,7 +70,7 @@ on:
 jobs:
   get-workflow-version:
     name: Get workflow version
-    uses: ./.github/workflows/_get_workflow_version.yaml
+    uses: ./.github/workflows/_get_workflow_version_self_hosted.yaml
     with:
       repository-name: canonical/data-platform-workflows
       file-name: integration_test_charm_self_hosted.yaml
@@ -84,7 +84,7 @@ jobs:
     # (In the UI, when this workflow is called with a matrix, GitHub will separate each matrix
     # combination and preserve job ordering within a matrix combination.)
     name: ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | Collect integration test groups
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, X64, jammy, small]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
