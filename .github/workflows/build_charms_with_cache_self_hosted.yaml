@@ -48,7 +48,7 @@ jobs:
     uses: ./.github/workflows/_get_workflow_version_self_hosted.yaml
     with:
       repository-name: canonical/data-platform-workflows
-      file-name: build_charms_with_cache.yaml
+      file-name: build_charms_with_cache_self_hosted.yaml
 
   collect-charms:
     name: Collect charms
