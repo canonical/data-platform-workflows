@@ -73,7 +73,7 @@ jobs:
     uses: ./.github/workflows/_get_workflow_version.yaml
     with:
       repository-name: canonical/data-platform-workflows
-      file-name: integration_test_charm.yaml
+      file-name: integration_test_charm_self_hosted.yaml
 
   collect-integration-tests:
     # In nested CI calls (e.g. release.yaml calls ci.yaml calls this workflow) the job name in
