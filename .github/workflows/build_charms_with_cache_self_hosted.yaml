@@ -57,6 +57,11 @@ jobs:
     runs-on: [self-hosted, linux, X64, jammy, small]
     timeout-minutes: 5
     steps:
+      - name: Install pipx
+        run: |
+          sudo apt-get install python3-pip python3-venv -y
+          python3 -m pip install --user pipx
+          python3 -m pipx ensurepath
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Checkout
@@ -78,6 +83,11 @@ jobs:
     runs-on: [self-hosted, linux, X64, jammy, large]
     timeout-minutes: 120
     steps:
+      - name: Install pipx
+        run: |
+          sudo apt-get install python3-pip python3-venv -y
+          python3 -m pip install --user pipx
+          python3 -m pipx ensurepath
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Parse charmcraft version inputs
