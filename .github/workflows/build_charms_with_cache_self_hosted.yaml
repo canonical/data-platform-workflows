@@ -147,7 +147,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ~/ga-charmcraft-cache/**
-          key: charmcraft-pack-${{ matrix.charm.directory_path }}-${{ matrix.charm.bases_index }}-${{ steps.charmcraft-version.outputs.version }}-${{ steps.charmcraft-version.outputs.revision }}-${{ hashFiles(format('{0}/charmcraft.yaml', matrix.charm.directory_path), format('{0}/requirements-last-build.txt', matrix.charm.directory_path), format('{0}/requirements.txt', matrix.charm.directory_path)) }}
+          key: self-hosted-charmcraft-pack-${{ matrix.charm.directory_path }}-${{ matrix.charm.bases_index }}-${{ steps.charmcraft-version.outputs.version }}-${{ steps.charmcraft-version.outputs.revision }}-${{ hashFiles(format('{0}/charmcraft.yaml', matrix.charm.directory_path), format('{0}/requirements-last-build.txt', matrix.charm.directory_path), format('{0}/requirements.txt', matrix.charm.directory_path)) }}
       - name: Import cached containers
         if: ${{ steps.restore-cache.outputs.cache-hit }}
         run: |
