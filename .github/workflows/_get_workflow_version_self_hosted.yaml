@@ -1,0 +1,150 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Get ref (branch, tag, or commit) for a reusable workflow
+#
+# Workaround for https://github.com/actions/toolkit/issues/1264
+#
+# When a reusable workflow is called, the `github` context is always associated with the caller workflow
+# https://docs.github.com/en/actions/using-workflows/reusing-workflows#overview
+# If a reusable workflow needs to checkout files (e.g. a Python script) from its repository
+# —instead of the repository of the caller workflow—
+# it needs to know what version it was called with.
+#
+# Example:
+# calling-workflow.yaml
+# ---
+# jobs:
+#   build:
+#     name: Build charms
+#     uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@1.0
+#
+# In this example, the reusable workflow `build_charms_with_cache.yaml` is called with ref "1.0".
+# This workflow would output "1.0".
+
+on:
+  workflow_call:
+    inputs:
+      repository-name:
+        description: Name of reusable workflow repository (e.g. "canonical/data-platform-workflows")
+        required: true
+        type: string
+      file-name:
+        description: Name of reusable workflow file (e.g. "build_charms_with_cache.yaml")
+        required: true
+        type: string
+    outputs:
+      version:
+        description: Version of reusable workflow
+        value: ${{ jobs.get-version.outputs.version }}
+
+jobs:
+  get-version:
+    name: Get workflow version
+    runs-on: [self-hosted, linux, X64, jammy, small]
+    timeout-minutes: 5
+    steps:
+      - name: Install pyyaml
+        run: python3 -m pip install pyyaml
+      - name: Get reusable workflow version
+        id: get-version
+        shell: python
+        run: |
+          import os
+          import re
+          import subprocess
+          from pathlib import Path
+
+          import yaml
+
+
+          def get_versions_from_workflow_file(caller_workflow_ref_path: str) -> set:
+              """
+              Get versions of reusable workflow used by caller workflow
+
+              Args:
+                  caller_workflow_ref_path: Path to caller workflow with version
+                      (e.g. "octocat/hello-world/.github/workflows/my-workflow.yml@refs/heads/my_branch")
+
+              Returns:
+                  Set of reusable workflow versions used by caller workflow
+              """
+              # Separate ref (e.g. "refs/heads/my_branch", "1.0", "my_branch")
+              path, ref = caller_workflow_ref_path.split("@")
+              # Separate repository name (e.g. "octocat/hello-world")
+              repository_name = "/".join(path.split("/")[:2])
+              path = path.split("/")[2:]
+              # Workflows can only exist in the `.github/workflows` directory (no sub-directories)
+              assert (
+                  len(path) == 3
+                  and path[0] == ".github"
+                  and path[1] == "workflows"
+                  and path[2].endswith((".yaml", ".yml"))
+              ), f"Invalid {caller_workflow_ref_path=}"
+              caller_workflow_file_path = Path(repository_name) / Path("/".join(path))
+
+              # Checkout caller repository
+              try:
+                  os.makedirs(repository_name)
+              except FileExistsError:
+                  commands = [
+                      f"git fetch origin {ref}",
+                      "git checkout FETCH_HEAD",
+                  ]
+              else:
+                  commands = [
+                      "git init",
+                      "git sparse-checkout set --sparse-index .github/workflows/",
+                      f"git remote add --fetch origin https://github.com/{repository_name}.git",
+                      f"git fetch origin {ref}",
+                      "git checkout FETCH_HEAD",
+                  ]
+              for command in commands:
+                  subprocess.check_output(command.split(" "), cwd=repository_name)
+
+              jobs = yaml.safe_load(caller_workflow_file_path.read_text())["jobs"]
+              versions_ = set()
+              for job in jobs.values():
+                  call = job.get("uses")
+                  if not call:
+                      continue
+                  if match := re.fullmatch(CALL_PATTERN, call):
+                      versions_.add(match.group(1))
+                  else:
+                      # Another reusable workflow is being called.
+                      # Check to see if that reusable workflow calls the workflow
+                      # that we're looking for.
+                      if call.startswith("./"):
+                          # Reusable workflow is in the same repository as caller workflow
+                          call = f"{repository_name}/{call[2:]}@{ref}"
+                      versions_.update(get_versions_from_workflow_file(call))
+              return versions_
+
+
+          # Example: "canonical/data-platform-workflows"
+          REPOSITORY = "${{ inputs.repository-name }}"
+          # Example: "build_charms_with_cache.yaml"
+          REUSABLE_WORKFLOW_FILE_NAME = "${{ inputs.file-name }}"
+          CALL_PATTERN = re.compile(
+              f"{REPOSITORY}/.github/workflows/{REUSABLE_WORKFLOW_FILE_NAME}@(.*)"
+          )
+
+          # Example: "octocat/hello-world/.github/workflows/my-workflow.yml@refs/heads/my_branch"
+          CALLER_WORKFLOW_REF_PATH = "${{ github.workflow_ref }}"
+
+          versions = get_versions_from_workflow_file(CALLER_WORKFLOW_REF_PATH)
+
+          assert (
+              len(versions) > 0
+          ), f"`{REUSABLE_WORKFLOW_FILE_NAME}` workflow not found in caller workflow"
+          assert (
+              len(versions) == 1
+          ), f"""Caller workflow uses `{REUSABLE_WORKFLOW_FILE_NAME}` workflow on multiple versions {versions}.
+          Multiple versions not supported."""
+
+          output = f"version={versions.pop()}"
+          print(output)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(output)
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
