@@ -130,10 +130,8 @@ jobs:
           # From https://github.com/actions/runner-images/issues/2840#issuecomment-790492173
           printf '\nDisk usage before cleanup\n'
           df --human-readable
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /usr/local/share/boost
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          rm -rf /usr/share/dotnet
+          rm -rf /opt/hostedtoolcache/
           printf '\nDisk usage after cleanup\n'
           df --human-readable
       - name: Install CLI
