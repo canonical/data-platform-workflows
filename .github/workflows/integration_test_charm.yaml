@@ -282,3 +282,5 @@ jobs:
           name: intergration-test-charm-logs-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}
           path: ~/logs/
           if-no-files-found: error
+      - name: Disk usage
+        run: df --human-readable
