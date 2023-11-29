@@ -54,18 +54,18 @@ jobs:
           import re
           import subprocess
           from pathlib import Path
-
+          
           import yaml
-
-
+          
+          
           def get_versions_from_workflow_file(caller_workflow_ref_path: str) -> set:
               """
               Get versions of reusable workflow used by caller workflow
-
+          
               Args:
                   caller_workflow_ref_path: Path to caller workflow with version
                       (e.g. "octocat/hello-world/.github/workflows/my-workflow.yml@refs/heads/my_branch")
-
+          
               Returns:
                   Set of reusable workflow versions used by caller workflow
               """
@@ -82,7 +82,7 @@ jobs:
                   and path[2].endswith((".yaml", ".yml"))
               ), f"Invalid {caller_workflow_ref_path=}"
               caller_workflow_file_path = Path(repository_name) / Path("/".join(path))
-
+          
               # Checkout caller repository
               try:
                   os.makedirs(repository_name)
@@ -101,7 +101,7 @@ jobs:
                   ]
               for command in commands:
                   subprocess.check_output(command.split(" "), cwd=repository_name)
-
+          
               jobs = yaml.safe_load(caller_workflow_file_path.read_text())["jobs"]
               versions_ = set()
               for job in jobs.values():
@@ -119,8 +119,8 @@ jobs:
                           call = f"{repository_name}/{call[2:]}@{ref}"
                       versions_.update(get_versions_from_workflow_file(call))
               return versions_
-
-
+          
+          
           # Example: "canonical/data-platform-workflows"
           REPOSITORY = "${{ inputs.repository-name }}"
           # Example: "build_charms_with_cache.yaml"
@@ -128,20 +128,27 @@ jobs:
           CALL_PATTERN = re.compile(
               f"{REPOSITORY}/.github/workflows/{REUSABLE_WORKFLOW_FILE_NAME}@(.*)"
           )
-
+          
           # Example: "octocat/hello-world/.github/workflows/my-workflow.yml@refs/heads/my_branch"
           CALLER_WORKFLOW_REF_PATH = "${{ github.workflow_ref }}"
-
-          versions = get_versions_from_workflow_file(CALLER_WORKFLOW_REF_PATH)
-
+          # Example: "869c292bc86e1157c20c514e112520808c351f11"
+          CALLER_WORKFLOW_COMMIT_SHA = "${{ github.workflow_sha }}"
+          # Replace ref with commit hash (in case the ref has changed)
+          # Example: "octocat/hello-world/.github/workflows/my-workflow.yml@869c292bc86e1157c20c514e112520808c351f11"
+          caller_workflow_commit_path = (
+              f'{CALLER_WORKFLOW_REF_PATH.split("@")[0]}@{CALLER_WORKFLOW_COMMIT_SHA}'
+          )
+          
+          versions = get_versions_from_workflow_file(caller_workflow_commit_path)
+          
           assert (
               len(versions) > 0
           ), f"`{REUSABLE_WORKFLOW_FILE_NAME}` workflow not found in caller workflow"
           assert (
               len(versions) == 1
           ), f"""Caller workflow uses `{REUSABLE_WORKFLOW_FILE_NAME}` workflow on multiple versions {versions}.
-          Multiple versions not supported."""
-
+            Multiple versions not supported."""
+          
           output = f"version={versions.pop()}"
           print(output)
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
