@@ -147,7 +147,7 @@ jobs:
           assert (
               len(versions) == 1
           ), f"""Caller workflow uses `{REUSABLE_WORKFLOW_FILE_NAME}` workflow on multiple versions {versions}.
-            Multiple versions not supported."""
+          Multiple versions not supported."""
 
           output = f"version={versions.pop()}"
           print(output)
