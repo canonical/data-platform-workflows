@@ -206,9 +206,9 @@ jobs:
         run: |
           sudo adduser "$USER" '${{ steps.parse-cloud.outputs.group }}'
           # `newgrp` does not work in GitHub Actions; use `sg` instead
-          sg '${{ steps.parse-cloud.outputs.group }}' -c "lxd waitready"
-          sg '${{ steps.parse-cloud.outputs.group }}' -c "lxd init --auto"
-          sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc network set lxdbr0 ipv6.address none"
+          lxd waitready
+          lxd init --auto
+          lxc network set lxdbr0 ipv6.address none
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
       - name: Set up microk8s
@@ -230,7 +230,7 @@ jobs:
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
-          sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
+          juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'
           # `https-proxy` sets `HTTPS_PROXY` environment variable inside Juju machines
           # (same for `http-proxy` -> `HTTP_PROXY` and `no-proxy` -> `NO_PROXY`)
           # Self-hosted runners require proxy
@@ -263,7 +263,7 @@ jobs:
               file.write(output)
       - name: Run integration tests
         id: tests
-        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_number }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test"
+        run: tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_number }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
       - name: Select model
