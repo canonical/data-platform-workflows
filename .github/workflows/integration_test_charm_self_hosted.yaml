@@ -204,8 +204,6 @@ jobs:
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
-          sudo adduser "$USER" '${{ steps.parse-cloud.outputs.group }}'
-          # `newgrp` does not work in GitHub Actions; use `sg` instead
           lxd waitready
           lxd init --auto
           lxc network set lxdbr0 ipv6.address none
