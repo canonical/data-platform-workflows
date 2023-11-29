@@ -131,8 +131,15 @@ jobs:
 
           # Example: "octocat/hello-world/.github/workflows/my-workflow.yml@refs/heads/my_branch"
           CALLER_WORKFLOW_REF_PATH = "${{ github.workflow_ref }}"
+          # Example: "869c292bc86e1157c20c514e112520808c351f11"
+          CALLER_WORKFLOW_COMMIT_SHA = "${{ github.workflow_sha }}"
+          # Replace ref with commit hash (in case the ref has changed)
+          # Example: "octocat/hello-world/.github/workflows/my-workflow.yml@869c292bc86e1157c20c514e112520808c351f11"
+          caller_workflow_commit_path = (
+              f'{CALLER_WORKFLOW_REF_PATH.split("@")[0]}@{CALLER_WORKFLOW_COMMIT_SHA}'
+          )
 
-          versions = get_versions_from_workflow_file(CALLER_WORKFLOW_REF_PATH)
+          versions = get_versions_from_workflow_file(caller_workflow_commit_path)
 
           assert (
               len(versions) > 0
