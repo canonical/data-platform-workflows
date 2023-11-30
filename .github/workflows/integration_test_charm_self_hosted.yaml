@@ -125,6 +125,8 @@ jobs:
     runs-on: [self-hosted, linux, X64, jammy, large]
     timeout-minutes: 120
     steps:
+      - name: Disk usage
+        run: df --human-readable
       - name: Install CLI
         run: |
           sudo apt-get install python3-pip python3-venv -y
@@ -234,3 +236,5 @@ jobs:
           name: intergration-test-charm-logs-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}
           path: ~/logs/
           if-no-files-found: error
+      - name: Disk usage
+        run: df --human-readable
