@@ -128,7 +128,10 @@ jobs:
         # cache.
         working-directory: ${{ matrix.charm.directory_path }}
         run: |
-          if tox list --no-desc | grep --fixed-strings --line-regexp build
+          # Do not use tox env unless charmcraft.yaml in same directory as tox.ini
+          # (e.g. if there's a charm in tests/integration, it should not be built using the tox
+          # wrapper)
+          if [[ -f 'tox.ini' ]] && tox list --no-desc | grep --fixed-strings --line-regexp build
           then
             tox run -e pack-wrapper
           fi
@@ -170,7 +173,10 @@ jobs:
         id: pack
         working-directory: ${{ matrix.charm.directory_path }}
         run: |
-          if tox list --no-desc | grep --fixed-strings --line-regexp build
+          # Do not use tox env unless charmcraft.yaml in same directory as tox.ini
+          # (e.g. if there's a charm in tests/integration, it should not be built using the tox
+          # wrapper)
+          if [[ -f 'tox.ini' ]] && tox list --no-desc | grep --fixed-strings --line-regexp build
           then
             sg lxd -c "tox run -e build -- --bases-index='${{ matrix.charm.bases_index }}'"
           else
