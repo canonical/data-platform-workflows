@@ -177,7 +177,7 @@ jobs:
           import os
 
           cache_directory = pathlib.Path.home() / "ga-charmcraft-cache/pip-cache"
-          cache_directory.mkdir()
+          cache_directory.mkdir(parents=True, exist_ok=True)
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(f"cache_directory={str(cache_directory)}")
       - name: Pack charm
