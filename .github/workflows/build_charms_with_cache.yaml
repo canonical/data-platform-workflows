@@ -148,7 +148,7 @@ jobs:
           sg lxd -c "lxc project create charmcraft"
           sg lxd -c "lxc --project default profile show default | lxc --project charmcraft profile edit default"
           charm_repository_directory_inode=$(stat --format "%i" '${{ matrix.charm.directory_path }}')
-          for container_tarball in ~/ga-charmcraft-cache/*
+          for container_tarball in ~/ga-charmcraft-cache/lxd-containers/*
           do
             sg lxd -c "lxc --project charmcraft import \"$container_tarball\""
             container_name_without_inode=$(basename --suffix .tar "$container_tarball")
@@ -169,9 +169,22 @@ jobs:
               sudo touch --date="1970-01-01" /var/snap/lxd/common/lxd/containers/charmcraft_"$container_name_with_inode"/rootfs/root/parts/charm/state/pull
             fi
           done
+      - name: Create pip cache directory
+        id: pip-cache
+        shell: python
+        run: |
+          import pathlib
+          import os
+
+          cache_directory = pathlib.Path.home() / "ga-charmcraft-cache/pip-cache"
+          cache_directory.mkdir(parents=True, exist_ok=True)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(f"cache_directory={str(cache_directory)}")
       - name: Pack charm
         id: pack
         working-directory: ${{ matrix.charm.directory_path }}
+        env:
+          CRAFT_SHARED_CACHE: ${{ steps.pip-cache.outputs.cache_directory }}
         run: |
           # Do not use tox env unless charmcraft.yaml in same directory as tox.ini
           # (e.g. if there's a charm in tests/integration, it should not be built using the tox
@@ -204,7 +217,7 @@ jobs:
         id: export-containers
         if: ${{ !steps.restore-cache.outputs.cache-hit || github.event_name == 'schedule' }}
         run: |
-          mkdir -p ~/ga-charmcraft-cache
+          mkdir -p ~/ga-charmcraft-cache/lxd-containers
           charm_repository_directory_inode=$(stat --format "%i" '${{ matrix.charm.directory_path }}')
           for container_name_with_inode in $(sg lxd -c "lxc --project charmcraft list --columns n --format csv")
           do
@@ -227,7 +240,7 @@ jobs:
               container_name_without_inode="$container_name_with_inode"
             fi
             # Use GitHub actions/cache compression
-            sg lxd -c "lxc --project charmcraft export --optimized-storage --compression none \"$container_name_without_inode\" ~/ga-charmcraft-cache/\"$container_name_without_inode\".tar"
+            sg lxd -c "lxc --project charmcraft export --optimized-storage --compression none \"$container_name_without_inode\" ~/ga-charmcraft-cache/lxd-containers/\"$container_name_without_inode\".tar"
           done
       - if: ${{ github.event_name == 'schedule' && steps.restore-cache.outputs.cache-hit }}
         name: Delete cache on main
