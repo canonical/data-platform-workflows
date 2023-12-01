@@ -126,10 +126,6 @@ jobs:
       groups: ${{ steps.collect-groups.outputs.groups }}
 
   integration-test:
-    env:
-      HTTP_PROXY: ""
-      HTTPS_PROXY: ""
-      NO_PROXY: ""
     strategy:
       fail-fast: false
       matrix:
@@ -141,7 +137,6 @@ jobs:
     runs-on: [self-hosted, linux, X64, jammy, edge]
     timeout-minutes: 120
     steps:
-      - run: sudo sed -i "/.*proxy.*/Id" /etc/environment
       - name: Install CLI
         run: |
           sudo apt-get install python3-pip python3-venv -y
