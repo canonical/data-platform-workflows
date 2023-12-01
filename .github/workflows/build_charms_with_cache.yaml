@@ -176,7 +176,7 @@ jobs:
           import pathlib
           import os
 
-          cache_directory = pathlib.Path("~/ga-charmcraft-cache/pip-cache").resolve()
+          cache_directory = pathlib.Path.home() / "ga-charmcraft-cache/pip-cache"
           cache_directory.mkdir()
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(f"cache_directory={str(cache_directory)}")
