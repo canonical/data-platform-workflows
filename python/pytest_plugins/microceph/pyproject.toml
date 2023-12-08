@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "pytest-microceph"
+# Version unused; repository has its own versioning system. (See .github/workflows/__release.yaml)
+version = "0.1.0"
+description = ""
+authors = ["Carl Csaposs <carl.csaposs@canonical.com>"]
+readme = "README.md"
+classifiers = [
+    "Framework :: Pytest",
+]
+packages = [{include = "pytest_microceph"}]
+
+[tool.poetry.plugins."pytest11"]
+microceph = "pytest_microceph._plugin"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
