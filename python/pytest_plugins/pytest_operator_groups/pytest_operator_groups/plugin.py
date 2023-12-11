@@ -61,7 +61,7 @@ def _collect_groups(items):
     for function in items:
         if (group_number := _get_group_number(function)) is None:
             raise Exception(
-                f"{function.name} missing group number. Docs: https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/integration_test_charm.md#step-3-split-test-functions-into-groups"
+                f"{function} missing group number. Docs: https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/integration_test_charm.md#step-3-split-test-functions-into-groups"
             )
         # Example: "integration.relations.test_database"
         name = function.module.__name__
@@ -104,7 +104,7 @@ def pytest_collection_modifyitems(config, items):
             group_number = _get_group_number(function)
             if group_number is None:
                 raise Exception(
-                    f"{function.name} missing group number. Docs: https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/integration_test_charm.md#step-3-split-test-functions-into-groups"
+                    f"{function} missing group number. Docs: https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/integration_test_charm.md#step-3-split-test-functions-into-groups"
                 )
             elif group_number == config.option.group:
                 filtered_items.append(function)
