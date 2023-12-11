@@ -60,7 +60,7 @@ def _collect_groups(items):
     groups: set[Group] = set()
     for function in items:
         if (group_number := _get_group_number(function)) is None:
-            continue
+            raise Exception(f"{function} missing group number")
         # Example: "integration.relations.test_database"
         name = function.module.__name__
         assert name.split(".")[0] == "integration"
@@ -101,8 +101,7 @@ def pytest_collection_modifyitems(config, items):
         for function in items:
             group_number = _get_group_number(function)
             if group_number is None:
-                function.add_marker(pytest.mark.skip("Missing group number"))
-                filtered_items.append(function)
+                raise Exception(f"{function} missing group number")
             elif group_number == config.option.group:
                 filtered_items.append(function)
         items[:] = filtered_items
