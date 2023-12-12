@@ -199,7 +199,7 @@ jobs:
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.artifact-name }}-charmcraft-build-logs
+          name: ${{ inputs.artifact-name }}-charmcraft-build-logs-attempt-${{ github.run_attempt }}
           path: ~/.local/state/charmcraft/log/
           if-no-files-found: error
       - run: touch .empty

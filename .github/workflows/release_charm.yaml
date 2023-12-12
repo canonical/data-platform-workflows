@@ -78,7 +78,7 @@ jobs:
         if: ${{ failure() && steps.release.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.artifact-name }}-charmcraft-release-logs
+          name: ${{ inputs.artifact-name }}-charmcraft-release-logs-attempt-${{ github.run_attempt }}
           path: ~/.local/state/charmcraft/log/
           if-no-files-found: error
       - name: Create GitHub release
