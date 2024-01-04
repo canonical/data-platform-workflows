@@ -129,9 +129,9 @@ jobs:
           # wrapper)
           if [[ -f 'tox.ini' ]] && tox list --no-desc | grep --fixed-strings --line-regexp build-dev
           then
-            sg lxd -c "tox run -e build-dev -- --bases-index='${{ matrix.charm.bases_index }}'"
+            sg lxd -c "tox run -e build-dev -- -v --bases-index='${{ matrix.charm.bases_index }}'"
           else
-            sg lxd -c "charmcraftcache pack --bases-index='${{ matrix.charm.bases_index }}'"
+            sg lxd -c "charmcraftcache pack -v --bases-index='${{ matrix.charm.bases_index }}'"
           fi
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
