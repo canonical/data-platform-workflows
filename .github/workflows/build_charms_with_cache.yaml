@@ -115,11 +115,6 @@ jobs:
           poetry config warnings.export false
 
           pipx install charmcraftcache
-      - name: Get charmcraft version
-        id: charmcraft-version
-        run: |
-          echo "version=$(charmcraft version)" >> "$GITHUB_OUTPUT"
-          echo "revision=$(readlink /var/snap/charmcraft/current)" >> "$GITHUB_OUTPUT"
       - name: Pack charm
         id: pack
         working-directory: ${{ matrix.charm.directory_path }}
