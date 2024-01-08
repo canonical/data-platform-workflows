@@ -113,87 +113,25 @@ jobs:
           pipx inject poetry poetry-plugin-export
           # TODO: Remove after https://github.com/python-poetry/poetry/pull/5980 is closed
           poetry config warnings.export false
+
+          pipx install charmcraftcache
       - name: Get charmcraft version
         id: charmcraft-version
         run: |
           echo "version=$(charmcraft version)" >> "$GITHUB_OUTPUT"
           echo "revision=$(readlink /var/snap/charmcraft/current)" >> "$GITHUB_OUTPUT"
-      - name: Export charm requirements from poetry.lock
-        # `tox run -e pack-wrapper` will create a `requirements-last-build.txt` that is identical
-        # to the `requirements.txt` file that will be used later during `charmcraft pack`.
-        # We use `requirements-last-build.txt` instead of `poetry.lock` to generate the cache key.
-        # This is because `poetry.lock` contains dependencies that are not part of the charm.
-        # (e.g. lint, unit test, and integration test dependencies)
-        # When dependencies that aren't part of the charm change, we do not need to create a new
-        # cache.
-        working-directory: ${{ matrix.charm.directory_path }}
-        run: |
-          # Do not use tox env unless charmcraft.yaml in same directory as tox.ini
-          # (e.g. if there's a charm in tests/integration, it should not be built using the tox
-          # wrapper)
-          if [[ -f 'tox.ini' ]] && tox list --no-desc | grep --fixed-strings --line-regexp build
-          then
-            tox run -e pack-wrapper
-          fi
-      - name: Restore cache of `charmcraft pack` LXC instance
-        id: restore-cache
-        uses: actions/cache/restore@v3
-        with:
-          path: ~/ga-charmcraft-cache/**
-          key: charmcraft-pack-${{ matrix.charm.directory_path }}-${{ matrix.charm.bases_index }}-${{ steps.charmcraft-version.outputs.version }}-${{ steps.charmcraft-version.outputs.revision }}-${{ hashFiles(format('{0}/charmcraft.yaml', matrix.charm.directory_path), format('{0}/requirements-last-build.txt', matrix.charm.directory_path), format('{0}/requirements.txt', matrix.charm.directory_path)) }}
-      - name: Import cached containers
-        if: ${{ steps.restore-cache.outputs.cache-hit }}
-        run: |
-          # Project setup copied from https://github.com/canonical/craft-providers/blob/20d154bb8fa9868a678c5621f124a02e2b9e72ad/craft_providers/lxd/project.py#L26
-          sg lxd -c "lxc project create charmcraft"
-          sg lxd -c "lxc --project default profile show default | lxc --project charmcraft profile edit default"
-          charm_repository_directory_inode=$(stat --format "%i" '${{ matrix.charm.directory_path }}')
-          for container_tarball in ~/ga-charmcraft-cache/lxd-containers/*
-          do
-            sg lxd -c "lxc --project charmcraft import \"$container_tarball\""
-            container_name_without_inode=$(basename --suffix .tar "$container_tarball")
-            # charmcraft 2.3.0 added a "base instance" LXC container that is not specific to a charm (and doesn't contain an inode)
-            if [[ $container_name_without_inode == charmcraft-* ]]
-            then
-              # LXC container is for a charm (not the "base instance")
-
-              # Replace placeholder text "INODE" with inode
-              container_name_with_inode="${container_name_without_inode//INODE/$charm_repository_directory_inode}"
-              sg lxd -c "lxc --project charmcraft move \"$container_name_without_inode\" \"$container_name_with_inode\""
-              # Force charmcraft to update all files
-              # By default, charmcraft only updates files that were modified after the last build.
-              # Source: https://github.com/canonical/craft-parts/blob/82038513adc861e30dc91783b573c86b87e58873/craft_parts/sources/local_source.py#L99-L123
-              # Why this is needed:
-              #   It is possible that a cache is created on the main branch after a file is modified on a PR branch.
-              #   Without this, if the cache from main were used, that file would not be updated in the build.
-              sudo touch --date="1970-01-01" /var/snap/lxd/common/lxd/containers/charmcraft_"$container_name_with_inode"/rootfs/root/parts/charm/state/pull
-            fi
-          done
-      - name: Create pip cache directory
-        id: pip-cache
-        shell: python
-        run: |
-          import pathlib
-          import os
-
-          cache_directory = pathlib.Path.home() / "ga-charmcraft-cache/pip-cache"
-          cache_directory.mkdir(parents=True, exist_ok=True)
-          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-              file.write(f"cache_directory={str(cache_directory)}")
       - name: Pack charm
         id: pack
         working-directory: ${{ matrix.charm.directory_path }}
-        env:
-          CRAFT_SHARED_CACHE: ${{ steps.pip-cache.outputs.cache_directory }}
         run: |
           # Do not use tox env unless charmcraft.yaml in same directory as tox.ini
           # (e.g. if there's a charm in tests/integration, it should not be built using the tox
           # wrapper)
-          if [[ -f 'tox.ini' ]] && tox list --no-desc | grep --fixed-strings --line-regexp build
+          if [[ -f 'tox.ini' ]] && tox list --no-desc | grep --fixed-strings --line-regexp build-dev
           then
-            sg lxd -c "tox run -e build -- --bases-index='${{ matrix.charm.bases_index }}'"
+            sg lxd -c "tox run -e build-dev -- -v --bases-index='${{ matrix.charm.bases_index }}'"
           else
-            sg lxd -c "charmcraft pack --bases-index='${{ matrix.charm.bases_index }}'"
+            sg lxd -c "charmcraftcache pack -v --bases-index='${{ matrix.charm.bases_index }}'"
           fi
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
@@ -213,52 +151,3 @@ jobs:
             ${{ matrix.charm.directory_path }}/*.charm
             .empty
           if-no-files-found: error
-      - name: Export `charmcraft pack` containers to cache
-        id: export-containers
-        if: ${{ !steps.restore-cache.outputs.cache-hit || github.event_name == 'schedule' }}
-        run: |
-          mkdir -p ~/ga-charmcraft-cache/lxd-containers
-          charm_repository_directory_inode=$(stat --format "%i" '${{ matrix.charm.directory_path }}')
-          for container_name_with_inode in $(sg lxd -c "lxc --project charmcraft list --columns n --format csv")
-          do
-            # Disable charmcraft snap updates
-            # Workaround (unconfirmed) for https://github.com/canonical/charmcraft/issues/1202
-            sg lxd -c "lxc --project charmcraft start \"$container_name_with_inode\""
-            sg lxd -c "lxc --project charmcraft exec \"$container_name_with_inode\" -- bash -c 'while ! systemctl is-active snapd.service; do sleep 0.5; done'"
-            sg lxd -c "lxc --project charmcraft exec \"$container_name_with_inode\" -- snap refresh --hold=forever charmcraft"
-            sg lxd -c "lxc --project charmcraft stop \"$container_name_with_inode\""
-
-            # charmcraft 2.3.0 added a "base instance" LXC container that is not specific to a charm (and doesn't contain an inode)
-            if [[ $container_name_with_inode == charmcraft-* ]]
-            then
-              # LXC container is for a charm (not the "base instance")
-              # Replace inode with placeholder text "INODE"
-              container_name_without_inode="${container_name_with_inode//$charm_repository_directory_inode/INODE}"
-              sg lxd -c "lxc --project charmcraft move \"$container_name_with_inode\" \"$container_name_without_inode\""
-            else
-              # LXC container is the "base instance"
-              container_name_without_inode="$container_name_with_inode"
-            fi
-            # Use GitHub actions/cache compression
-            sg lxd -c "lxc --project charmcraft export --optimized-storage --compression none \"$container_name_without_inode\" ~/ga-charmcraft-cache/lxd-containers/\"$container_name_without_inode\".tar"
-          done
-      - if: ${{ github.event_name == 'schedule' && steps.restore-cache.outputs.cache-hit }}
-        name: Delete cache on main
-        # GitHub actions cache is limited to 10 GiB per repository
-        # https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows#usage-limits-and-eviction-policy
-        # When the 10 GiB limit is exceeded, GitHub deletes the oldest caches.
-        # If the cache on the main branch is deleted by GitHub,
-        # any new pull requests will be unable to restore a cache.
-        # To avoid that situation, delete the cache on main and save
-        # a new cache with the same key once per day.
-        run: |
-          gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" --method DELETE "/repos/{owner}/{repo}/actions/caches?key=${{ steps.restore-cache.outputs.cache-primary-key }}"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Save cache of `charmcraft pack` LXC instance
-        if: ${{ steps.export-containers.outcome == 'success' }}
-        uses: actions/cache/save@v3
-        with:
-          path: ~/ga-charmcraft-cache/**
-          # Use value of "key" from restore-cache step
-          key: ${{ steps.restore-cache.outputs.cache-primary-key }}

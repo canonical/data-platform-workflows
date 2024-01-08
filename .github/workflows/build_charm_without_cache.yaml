@@ -100,11 +100,11 @@ jobs:
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
         run: |
-          if tox list --no-desc | grep --fixed-strings --line-regexp build
+          if tox list --no-desc | grep --fixed-strings --line-regexp build-production
           then
-            sg lxd -c "tox run -e build"
+            sg lxd -c "tox run -e build-production -- -v"
           else
-            sg lxd -c "charmcraft pack"
+            sg lxd -c "charmcraft pack -v"
           fi
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
