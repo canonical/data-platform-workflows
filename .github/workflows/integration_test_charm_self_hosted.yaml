@@ -34,6 +34,12 @@ on:
           Required if `juju-agent-version` input is not passed
         required: false
         type: string
+      lxd-snap-channel:
+        description: |
+          LXD snap channel
+        required: false
+        type: string
+        default: "latest/stable"
       libjuju-version-constraint:
         description: |
           Poetry-compatible python-libjuju version constraint (e.g. "^1.2.3", ">= 1.2, < 1.5")
@@ -175,6 +181,9 @@ jobs:
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
+          sudo snap refresh lxd --channel='${{ inputs.lxd-snap-channel }}'
+          sudo snap list
+
           lxd waitready
           lxd init --auto
           lxc network set lxdbr0 ipv6.address none
