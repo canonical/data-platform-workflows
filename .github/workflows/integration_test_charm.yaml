@@ -210,7 +210,7 @@ jobs:
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
-          sudo snap refresh lxd --channel='${{ inputs.lxd-snap-channel }}'
+          time sudo snap refresh lxd --channel='${{ inputs.lxd-snap-channel }}'
           sudo snap list
 
           sudo adduser "$USER" '${{ steps.parse-cloud.outputs.group }}'
