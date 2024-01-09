@@ -34,6 +34,11 @@ def run(command_: list):
 
 
 def main():
+    # Remove `charmcraft.yaml` from working directory (directory that subprocess will run as) if it
+    # exists.
+    # Workaround for https://github.com/canonical/charmcraft/issues/1389
+    pathlib.Path("charmcraft.yaml").unlink(missing_ok=True)
+
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     parser = argparse.ArgumentParser()
     parser.add_argument("--charm-directory", required=True)
