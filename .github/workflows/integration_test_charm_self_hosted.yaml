@@ -185,6 +185,7 @@ jobs:
           lxc network set lxdbr0 ipv6.address none
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
+      - run: snap list
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap

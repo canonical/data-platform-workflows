@@ -41,6 +41,7 @@ jobs:
           sudo iptables -P FORWARD ACCEPT
 
           sudo snap install snapcraft --classic
+      - run: snap list
       - name: Pack snap
         id: pack
         working-directory: ${{ inputs.path-to-snap-project-directory }}

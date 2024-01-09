@@ -63,6 +63,7 @@ jobs:
         run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
       - name: Install charmcraft
         run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+      - run: snap list
       - name: Checkout
         uses: actions/checkout@v3
       - name: Download charm package(s)
