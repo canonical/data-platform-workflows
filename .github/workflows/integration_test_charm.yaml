@@ -30,6 +30,10 @@ on:
           Required if `cloud` input is "microk8s"
         required: false
         type: string
+      lxd-snap-channel:
+        description: LXD snap channel
+        default: latest/stable
+        type: string
       juju-agent-version:
         description: Juju agent version
         required: false
@@ -204,6 +208,7 @@ jobs:
       - name: Set up lxd
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
+          sudo snap refresh lxd --channel='${{ inputs.lxd-snap-channel }}'
           sudo adduser "$USER" '${{ steps.parse-cloud.outputs.group }}'
           # `newgrp` does not work in GitHub Actions; use `sg` instead
           sg '${{ steps.parse-cloud.outputs.group }}' -c "lxd waitready"
@@ -227,6 +232,7 @@ jobs:
           mkdir ~/.kube
           # Used by lightkube and kubernetes (Python package)
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s config > ~/.kube/config"
+      - run: snap list
       - name: Set up environment
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap

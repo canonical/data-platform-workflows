@@ -115,6 +115,7 @@ jobs:
           poetry config warnings.export false
 
           pipx install charmcraftcache
+      - run: snap list
       - name: Pack charm
         id: pack
         working-directory: ${{ matrix.charm.directory_path }}
