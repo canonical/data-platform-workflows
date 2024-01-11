@@ -1,5 +1,6 @@
 import dataclasses
 import json
+import logging
 import subprocess
 
 import boto3
@@ -15,8 +16,8 @@ class ConnectionInformation:
 
 @pytest.fixture(scope="session")
 def microceph():
-    # todo logging
     # todo: check if running in CI?
+    logger.info("Setting up microceph")
     subprocess.run(["sudo", "snap", "install", "microceph"], check=True)
     subprocess.run(["sudo", "microceph", "cluster", "bootstrap"], check=True)
     subprocess.run(["sudo", "microceph", "disk", "add", "loop,4G,3"], check=True)
@@ -39,13 +40,16 @@ def microceph():
     key = json.loads(output)["keys"][0]
     key_id = key["access_key"]
     secret_key = key["secret_key"]
+    logger.info("Creating microceph bucket")
     boto3.client(
         "s3",
         endpoint_url="http://localhost",
         aws_access_key_id=key_id,
         aws_secret_access_key=secret_key,
     ).create_bucket(Bucket=_BUCKET)
+    logger.info("Set up microceph")
     return ConnectionInformation(key_id, secret_key, _BUCKET)
 
 
 _BUCKET = "testbucket"
+logger = logging.getLogger(__name__)
