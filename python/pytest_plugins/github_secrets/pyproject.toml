@@ -8,10 +8,10 @@ readme = "README.md"
 classifiers = [
     "Framework :: Pytest",
 ]
-packages = [{include = "github_secrets"}]
+packages = [{include = "pytest_github_secrets"}]
 
 [tool.poetry.plugins."pytest11"]
-github_secrets = "github_secrets.plugin"
+github_secrets = "github_secrets._plugin"
 
 [tool.poetry.dependencies]
 python = "^3.8"

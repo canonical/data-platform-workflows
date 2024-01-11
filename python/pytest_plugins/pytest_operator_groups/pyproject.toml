@@ -11,7 +11,7 @@ classifiers = [
 packages = [{include = "pytest_operator_groups"}]
 
 [tool.poetry.plugins."pytest11"]
-operator_groups = "pytest_operator_groups.plugin"
+operator_groups = "pytest_operator_groups._plugin"
 
 [tool.poetry.dependencies]
 python = "^3.8"
