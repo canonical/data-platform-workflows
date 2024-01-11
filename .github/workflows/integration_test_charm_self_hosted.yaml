@@ -129,6 +129,14 @@ jobs:
     runs-on: [self-hosted, linux, X64, jammy, large]
     timeout-minutes: 120
     steps:
+      - name: Check pytest `runner` mark
+        shell: python
+        run: |
+          import json
+
+          assert (
+              json.loads("${{ matrix.groups.runner }}") is None
+          ), "`pytest.mark.runner` not supported on self-hosted runners"
       - name: Disk usage
         run: df --human-readable
       - name: Install CLI
