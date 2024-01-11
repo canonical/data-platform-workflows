@@ -1,6 +1,7 @@
 import dataclasses
 import json
 import logging
+import os
 import subprocess
 
 import boto3
@@ -16,7 +17,8 @@ class ConnectionInformation:
 
 @pytest.fixture(scope="session")
 def microceph():
-    # todo: check if running in CI?
+    if not os.environ.get("CI") == "true":
+        raise Exception("Not running on CI. Skipping microceph installation")
     logger.info("Setting up microceph")
     subprocess.run(["sudo", "snap", "install", "microceph"], check=True)
     subprocess.run(["sudo", "microceph", "cluster", "bootstrap"], check=True)
