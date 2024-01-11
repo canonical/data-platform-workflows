@@ -17,7 +17,11 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line(
-        "markers", "group: Parallelize tests in a file across GitHub runners"
+        "markers", "group(number): Parallelize tests in a file across GitHub runners"
+    )
+    config.addinivalue_line(
+        "markers",
+        "runner(runs_on): GitHub Actions `runs-on` string (https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on)",
     )
     if config.option.collect_groups:
         config.option.collectonly = True
@@ -47,6 +51,30 @@ def _get_group_number(function) -> typing.Optional[int]:
     return group_number
 
 
+def _get_runner(function) -> typing.Optional[str]:
+    """Get runner from test function marker.
+
+    Syntax: `runs-on` string
+    https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
+
+    This example has a runner of "ubuntu-latest":
+    @pytest.mark.runner("ubuntu-latest")
+    def test_build_and_deploy():
+        pass
+    """
+    runner_markers = [
+        marker for marker in function.own_markers if marker.name == "runner"
+    ]
+    if not runner_markers:
+        return
+    assert len(runner_markers) == 1
+    marker_args = runner_markers[0].args
+    assert len(marker_args) == 1
+    runner = marker_args[0]
+    assert isinstance(runner, str)
+    return runner
+
+
 def _collect_groups(items):
     """Collect unique group numbers for each test module."""
 
@@ -57,7 +85,15 @@ def _collect_groups(items):
         job_name: str
         log_artifact_path: str
 
-    groups: set[Group] = set()
+    @dataclasses.dataclass(eq=True, order=True, frozen=True)
+    class GroupWithRunner(Group):
+        runner: typing.Optional[str]
+
+        @classmethod
+        def from_group(cls, group: Group, *, runner: typing.Optional[str]):
+            return cls(**dataclasses.asdict(group), runner=runner)
+
+    group_to_runners: dict[Group, set[str]] = {}
     for function in items:
         if (group_number := _get_group_number(function)) is None:
             raise Exception(
@@ -76,10 +112,20 @@ def _collect_groups(items):
         log_artifact_path = (
             f"{'/'.join(path_to_test_file.split('/')[2:])}/group-{group_number}"
         )
-        groups.add(Group(path_to_test_file, group_number, job_name, log_artifact_path))
-    sorted_groups: list[dict] = [
-        dataclasses.asdict(group) for group in sorted(list(groups))
-    ]
+        runners = group_to_runners.setdefault(
+            Group(path_to_test_file, group_number, job_name, log_artifact_path), set()
+        )
+        if runner := _get_runner(function):
+            runners.add(runner)
+    groups: list[GroupWithRunner] = []
+    for group, runners in group_to_runners.items():
+        assert len(runners) <= 1, "All tests in a group must use the same runner"
+        try:
+            runner = runners.pop()
+        except KeyError:
+            runner = None
+        groups.append(GroupWithRunner.from_group(group, runner=runner))
+    sorted_groups: list[dict] = [dataclasses.asdict(group) for group in sorted(groups)]
     assert (
         len(sorted_groups) > 0
     ), "Zero groups found. Add `pytest.mark.group(1)` to every test"

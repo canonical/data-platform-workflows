@@ -66,6 +66,12 @@ to every test function. Replace `1` with the group number.
 #### Deciding how to split tests into groups
 Take a look at this Discourse post: https://discourse.charmhub.io/t/faster-ci-results-by-running-integration-tests-in-parallel/8816
 
+#### (Optional) Select different runner for a test
+Use a different [runs-on](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on) string with
+```python
+@pytest.mark.runner("ubuntu-20.04")
+```
+
 ### (Optional) Step 4: Add secrets
 #### Step A
 Pass in a string representation of a Python dict[str, str] built from multiple GitHub secrets.
