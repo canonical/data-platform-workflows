@@ -71,9 +71,7 @@ def _get_runner(function) -> typing.Optional[str]:
     marker_args = runner_markers[0].args
     assert len(marker_args) == 1
     runner = marker_args[0]
-    assert isinstance(
-        runner, str
-    ), f"`pytest.mark.runner(runs_on)` must be str, got {type(runner)} instead"
+    assert isinstance(runner, str), f"`pytest.mark.runner(runs_on)` must be str"
     return runner
 
 
