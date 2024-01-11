@@ -1,1 +1,1 @@
-from _plugin import ConnectionInformation
+from ._plugin import ConnectionInformation
