@@ -122,3 +122,26 @@ def test_foo(github_secrets):
         secret_access_key=github_secrets["AWS_SECRET_ACCESS_KEY"],
     )
 ```
+
+### (Optional) Step 5: Add microceph
+#### Step A
+Add
+```toml
+pytest-microceph = {git = "https://github.com/canonical/data-platform-workflows", tag = "v0.0.0", subdirectory = "python/pytest_plugins/microceph"}
+```
+to your integration test dependencies in `pyproject.toml`.
+
+#### Step B
+Access the S3 connection information from the `microceph` [pytest fixture](https://docs.pytest.org/en/stable/how-to/fixtures.html).
+
+```python
+import pytest_microceph
+
+
+def test_foo(microceph: pytest_microceph.ConnectionInformation):
+    do_something(
+        access_key_id=microceph.access_key_id,
+        secret_access_key=microceph.secret_access_key,
+        bucket=microceph.bucket,
+    )
+```
