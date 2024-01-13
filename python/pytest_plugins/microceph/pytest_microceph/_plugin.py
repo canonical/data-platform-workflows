@@ -8,8 +8,14 @@ import boto3
 import pytest
 
 
+MICROCEPH_URL = "http://localhost"
+MICROCEPH_REGION = "default"
+
+
 @dataclasses.dataclass(frozen=True)
 class ConnectionInformation:
+    endpoint: str
+    region: str
     access_key_id: str
     secret_access_key: str
     bucket: str
@@ -60,6 +66,8 @@ def microceph(request):
     ).create_bucket(Bucket=_BUCKET)
     logger.info("Set up microceph")
     return ConnectionInformation(
+        MICROCEPH_URL,
+        MICROCEPH_REGION,
         key_id,
         secret_key,
         _BUCKET,
