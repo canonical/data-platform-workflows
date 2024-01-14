@@ -33,12 +33,17 @@ class MicrocephInfomation(LazyMapping):
         super().__init__()
         self.keep_microceph = request.config.option.keep_microceph
 
+    def __getattr__(self, key: str) -> str:
+        return self._data[key]
+
     @property
     def _data(self):
         if "microceph" not in subprocess.check_output(
             ["sudo", "snap", "list"]
         ).decode():
             data = self._lazy_data = self._load()
+        else:
+            data = self._lazy_data
         return data
 
     def _load(self):
@@ -92,7 +97,7 @@ class MicrocephInfomation(LazyMapping):
             aws_secret_access_key=secret_key,
         ).create_bucket(Bucket=_BUCKET)
         logger.info("Set up microceph")
-        self._lazy_data = ConnectionInformation(
+        return ConnectionInformation(
             f"http://{ip}",
             MICROCEPH_REGION,
             key_id,
