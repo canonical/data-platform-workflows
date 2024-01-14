@@ -57,6 +57,24 @@ def microceph(request):
     key = json.loads(output)["keys"][0]
     key_id = key["access_key"]
     secret_key = key["secret_key"]
+    output = subprocess.run(
+        [
+            "sudo",
+            "microceph.radosgw-admin",
+            "key",
+            "create",
+            "--uid",
+            "test",
+            "--key-type=s3",
+            "--access-key",
+            key_id,
+            "--secret-key",
+            secret_key,
+        ],
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+    ).stdout
     logger.info("Creating microceph bucket")
     boto3.client(
         "s3",
