@@ -34,7 +34,7 @@ class MicrocephInfomation(LazyMapping):
         self.keep_microceph = request.config.option.keep_microceph
 
     def __getattr__(self, key: str) -> str:
-        return self._data[key]
+        return getattr(key, self._data)
 
     @property
     def _data(self):
