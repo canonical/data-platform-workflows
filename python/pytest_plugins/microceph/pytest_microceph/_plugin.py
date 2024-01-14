@@ -8,7 +8,6 @@ import boto3
 import pytest
 
 
-MICROCEPH_URL = "http://localhost"
 MICROCEPH_REGION = "default"
 
 
@@ -57,24 +56,14 @@ def microceph(request):
     key = json.loads(output)["keys"][0]
     key_id = key["access_key"]
     secret_key = key["secret_key"]
-    output = subprocess.run(
-        [
-            "sudo",
-            "microceph.radosgw-admin",
-            "key",
-            "create",
-            "--uid",
-            "test",
-            "--key-type=s3",
-            "--access-key",
-            key_id,
-            "--secret-key",
-            secret_key,
-        ],
-        capture_output=True,
-        check=True,
-        encoding="utf-8",
-    ).stdout
+    logger.info("Creating microceph bucket")
+    boto3.client(
+        "s3",
+        endpoint_url="http://localhost",
+        aws_access_key_id=key_id,
+        aws_secret_access_key=secret_key,
+    ).create_bucket(Bucket=_BUCKET)
+    ip = subprocess.check_output(["hostname", "-I"]).decode().split()[0]
     logger.info("Creating microceph bucket")
     boto3.client(
         "s3",
@@ -84,7 +73,7 @@ def microceph(request):
     ).create_bucket(Bucket=_BUCKET)
     logger.info("Set up microceph")
     return ConnectionInformation(
-        MICROCEPH_URL,
+        f"http://{ip}",
         MICROCEPH_REGION,
         key_id,
         secret_key,
