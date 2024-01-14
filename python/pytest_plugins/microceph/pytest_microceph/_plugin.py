@@ -7,8 +7,11 @@ import subprocess
 import boto3
 import pytest
 
+from ops.model import LazyMapping
 
 MICROCEPH_REGION = "default"
+_BUCKET = "testbucket"
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -21,69 +24,87 @@ class ConnectionInformation:
     keep_after_finished: bool
 
 
+class MicrocephInfomation(LazyMapping):
+    """Provides the information for the microceph test cluster.
+
+    If microceph has not been installed, install it.
+    """
+    def __init__(self, request):
+        super().__init__()
+        self.keep_microceph = request.config.option.keep_microceph
+
+    @property
+    def _data(self):
+        if "microceph" not in subprocess.check_output(
+            ["sudo", "snap", "list"]
+        ).decode():
+            data = self._lazy_data = self._load()
+        return data
+
+    def _load(self):
+        if not os.environ.get("CI") == "true":
+            raise Exception(
+                "Not running on CI. Skipping microceph installation"
+            )
+
+        logger.info("Setting up microceph")
+        subprocess.run(["sudo", "snap", "install", "microceph"], check=True)
+        subprocess.run(
+            ["sudo", "microceph", "cluster", "bootstrap"],
+            check=True
+        )
+        subprocess.run(
+            ["sudo", "microceph", "disk", "add", "loop,4G,3"],
+            check=True
+        )
+        subprocess.run(["sudo", "microceph", "enable", "rgw"], check=True)
+        output = subprocess.run(
+            [
+                "sudo",
+                "microceph.radosgw-admin",
+                "user",
+                "create",
+                "--uid",
+                "test",
+                "--display-name",
+                "test",
+            ],
+            capture_output=True,
+            check=True,
+            encoding="utf-8",
+        ).stdout
+        key = json.loads(output)["keys"][0]
+        key_id = key["access_key"]
+        secret_key = key["secret_key"]
+        logger.info("Creating microceph bucket")
+        boto3.client(
+            "s3",
+            endpoint_url="http://localhost",
+            aws_access_key_id=key_id,
+            aws_secret_access_key=secret_key,
+        ).create_bucket(Bucket=_BUCKET)
+        ip = subprocess.check_output(["hostname", "-I"]).decode().split()[0]
+        logger.info("Creating microceph bucket")
+        boto3.client(
+            "s3",
+            endpoint_url="http://localhost",
+            aws_access_key_id=key_id,
+            aws_secret_access_key=secret_key,
+        ).create_bucket(Bucket=_BUCKET)
+        logger.info("Set up microceph")
+        self._lazy_data = ConnectionInformation(
+            f"http://{ip}",
+            MICROCEPH_REGION,
+            key_id,
+            secret_key,
+            _BUCKET,
+            self.keep_microceph
+        )
+
+
 @pytest.fixture(scope="session")
 def microceph(request):
-    if not os.environ.get("CI") == "true":
-        raise Exception("Not running on CI. Skipping microceph installation")
-    if "microceph" in subprocess.check_output(
-        ["sudo", "snap", "list"]
-    ).decode():
-        logger.info("Microceph already set, leaving...")
-        return
-    logger.info("Setting up microceph")
-    subprocess.run(["sudo", "snap", "install", "microceph"], check=True)
-    subprocess.run(["sudo", "microceph", "cluster", "bootstrap"], check=True)
-    subprocess.run(
-        ["sudo", "microceph", "disk", "add", "loop,4G,3"],
-        check=True
-    )
-    subprocess.run(["sudo", "microceph", "enable", "rgw"], check=True)
-    output = subprocess.run(
-        [
-            "sudo",
-            "microceph.radosgw-admin",
-            "user",
-            "create",
-            "--uid",
-            "test",
-            "--display-name",
-            "test",
-        ],
-        capture_output=True,
-        check=True,
-        encoding="utf-8",
-    ).stdout
-    key = json.loads(output)["keys"][0]
-    key_id = key["access_key"]
-    secret_key = key["secret_key"]
-    logger.info("Creating microceph bucket")
-    boto3.client(
-        "s3",
-        endpoint_url="http://localhost",
-        aws_access_key_id=key_id,
-        aws_secret_access_key=secret_key,
-    ).create_bucket(Bucket=_BUCKET)
-    ip = subprocess.check_output(["hostname", "-I"]).decode().split()[0]
-    logger.info("Creating microceph bucket")
-    boto3.client(
-        "s3",
-        endpoint_url="http://localhost",
-        aws_access_key_id=key_id,
-        aws_secret_access_key=secret_key,
-    ).create_bucket(Bucket=_BUCKET)
-    logger.info("Set up microceph")
-    return ConnectionInformation(
-        f"http://{ip}",
-        MICROCEPH_REGION,
-        key_id,
-        secret_key,
-        _BUCKET,
-        request.config.option.keep_microceph
-    )
-
-
-_BUCKET = "testbucket"
-logger = logging.getLogger(__name__)
+    return MicrocephInfomation(request)
 
 
 def pytest_addoption(parser):
