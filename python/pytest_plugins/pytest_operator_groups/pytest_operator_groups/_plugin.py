@@ -108,9 +108,9 @@ def _collect_groups(items):
         job_name = (
             f"{'/'.join(path_to_test_file.split('/')[2:])} | group {group_number}"
         )
-        # Example: "relations/test_database.py-group-1"
+        # Example: "relations-test_database.py-group-1"
         artifact_group_id = (
-            f"{'/'.join(path_to_test_file.split('/')[2:])}-group-{group_number}"
+            f"{'-'.join(path_to_test_file.split('/')[2:])}-group-{group_number}"
         )
         runners = group_to_runners.setdefault(
             Group(path_to_test_file, group_number, job_name, artifact_group_id), set()
