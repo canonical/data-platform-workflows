@@ -13,9 +13,9 @@ on:
           Should be `false` for production builds
         default: false
         type: boolean
-      artifact-name:
-        description: Charm packages are uploaded to this GitHub artifact name
-        default: charms-packed-with-cache
+      artifact-prefix:
+        description: Charm packages are uploaded to GitHub artifacts beginning with this prefix
+        default: packed-charm-cache-${{ inputs.cache }}-${{ inputs.path-to-charm-directory }}
         type: string
       path-to-charm-directory:
         description: Relative path to charm directory from repository directory
@@ -49,9 +49,9 @@ on:
         required: false
         type: string
     outputs:
-      artifact-name:
-        description: Charm packages are uploaded to this GitHub artifact name
-        value: ${{ inputs.artifact-name }}
+      artifact-prefix:
+        description: Charm packages are uploaded to GitHub artifacts beginning with this prefix
+        value: ${{ inputs.artifact-prefix }}
 
 jobs:
   get-workflow-version:
@@ -136,16 +136,16 @@ jobs:
         run: sg lxd -c "${{ steps.pack-command.outputs.command }}"
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}-charmcraft-build-logs-attempt-${{ github.run_attempt }}
+          name: ${{ inputs.artifact-prefix }}-base-${{ matrix.bases_index }}-charmcraft-build-logs-attempt-${{ github.run_attempt }}
           path: ~/.local/state/charmcraft/log/
           if-no-files-found: error
       - run: touch .empty
       - name: Upload charm package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}
+          name: ${{ inputs.artifact-prefix }}-base-${{ matrix.bases_index }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |

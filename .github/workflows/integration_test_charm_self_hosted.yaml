@@ -6,9 +6,9 @@
 on:
   workflow_call:
     inputs:
-      artifact-name:
+      artifact-prefix:
         description: |
-          Name of GitHub artifact that contains the charm package(s)
+          Prefix for charm package GitHub artifact(s)
 
           Use another canonical/data-platform-workflows workflow to build the charm(s)
         required: true
@@ -209,9 +209,10 @@ jobs:
         if: ${{ inputs.libjuju-version-constraint }}
         run: poetry add --lock --group integration juju@'${{ inputs.libjuju-version-constraint }}'
       - name: Download packed charm(s)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}
+          pattern: ${{ inputs.artifact-prefix }}-*
+          merge-multiple: true
       - name: Select test stability level
         id: select-test-stability
         shell: python
@@ -236,18 +237,18 @@ jobs:
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: |
           juju switch test
-          mkdir -p ~/logs/'${{ matrix.groups.log_artifact_path }}'
+          mkdir ~/logs/
       - name: juju status
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju status --color --relations | tee ~/logs/'${{ matrix.groups.log_artifact_path }}'/juju-status.txt
+        run: juju status --color --relations | tee ~/logs/juju-status.txt
       - name: juju debug-log
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju debug-log --color --replay --no-tail | tee ~/logs/'${{ matrix.groups.log_artifact_path }}'/juju-debug-log.txt
+        run: juju debug-log --color --replay --no-tail | tee ~/logs/juju-debug-log.txt
       - name: Upload logs
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: intergration-test-charm-logs-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-attempt-${{ github.run_attempt }}
+          name: intergration-test-charm-logs-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-${{ matrix.groups.artifact_group_id }}-attempt-${{ github.run_attempt }}
           path: ~/logs/
           if-no-files-found: error
       - name: Disk usage

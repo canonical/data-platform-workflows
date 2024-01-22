@@ -10,9 +10,9 @@ on:
         description: Charmhub channel to release to
         required: true
         type: string
-      artifact-name:
+      artifact-prefix:
         description: |
-          Name of GitHub artifact that contains the charm package(s)
+          Prefix for charm package GitHub artifact(s)
 
           Use another canonical/data-platform-workflows workflow to build the charm(s)
         required: true
@@ -67,9 +67,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Download charm package(s)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}
+          pattern: ${{ inputs.artifact-prefix }}-*
+          merge-multiple: true
       - name: Upload & release charm
         id: release
         run: release-charm --charm-directory='${{ inputs.path-to-charm-directory }}' --channel='${{ inputs.channel }}'
@@ -77,9 +78,9 @@ jobs:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.release.outcome == 'failure' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}-charmcraft-release-logs-attempt-${{ github.run_attempt }}
+          name: ${{ inputs.artifact-prefix }}-charmcraft-release-logs-attempt-${{ github.run_attempt }}
           path: ~/.local/state/charmcraft/log/
           if-no-files-found: error
       - name: Create GitHub release
