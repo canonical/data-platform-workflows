@@ -103,7 +103,7 @@ jobs:
 
           def run_gh_cli(*args):
               """Run command with GitHub CLI"""
-              output = subprocess.check_output(
+              output = subprocess.run(
                   [
                       "gh",
                       "api",
@@ -112,8 +112,11 @@ jobs:
                       "-H",
                       "X-GitHub-Api-Version: 2022-11-28",
                       *args,
-                  ]
-              )
+                  ],
+                  check=True,
+                  capture_output=True,
+                  encoding="utf-8",
+              ).stdout
               return json.loads(output)
 
 

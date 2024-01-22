@@ -100,7 +100,7 @@ jobs:
                       "git checkout FETCH_HEAD",
                   ]
               for command in commands:
-                  subprocess.check_output(command.split(" "), cwd=repository_name)
+                  subprocess.run(command.split(" "), cwd=repository_name, check=True)
 
               jobs = yaml.safe_load(caller_workflow_file_path.read_text())["jobs"]
               versions_ = set()
