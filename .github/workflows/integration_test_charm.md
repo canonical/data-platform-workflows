@@ -9,8 +9,6 @@ jobs:
   build:
     name: Build charm
     uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@v0.0.0
-    permissions:
-      actions: write  # Needed to manage GitHub Actions cache
 
   integration-test:
     name: Integration test charm
