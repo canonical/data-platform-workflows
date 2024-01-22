@@ -8,7 +8,9 @@ Workflow file: [integration_test_charm.yaml](integration_test_charm.yaml)
 jobs:
   build:
     name: Build charm
-    uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@v0.0.0
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v0.0.0
+    with:
+      cache: true
 
   integration-test:
     name: Integration test charm

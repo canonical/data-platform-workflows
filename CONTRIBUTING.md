@@ -21,4 +21,4 @@ Pull request titles must begin with one of these prefixes:
 - `compatible:` for backwards-compatible changes to the public interface
 - `patch:` if the public interface is not changed
 
-Prefixes may contain an optional scope (e.g. `breaking(build_charms_with_cache.yaml):`).
+Prefixes may contain an optional scope (e.g. `breaking(build_charm.yaml):`).

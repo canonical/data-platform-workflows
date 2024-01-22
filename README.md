@@ -17,7 +17,7 @@ Example workflow:
 jobs:
   build:
     name: Build charms
-    uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@v1.0.0
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v1.0.0
 ```
 
 Example Renovate configuration:
