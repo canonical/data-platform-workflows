@@ -1,7 +1,7 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Usage documentation: build_snap_without_cache.md
+# Usage documentation: build_snap.md
 
 on:
   workflow_call:
