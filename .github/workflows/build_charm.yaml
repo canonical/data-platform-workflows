@@ -62,7 +62,7 @@ jobs:
       file-name: build_charm.yaml
 
   collect-bases:
-    name: Collect charm bases
+    name: Collect bases for charm | ${{ inputs.path-to-charm-directory }}
     needs:
       - get-workflow-version
     runs-on: ubuntu-latest
