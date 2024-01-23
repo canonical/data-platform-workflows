@@ -145,6 +145,12 @@ jobs:
           rm -r /opt/hostedtoolcache/
           printf '\nDisk usage after cleanup\n'
           df --human-readable
+      - name: (self-hosted) Install pipx
+        if: ${{ matrix.groups.self_hosted }}
+        run: |
+          sudo apt-get install python3-pip python3-venv -y
+          python3 -m pip install --user pipx
+          python3 -m pipx ensurepath
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Redact secrets from log
@@ -156,12 +162,17 @@ jobs:
         shell: python
         # Keep synchronized with inputs.cloud description
         run: |
+          import json
           import os
 
           CLOUD = "${{ inputs.cloud }}"
+          self_hosted = json.loads("${{ matrix.groups.self_hosted }}")
+          assert isinstance(self_hosted, bool)
           if CLOUD == "lxd":
               group = "lxd"
           elif CLOUD == "microk8s":
+              if self_hosted:
+                  raise ValueError("microk8s not supported on self-hosted runners")
               SNAP_CHANNEL = "${{ inputs.microk8s-snap-channel }}"
               assert (
                   SNAP_CHANNEL != ""
@@ -237,6 +248,14 @@ jobs:
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
           sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
+      - name: (self-hosted) Set up Juju proxy config
+        if: ${{ matrix.groups.self_hosted }}
+        # `https-proxy` sets `HTTPS_PROXY` environment variable inside Juju machines
+        # (same for `http-proxy` -> `HTTP_PROXY` and `no-proxy` -> `NO_PROXY`)
+        # Self-hosted runners require proxy
+        run: juju model-defaults http-proxy="$HTTP_PROXY" https-proxy="$HTTPS_PROXY" no-proxy="$NO_PROXY"
+      - name: Set up environment
+        run: |
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
           juju add-model test
           pipx install tox
