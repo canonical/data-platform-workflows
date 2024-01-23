@@ -98,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install tox & poetry
         run: |
           pipx install tox
@@ -200,7 +200,7 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up environment
         run: |
           # `--classic` applies to juju 2 snap; ignored for juju 3 snap
