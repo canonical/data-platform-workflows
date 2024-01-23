@@ -248,7 +248,7 @@ jobs:
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v4
         with:
-          name: intergration-test-charm-logs-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-${{ matrix.groups.artifact_group_id }}-attempt-${{ github.run_attempt }}
+          name: logs-intergration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-${{ matrix.groups.artifact_group_id }}-attempt-${{ github.run_attempt }}
           path: ~/logs/
           if-no-files-found: error
       - name: Disk usage

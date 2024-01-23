@@ -50,7 +50,7 @@ jobs:
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}-snapcraft-build-logs-attempt-${{ github.run_attempt }}
+          name: logs-snapcraft-build-${{ inputs.artifact-name }}-attempt-${{ github.run_attempt }}
           path: ~/.local/state/snapcraft/log/
           if-no-files-found: error
       - name: Upload snap package

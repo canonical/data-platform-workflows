@@ -139,7 +139,7 @@ jobs:
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.bases_index }}-charmcraft-build-logs-attempt-${{ github.run_attempt }}
+          name: logs-charmcraft-build-${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.bases_index }}-attempt-${{ github.run_attempt }}
           path: ~/.local/state/charmcraft/log/
           if-no-files-found: error
       - run: touch .empty
