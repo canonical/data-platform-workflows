@@ -137,6 +137,7 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Free up disk space
+        if: ${{ !matrix.groups.self_hosted }}
         run: |
           printf '\nDisk usage before cleanup\n'
           df --human-readable
@@ -145,6 +146,9 @@ jobs:
           rm -r /opt/hostedtoolcache/
           printf '\nDisk usage after cleanup\n'
           df --human-readable
+      - name: (self-hosted) Disk usage
+        if: ${{ matrix.groups.self_hosted }}
+        run: df --human-readable
       - name: (self-hosted) Install pipx
         if: ${{ matrix.groups.self_hosted }}
         run: |
