@@ -60,7 +60,7 @@ jobs:
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Collect charms to build from charmcraft.yaml file(s)
         id: collect
         run: collect-charms
@@ -87,7 +87,7 @@ jobs:
         id: lxd-snap-version
         run: parse-snap-version --revision='${{ inputs.lxd-snap-revision }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revision --channel-input-name=lxd-snap-channel
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up environment
         run: |
           # Placeholder (so that shellcheck disable does not apply to entire script)

@@ -65,7 +65,7 @@ jobs:
         run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
       - run: snap list
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Download charm package(s)
         uses: actions/download-artifact@v3
         with:
