@@ -345,12 +345,13 @@ jobs:
         run: df --human-readable
 
   allure-report:
+    # future improvement: use concurrency group for job
     name: (beta) Publish Allure report
     if: ${{ !cancelled() && inputs._beta_allure_report && github.run_attempt == '1'}}
     needs:
       - integration-test
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+#    timeout-minutes: 5
     steps:
       - name: Download Allure
         # Following instructions from https://allurereport.org/docs/gettingstarted-installation/#install-via-the-system-package-manager-for-linux
@@ -384,6 +385,8 @@ jobs:
             echo 'Loading history'
             cp -r repo/history/ allure-results/
           fi
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
       - name: Generate Allure report
         run: allure generate
       - name: Update GitHub pages branch
@@ -391,6 +394,7 @@ jobs:
         run: |
           git rm -r .
           cp -r ../allure-report/. .
+          touch .nojekyll
           git add .
           git config user.name "GitHub Actions"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
