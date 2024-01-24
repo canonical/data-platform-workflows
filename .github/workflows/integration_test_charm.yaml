@@ -366,22 +366,34 @@ jobs:
       # git commit --allow-empty -m "Initial commit"
       # git push origin gh-pages-beta
       # )
-      - name: Load test report history
+      - name: Checkout GitHub pages branch
         uses: actions/checkout@v4
         with:
           ref: gh-pages-beta
+          path: repo/
       - name: Download test results
         uses: actions/download-artifact@v4
         with:
           path: allure-results/
           pattern: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-*
           merge-multiple: true
-#      - run: |
-#          git add .
-#          git config user.name "GitHub Actions"
-#          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-#          git commit -m "Update bundle"
-#          # Uses token set in checkout step
-#          git push origin gh-pages-beta
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
+      - name: Load test report history
+        run: |
+          if [[ -d repo/history/ ]]
+          then
+            echo 'Loading history'
+            cp -r repo/history/ allure-results/
+          fi
+      - name: Generate Allure report
+        run: allure generate
+      - name: Update GitHub pages branch
+        working-directory: repo/
+        run: |
+          git rm -r .
+          cp -r ../allure-report/. .
+          git add .
+          git config user.name "GitHub Actions"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Allure report"
+          # Uses token set in checkout step
+          git push origin gh-pages-beta
