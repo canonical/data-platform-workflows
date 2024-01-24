@@ -299,7 +299,7 @@ jobs:
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
-      - name: Get Allure option
+      - name: (beta) Get Allure option
         if: ${{ inputs._beta_allure_report }}
         id: allure-option
         # Future improvement: check if allure-pytest installed instead
@@ -345,13 +345,27 @@ jobs:
         run: df --human-readable
 
   allure-report:
-    name: Publish Allure report
+    name: (beta) Publish Allure report
     if: ${{ !cancelled() && inputs._beta_allure_report && github.run_attempt == '1'}}
     needs:
       - integration-test
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Download Allure
+        # Following instructions from https://allurereport.org/docs/gettingstarted-installation/#install-via-the-system-package-manager-for-linux
+        run: gh release download --repo allure-framework/allure2 --pattern 'allure_*.deb'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Allure
+        run: sudo apt-get install ./allure_*.deb -y
+      # For first run, manually create branch with no history
+      # (e.g.
+      # git checkout --orphan gh-pages-beta
+      # git rm -rf .
+      # git commit --allow-empty -m "Initial commit"
+      # git push origin gh-pages-beta
+      # )
       - name: Load test report history
         uses: actions/checkout@v4
         with:
@@ -362,5 +376,12 @@ jobs:
           path: allure-results/
           pattern: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-*
           merge-multiple: true
+#      - run: |
+#          git add .
+#          git config user.name "GitHub Actions"
+#          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+#          git commit -m "Update bundle"
+#          # Uses token set in checkout step
+#          git push origin gh-pages-beta
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
