@@ -362,3 +362,5 @@ jobs:
           path: allure-results/
           pattern: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-*
           merge-multiple: true
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
