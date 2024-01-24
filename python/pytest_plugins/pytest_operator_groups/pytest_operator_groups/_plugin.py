@@ -83,7 +83,7 @@ def _collect_groups(items):
         path_to_test_file: str
         group_number: int
         job_name: str
-        log_artifact_path: str
+        artifact_group_id: str
 
     @dataclasses.dataclass(eq=True, order=True, frozen=True)
     class GroupWithRunner(Group):
@@ -108,12 +108,12 @@ def _collect_groups(items):
         job_name = (
             f"{'/'.join(path_to_test_file.split('/')[2:])} | group {group_number}"
         )
-        # Example: "relations/test_database.py/group-1"
-        log_artifact_path = (
-            f"{'/'.join(path_to_test_file.split('/')[2:])}/group-{group_number}"
+        # Example: "relations-test_database.py-group-1"
+        artifact_group_id = (
+            f"{'-'.join(path_to_test_file.split('/')[2:])}-group-{group_number}"
         )
         runners = group_to_runners.setdefault(
-            Group(path_to_test_file, group_number, job_name, log_artifact_path), set()
+            Group(path_to_test_file, group_number, job_name, artifact_group_id), set()
         )
         if runner := _get_runner(function):
             runners.add(runner)

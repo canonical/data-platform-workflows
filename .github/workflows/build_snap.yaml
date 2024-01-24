@@ -1,14 +1,14 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Usage documentation: build_snap_without_cache.md
+# Usage documentation: build_snap.md
 
 on:
   workflow_call:
     inputs:
       artifact-name:
         description: Snap package is uploaded to this GitHub artifact name
-        default: snap-packed-without-cache
+        default: packed-snap
         type: string
       path-to-snap-project-directory:
         description: |
@@ -48,13 +48,13 @@ jobs:
         run: sg lxd -c "snapcraft pack"
       - name: Upload snapcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}-snapcraft-build-logs-attempt-${{ github.run_attempt }}
+          name: logs-snapcraft-build-${{ inputs.artifact-name }}
           path: ~/.local/state/snapcraft/log/
           if-no-files-found: error
       - name: Upload snap package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}
           # .empty file required to preserve directory structure

@@ -8,9 +8,9 @@ Workflow file: [integration_test_charm.yaml](integration_test_charm.yaml)
 jobs:
   build:
     name: Build charm
-    uses: canonical/data-platform-workflows/.github/workflows/build_charms_with_cache.yaml@v0.0.0
-    permissions:
-      actions: write  # Needed to manage GitHub Actions cache
+    uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v0.0.0
+    with:
+      cache: true
 
   integration-test:
     name: Integration test charm
@@ -18,7 +18,7 @@ jobs:
       - build
     uses: canonical/data-platform-workflows/.github/workflows/integration_test_charm.yaml@v0.0.0
     with:
-      artifact-name: ${{ needs.build.outputs.artifact-name }}
+      artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
       cloud: lxd
       juju-agent-version: 0.0.0
 ```
