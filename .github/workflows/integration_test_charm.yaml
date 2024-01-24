@@ -58,6 +58,17 @@ on:
           To test older major Juju versions, override the version constraint with this input.
         required: false
         type: string
+      _beta_allure_report:
+        description: |
+          (BETA) Enable Allure Report
+          
+          Subject to breaking changes without major version bump.
+          Not currently a public interface—only for testing
+          
+          If this workflow is called with a matrix, this value can only be `true` for one
+          combination in the matrix
+        default: false
+        type: boolean
     secrets:
       integration-test:
         description: |
@@ -287,11 +298,30 @@ jobs:
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
+      - name: Get Allure option
+        if: ${{ inputs._beta_allure_report }}
+        id: allure-option
+        # Future improvement: check if allure-pytest installed instead
+        shell: python
+        run: |
+          import os
+
+          output = "option=--alluredir=allure-results"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(output)
       - name: Run integration tests
         id: tests
-        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_number }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test"
+        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_number }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test ${{ steps.allure-option.outputs.option }}"
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
+      - name: (beta) Upload Allure results
+        if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-${{ matrix.groups.artifact_group_id }}
+          path: allure-results
+          if-no-files-found: error
       - name: Select model
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: |
