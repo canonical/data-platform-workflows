@@ -351,7 +351,7 @@ jobs:
     needs:
       - integration-test
     runs-on: ubuntu-latest
-#    timeout-minutes: 5
+    timeout-minutes: 5
     steps:
       - name: Download Allure
         # Following instructions from https://allurereport.org/docs/gettingstarted-installation/#install-via-the-system-package-manager-for-linux
@@ -402,8 +402,6 @@ jobs:
           }
           with open("allure-results/executor.json", "w") as file:
               json.dump(DATA, file)
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
       - name: Generate Allure report
         run: allure generate
       - name: Update GitHub pages branch
