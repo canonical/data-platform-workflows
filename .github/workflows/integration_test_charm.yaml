@@ -107,6 +107,7 @@ jobs:
     # combination and preserve job ordering within a matrix combination.)
     name: ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | Collect integration test groups
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -320,7 +321,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-${{ matrix.groups.artifact_group_id }}
-          path: allure-results
+          path: allure-results/
           if-no-files-found: error
       - name: Select model
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
@@ -342,3 +343,22 @@ jobs:
           if-no-files-found: error
       - name: Disk usage
         run: df --human-readable
+
+  allure-report:
+    name: Publish Allure report
+    if: ${{ !cancelled() && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1'}}
+    needs:
+      - integration-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Load test report history
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages-beta
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          path: allure-results/
+          pattern: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-*
+          merge-multiple: true
