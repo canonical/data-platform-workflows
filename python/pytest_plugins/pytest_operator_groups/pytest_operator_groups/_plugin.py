@@ -5,6 +5,8 @@ import typing
 
 import pytest
 
+_Runner = typing.Union[str, tuple[str]]
+
 
 def pytest_addoption(parser):
     parser.addoption(
@@ -21,7 +23,7 @@ def pytest_configure(config):
     )
     config.addinivalue_line(
         "markers",
-        "runner(runs_on): GitHub Actions `runs-on` string (https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on)",
+        "runner(runs_on): GitHub Actions `runs-on` label(s) (https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on)",
     )
     if config.option.collect_groups:
         config.option.collectonly = True
@@ -51,7 +53,7 @@ def _get_group_number(function) -> typing.Optional[int]:
     return group_number
 
 
-def _get_runner(function) -> typing.Optional[str]:
+def _get_runner(function) -> typing.Optional[_Runner]:
     """Get runner from test function marker.
 
     Syntax: `runs-on` string
@@ -71,8 +73,17 @@ def _get_runner(function) -> typing.Optional[str]:
     marker_args = runner_markers[0].args
     assert len(marker_args) == 1
     runner = marker_args[0]
-    assert isinstance(runner, str), f"`pytest.mark.runner(runs_on)` must be str"
-    return runner
+    if isinstance(runner, str):
+        return runner
+    elif isinstance(runner, tuple) or isinstance(runner, list):
+        for item in runner:
+            if not isinstance(item, str):
+                break
+        else:
+            return tuple(runner)
+    raise TypeError(
+        f"`pytest.mark.runner(runs_on)` must be str, tuple[str], or list[str]"
+    )
 
 
 def _collect_groups(items):
@@ -87,13 +98,20 @@ def _collect_groups(items):
 
     @dataclasses.dataclass(eq=True, order=True, frozen=True)
     class GroupWithRunner(Group):
-        runner: typing.Optional[str]
+        runner: typing.Optional[_Runner]
+        self_hosted: bool
 
         @classmethod
-        def from_group(cls, group: Group, *, runner: typing.Optional[str]):
-            return cls(**dataclasses.asdict(group), runner=runner)
+        def from_group(cls, group: Group, *, runner: typing.Optional[_Runner]):
+            if isinstance(runner, tuple):
+                self_hosted = "self-hosted" in runner
+            else:
+                self_hosted = False
+            return cls(
+                **dataclasses.asdict(group), runner=runner, self_hosted=self_hosted
+            )
 
-    group_to_runners: dict[Group, set[str]] = {}
+    group_to_runners: dict[Group, set[_Runner]] = {}
     for function in items:
         if (group_number := _get_group_number(function)) is None:
             raise Exception(

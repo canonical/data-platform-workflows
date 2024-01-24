@@ -72,6 +72,14 @@ Use a different [runs-on](https://docs.github.com/en/actions/using-workflows/wor
 @pytest.mark.runner("ubuntu-20.04")
 ```
 
+For self-hosted runners, use
+
+```python
+@pytest.mark.runner(["self-hosted", "linux", "X64", "jammy", "large"])
+```
+> [!WARNING]
+> Support for self-hosted runners is **very limited**.[^1]
+
 ### (Optional) Step 4: Add secrets
 #### Step A
 Pass in a string representation of a Python dict[str, str] built from multiple GitHub secrets.
@@ -151,3 +159,5 @@ def test_foo(microceph: pytest_microceph.ConnectionInformation):
         bucket=microceph.bucket,
     )
 ```
+
+[^1]: Self-hosted runners are more subject to breaking changes, may lack feature support, and will not be tested for regressions. For troubleshooting with self-hosted runners, please [contact IS on Mattermost](https://chat.canonical.com/canonical/channels/github-actions-self-hosted-runners) before contacting the maintainers of this repository. Bug reports on GitHub-hosted runners will have higher priority—if you find a bug that is not specific to self-hosted runners, please reproduce on GitHub-hosted runners before reporting.
