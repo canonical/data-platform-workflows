@@ -399,6 +399,7 @@ jobs:
               "buildOrder": ${{ github.run_number }},  # TODO future improvement: use run ID
               "buildName": "Run ${{ github.run_id }}",
               "buildUrl": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "reportUrl": "../${{ github.run_number }}/",
           }
           with open("allure-results/executor.json", "w") as file:
               json.dump(DATA, file)
@@ -406,6 +407,7 @@ jobs:
         run: allure generate
       - name: Update GitHub pages branch
         working-directory: repo/
+        # future improvement: add run id or number to commit message
         run: |
           mkdir '${{ github.run_number }}'
           rm -f latest
