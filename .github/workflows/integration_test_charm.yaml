@@ -364,7 +364,9 @@ jobs:
       # (e.g.
       # git checkout --orphan gh-pages-beta
       # git rm -rf .
-      # git commit --allow-empty -m "Initial commit"
+      # touch .nojekyll
+      # git add .nojekyll
+      # git commit -m "Initial commit"
       # git push origin gh-pages-beta
       # )
       - name: Checkout GitHub pages branch
@@ -380,11 +382,26 @@ jobs:
           merge-multiple: true
       - name: Load test report history
         run: |
-          if [[ -d repo/history/ ]]
+          if [[ -d repo/latest/history/ ]]
           then
             echo 'Loading history'
-            cp -r repo/history/ allure-results/
+            cp -r repo/latest/history/ allure-results/
           fi
+      - name: Create executor.json
+        shell: python
+        run: |
+          # Reverse engineered from https://github.com/simple-elf/allure-report-action/blob/eca283b643d577c69b8e4f048dd6cd8eb8457cfd/entrypoint.sh
+          import json
+
+          DATA = {
+              "name": "GitHub Actions",
+              "type": "github",
+              "buildOrder": ${{ github.run_number }},  # TODO future improvement: use run ID
+              "buildName": "Run ${{ github.run_id }}",
+              "buildUrl": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+          }
+          with open("allure-results/executor.json", "w") as file:
+              json.dump(DATA, file)
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
       - name: Generate Allure report
@@ -392,9 +409,10 @@ jobs:
       - name: Update GitHub pages branch
         working-directory: repo/
         run: |
-          git rm -r .
-          cp -r ../allure-report/. .
-          touch .nojekyll
+          mkdir '${{ github.run_number }}'
+          rm -f latest
+          ln -s '${{ github.run_number }}' latest
+          cp -r ../allure-report/. latest/
           git add .
           git config user.name "GitHub Actions"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
