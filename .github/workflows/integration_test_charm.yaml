@@ -317,7 +317,7 @@ jobs:
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
       - name: (beta) Upload Allure results
-        if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.run_attempt == '1' }}
+        if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
         uses: actions/upload-artifact@v4
         with:
           name: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-${{ matrix.groups.artifact_group_id }}
@@ -347,7 +347,7 @@ jobs:
   allure-report:
     # TODO future improvement: use concurrency group for job
     name: (beta) Publish Allure report
-    if: ${{ !cancelled() && inputs._beta_allure_report && github.run_attempt == '1'}}
+    if: ${{ !cancelled() && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1'}}
     needs:
       - integration-test
     runs-on: ubuntu-latest
