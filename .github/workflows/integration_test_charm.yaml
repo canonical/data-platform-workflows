@@ -405,6 +405,16 @@ jobs:
               json.dump(DATA, file)
       - name: Generate Allure report
         run: allure generate
+      - name: Create index.html
+        shell: python
+        run: |
+          DATA = f"""<!DOCTYPE html>
+          <meta charset="utf-8">
+          <meta http-equiv="cache-control" content="no-cache">
+          <meta http-equiv="refresh" content="0; url=${{ github.run_number }}">
+          """
+          with open("repo/index.html", "w") as file:
+              file.write(DATA)
       - name: Update GitHub pages branch
         working-directory: repo/
         # future improvement: add run id or number to commit message
