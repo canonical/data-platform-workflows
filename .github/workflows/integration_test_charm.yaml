@@ -382,10 +382,10 @@ jobs:
           merge-multiple: true
       - name: Load test report history
         run: |
-          if [[ -d repo/latest/history/ ]]
+          if [[ -d repo/_latest/history/ ]]
           then
             echo 'Loading history'
-            cp -r repo/latest/history/ allure-results/
+            cp -r repo/_latest/history/ allure-results/
           fi
       - name: Create executor.json
         shell: python
@@ -420,9 +420,9 @@ jobs:
         # future improvement: add run id or number to commit message
         run: |
           mkdir '${{ github.run_number }}'
-          rm -f latest
-          ln -s '${{ github.run_number }}' latest
-          cp -r ../allure-report/. latest/
+          rm -f _latest
+          ln -s '${{ github.run_number }}' _latest
+          cp -r ../allure-report/. _latest/
           git add .
           git config user.name "GitHub Actions"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
