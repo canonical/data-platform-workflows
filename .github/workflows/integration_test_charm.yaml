@@ -417,7 +417,7 @@ jobs:
               file.write(DATA)
       - name: Update GitHub pages branch
         working-directory: repo/
-        # TODO future improvement: add run id or number to commit message
+        # TODO future improvement: commit message
         run: |
           mkdir '${{ github.run_number }}'
           rm -f _latest
@@ -426,6 +426,6 @@ jobs:
           git add .
           git config user.name "GitHub Actions"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Allure report"
+          git commit -m "Allure report #${{ github.run_number }}"
           # Uses token set in checkout step
           git push origin gh-pages-beta
