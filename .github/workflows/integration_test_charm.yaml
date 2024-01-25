@@ -302,7 +302,7 @@ jobs:
       - name: (beta) Get Allure option
         if: ${{ inputs._beta_allure_report }}
         id: allure-option
-        # Future improvement: check if allure-pytest installed instead
+        # TODO future improvement: check if allure-pytest installed instead
         shell: python
         run: |
           import os
@@ -345,7 +345,7 @@ jobs:
         run: df --human-readable
 
   allure-report:
-    # future improvement: use concurrency group for job
+    # TODO future improvement: use concurrency group for job
     name: (beta) Publish Allure report
     if: ${{ !cancelled() && inputs._beta_allure_report && github.run_attempt == '1'}}
     needs:
@@ -417,7 +417,7 @@ jobs:
               file.write(DATA)
       - name: Update GitHub pages branch
         working-directory: repo/
-        # future improvement: add run id or number to commit message
+        # TODO future improvement: add run id or number to commit message
         run: |
           mkdir '${{ github.run_number }}'
           rm -f _latest
