@@ -341,13 +341,18 @@ jobs:
               --batch \
               --clean \
               --tmp-dir=/tmp/sos \
-              -z gzip
+              -z gzip -j 1
       - name: Run SOS in LXCs if Needed
         if: ${{ inputs.cloud == 'lxd' && (failure() && steps.tests.outcome == 'failure') }}
         run: |
           juju exec --parallel=true --all -- sudo snap install sosreport --channel=latest/stable --classic
           sudo snap install jq
           export NODES=$(juju status --format=json | jq -r '.machines[]|."ip-addresses"[0]' | paste -s -d, -)
+          echo "Found nodes: $NODES"
+
+          echo "Total space before running command:"
+          sudo df -h
+
           sudo sos collect \
               -i ~/.local/share/juju/ssh/juju_id_rsa --ssh-user ubuntu \
               --nodes "$(juju status --format=json | jq -r '.machines[]|."ip-addresses"[0]' | paste -s -d, -)" \
@@ -355,11 +360,19 @@ jobs:
               --batch \
               --clean \
               --tmp-dir=/tmp/sos \
-              -z gzip
+              -z gzip -j 1
       - name: Prepare upload - local reports
         if: ${{ failure() && steps.tests.outcome == 'failure' }}
         run: |
+          I=$(whoami)
+          sudo chown -R $I /tmp/sos/
           mv /tmp/sos/* ~/logs/
+
+      - name: Print kernel messages
+        if: ${{ failure() }}
+        run: |
+          sudo dmesg
+
       - name: juju status
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: juju status --color --relations | tee ~/logs/juju-status.txt
