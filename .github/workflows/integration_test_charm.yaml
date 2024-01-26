@@ -340,7 +340,7 @@ jobs:
               -k kubernetes.describe=true -k kubernetes.podlogs=true -k kubernetes.all=true -k logs.all_logs=true \
               --batch \
               --clean \
-              --tmp-dir=./tmp/sos \
+              --tmp-dir=/tmp/sos \
               -z gzip
       - name: Run SOS in LXCs if Needed
         if: ${{ inputs.cloud == 'lxd' && (failure() && steps.tests.outcome == 'failure') }}
@@ -350,18 +350,16 @@ jobs:
           export NODES=$(juju status --format=json | jq -r '.machines[]|."ip-addresses"[0]' | paste -s -d, -)
           sudo sos collect \
               -i ~/.local/share/juju/ssh/juju_id_rsa --ssh-user ubuntu \
-              --ssh-user ubuntu --nodes "$NODES" \
+              --nodes "$(juju status --format=json | jq -r '.machines[]|."ip-addresses"[0]' | paste -s -d, -)" \
               --only-plugins systemd,logs \
-              logs.all_logs=true \
+              -k logs.all_logs=true \
               --batch \
               --clean \
-              --tmp-dir=./tmp/sos \
+              --tmp-dir=/tmp/sos \
               -z gzip
       - name: Prepare upload - local reports
         if: ${{ failure() && steps.tests.outcome == 'failure' }}
         run: |
-          I="$(whoami)"
-          sudo -e chown -R "$I" /tmp/sos
           mv /tmp/sos/* ~/logs/
       - name: juju status
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
