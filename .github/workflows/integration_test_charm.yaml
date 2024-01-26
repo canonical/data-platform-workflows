@@ -58,6 +58,17 @@ on:
           To test older major Juju versions, override the version constraint with this input.
         required: false
         type: string
+      _beta_allure_report:
+        description: |
+          (BETA) Enable Allure Report
+          
+          Subject to breaking changes without major version bump.
+          Not currently a public interface—only for testing
+          
+          If this workflow is called with a matrix, this value can only be `true` for one
+          combination in the matrix
+        default: false
+        type: boolean
     secrets:
       integration-test:
         description: |
@@ -96,6 +107,7 @@ jobs:
     # combination and preserve job ordering within a matrix combination.)
     name: ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | Collect integration test groups
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -287,11 +299,30 @@ jobs:
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
+      - name: (beta) Get Allure option
+        if: ${{ inputs._beta_allure_report }}
+        id: allure-option
+        # TODO future improvement: check if allure-pytest installed instead
+        shell: python
+        run: |
+          import os
+
+          output = "option=--alluredir=allure-results"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(output)
       - name: Run integration tests
         id: tests
-        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_number }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test"
+        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_number }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test ${{ steps.allure-option.outputs.option }}"
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
+      - name: (beta) Upload Allure results
+        if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-${{ matrix.groups.artifact_group_id }}
+          path: allure-results/
+          if-no-files-found: error
       - name: Select model
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: |
@@ -312,3 +343,89 @@ jobs:
           if-no-files-found: error
       - name: Disk usage
         run: df --human-readable
+
+  allure-report:
+    # TODO future improvement: use concurrency group for job
+    name: (beta) Publish Allure report
+    if: ${{ !cancelled() && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1'}}
+    needs:
+      - integration-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Download Allure
+        # Following instructions from https://allurereport.org/docs/gettingstarted-installation/#install-via-the-system-package-manager-for-linux
+        run: gh release download --repo allure-framework/allure2 --pattern 'allure_*.deb'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Allure
+        run: sudo apt-get install ./allure_*.deb -y
+      # For first run, manually create branch with no history
+      # (e.g.
+      # git checkout --orphan gh-pages-beta
+      # git rm -rf .
+      # touch .nojekyll
+      # git add .nojekyll
+      # git commit -m "Initial commit"
+      # git push origin gh-pages-beta
+      # )
+      - name: Checkout GitHub pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages-beta
+          path: repo/
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          path: allure-results/
+          pattern: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-*
+          merge-multiple: true
+      - name: Load test report history
+        run: |
+          if [[ -d repo/_latest/history/ ]]
+          then
+            echo 'Loading history'
+            cp -r repo/_latest/history/ allure-results/
+          fi
+      - name: Create executor.json
+        shell: python
+        run: |
+          # Reverse engineered from https://github.com/simple-elf/allure-report-action/blob/eca283b643d577c69b8e4f048dd6cd8eb8457cfd/entrypoint.sh
+          import json
+
+          DATA = {
+              "name": "GitHub Actions",
+              "type": "github",
+              "buildOrder": ${{ github.run_number }},  # TODO future improvement: use run ID
+              "buildName": "Run ${{ github.run_id }}",
+              "buildUrl": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              "reportUrl": "../${{ github.run_number }}/",
+          }
+          with open("allure-results/executor.json", "w") as file:
+              json.dump(DATA, file)
+      - name: Generate Allure report
+        run: allure generate
+      - name: Create index.html
+        shell: python
+        run: |
+          DATA = f"""<!DOCTYPE html>
+          <meta charset="utf-8">
+          <meta http-equiv="cache-control" content="no-cache">
+          <meta http-equiv="refresh" content="0; url=${{ github.run_number }}">
+          """
+          with open("repo/index.html", "w") as file:
+              file.write(DATA)
+      - name: Update GitHub pages branch
+        working-directory: repo/
+        # TODO future improvement: commit message
+        run: |
+          mkdir '${{ github.run_number }}'
+          rm -f _latest
+          ln -s '${{ github.run_number }}' _latest
+          cp -r ../allure-report/. _latest/
+          git add .
+          git config user.name "GitHub Actions"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Allure report #${{ github.run_number }}"
+          # Uses token set in checkout step
+          git push origin gh-pages-beta
