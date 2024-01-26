@@ -61,7 +61,7 @@ Add
 ```python
 @pytest.mark.group(1)
 ```
-to every test function. Replace `1` with the group number.
+to every test function. Replace `1` with the group ID.
 
 #### Deciding how to split tests into groups
 Take a look at this Discourse post: https://discourse.charmhub.io/t/faster-ci-results-by-running-integration-tests-in-parallel/8816
