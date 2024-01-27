@@ -341,7 +341,7 @@ jobs:
               --batch \
               --clean \
               --tmp-dir=/tmp/sos \
-              -z gzip -j 1
+              -z gzip
       - name: Run SOS in LXCs if Needed
         if: ${{ inputs.cloud == 'lxd' && (failure() && steps.tests.outcome == 'failure') }}
         run: |
@@ -354,7 +354,7 @@ jobs:
           sudo df -h
 
           sudo sos collect \
-              -i ~/.local/share/juju/ssh/juju_id_rsa --ssh-user ubuntu \
+              -i ~/.local/share/juju/ssh/juju_id_rsa --ssh-user ubuntu --no-local \
               --nodes "$(juju status --format=json | jq -r '.machines[]|."ip-addresses"[0]' | paste -s -d, -)" \
               --only-plugins systemd,logs \
               --batch \
