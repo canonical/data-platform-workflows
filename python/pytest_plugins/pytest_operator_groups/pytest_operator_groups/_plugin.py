@@ -14,12 +14,12 @@ def pytest_addoption(parser):
         action="store_true",
         help="Collect test groups (used by GitHub Actions)",
     )
-    parser.addoption("--group", type=int, help="Integration test group number")
+    parser.addoption("--group", help="Integration test group ID")
 
 
 def pytest_configure(config):
     config.addinivalue_line(
-        "markers", "group(number): Parallelize tests in a file across GitHub runners"
+        "markers", "group(id): Parallelize tests in a file across GitHub runners"
     )
     config.addinivalue_line(
         "markers",
@@ -32,10 +32,10 @@ def pytest_configure(config):
         ), "--group should not be used with --collect-groups"
 
 
-def _get_group_number(function) -> typing.Optional[int]:
-    """Get group number from test function marker.
+def _get_group_id(function) -> typing.Optional[str]:
+    """Get group ID from test function marker.
 
-    This example has a group number of 1:
+    This example has a group ID of "1":
     @pytest.mark.group(1)
     def test_build_and_deploy():
         pass
@@ -48,9 +48,16 @@ def _get_group_number(function) -> typing.Optional[int]:
     assert len(group_markers) == 1
     marker_args = group_markers[0].args
     assert len(marker_args) == 1
-    group_number = marker_args[0]
-    assert isinstance(group_number, int)
-    return group_number
+    group_id = marker_args[0]
+    assert isinstance(group_id, int) or isinstance(group_id, str)
+    group_id = str(group_id)
+    for character in "\\/\"':<>|*?":
+        # Invalid character for GitHub Actions artifact
+        # (https://github.com/actions/upload-artifact/issues/22)
+        assert (
+            character not in group_id
+        ), f"Invalid {character=} for GitHub Actions artifact"
+    return str(group_id)
 
 
 def _get_runner(function) -> typing.Optional[_Runner]:
@@ -87,12 +94,12 @@ def _get_runner(function) -> typing.Optional[_Runner]:
 
 
 def _collect_groups(items):
-    """Collect unique group numbers for each test module."""
+    """Collect unique group IDs for each test module."""
 
     @dataclasses.dataclass(eq=True, order=True, frozen=True)
     class Group:
         path_to_test_file: str
-        group_number: int
+        group_id: str
         job_name: str
         artifact_group_id: str
 
@@ -113,9 +120,9 @@ def _collect_groups(items):
 
     group_to_runners: dict[Group, set[_Runner]] = {}
     for function in items:
-        if (group_number := _get_group_number(function)) is None:
+        if (group_id := _get_group_id(function)) is None:
             raise Exception(
-                f"{function} missing group number. Docs: https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/integration_test_charm.md#step-3-split-test-functions-into-groups"
+                f"{function} missing group ID. Docs: https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/integration_test_charm.md#step-3-split-test-functions-into-groups"
             )
         # Example: "integration.relations.test_database"
         name = function.module.__name__
@@ -123,15 +130,13 @@ def _collect_groups(items):
         # Example: "tests/integration/relations/test_database.py"
         path_to_test_file = f"tests/{name.replace('.', '/')}.py"
         # Example: "relations/test_database.py | group 1"
-        job_name = (
-            f"{'/'.join(path_to_test_file.split('/')[2:])} | group {group_number}"
-        )
+        job_name = f"{'/'.join(path_to_test_file.split('/')[2:])} | group {group_id}"
         # Example: "relations-test_database.py-group-1"
         artifact_group_id = (
-            f"{'-'.join(path_to_test_file.split('/')[2:])}-group-{group_number}"
+            f"{'-'.join(path_to_test_file.split('/')[2:])}-group-{group_id}"
         )
         runners = group_to_runners.setdefault(
-            Group(path_to_test_file, group_number, job_name, artifact_group_id), set()
+            Group(path_to_test_file, group_id, job_name, artifact_group_id), set()
         )
         if runner := _get_runner(function):
             runners.add(runner)
@@ -162,14 +167,14 @@ def pytest_collection_modifyitems(config, items):
         assert (
             len({function.module.__name__ for function in items}) == 1
         ), "Only 1 test module can be ran if --group is specified"
-        # Remove tests that do not match the selected group number
+        # Remove tests that do not match the selected group ID
         filtered_items = []
         for function in items:
-            group_number = _get_group_number(function)
-            if group_number is None:
+            group_id = _get_group_id(function)
+            if group_id is None:
                 raise Exception(
-                    f"{function} missing group number. Docs: https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/integration_test_charm.md#step-3-split-test-functions-into-groups"
+                    f"{function} missing group ID. Docs: https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/integration_test_charm.md#step-3-split-test-functions-into-groups"
                 )
-            elif group_number == config.option.group:
+            elif group_id == config.option.group:
                 filtered_items.append(function)
         items[:] = filtered_items
