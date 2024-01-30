@@ -347,7 +347,8 @@ jobs:
         run: |
           juju exec --parallel=true --all -- sudo snap install sosreport --channel=latest/stable --classic
           sudo snap install jq
-          export NODES=$(juju status --format=json | jq -r '.machines[]|."ip-addresses"[0]' | paste -s -d, -)
+          export NODES
+          NODES="$(juju status --format=json | jq -r '.machines[]|."ip-addresses"[0]' | paste -s -d, -)"
           echo "Found nodes: $NODES"
 
           echo "Total space before running command:"
@@ -365,8 +366,8 @@ jobs:
       - name: Prepare upload - local reports
         if: ${{ failure() && steps.tests.outcome == 'failure' }}
         run: |
-          I=$(whoami)
-          sudo chown -R $I /tmp/sos/
+          I="$(whoami)"
+          sudo chown -R "$I" /tmp/sos/
           mv /tmp/sos/*.tar.gz ~/logs/
 
       - name: Print kernel messages
