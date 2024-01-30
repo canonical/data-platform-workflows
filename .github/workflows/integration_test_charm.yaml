@@ -335,8 +335,8 @@ jobs:
           # Needed as sosreport does not like 100+ char long paths
           mkdir /tmp/sos
           sudo sos report \
-              --only-plugins kubernetes,systemd,logs \
-              --enable-plugins kubernetes \
+              --only-plugins kubernetes,systemd,logs,juju \
+              --enable-plugins kubernetes,juju \
               -k kubernetes.describe=true -k kubernetes.podlogs=true -k kubernetes.all=true \
               --batch \
               --clean \
@@ -355,8 +355,9 @@ jobs:
 
           sudo sos collect \
               -i ~/.local/share/juju/ssh/juju_id_rsa --ssh-user ubuntu --no-local \
-              --nodes "$(juju status --format=json | jq -r '.machines[]|."ip-addresses"[0]' | paste -s -d, -)" \
+              --nodes "$NODES" \
               --only-plugins systemd,logs \
+              -k logs.all_logs=true \
               --batch \
               --clean \
               --tmp-dir=/tmp/sos \
@@ -366,7 +367,7 @@ jobs:
         run: |
           I=$(whoami)
           sudo chown -R $I /tmp/sos/
-          mv /tmp/sos/* ~/logs/
+          mv /tmp/sos/*.tar.gz ~/logs/
 
       - name: Print kernel messages
         if: ${{ failure() }}
