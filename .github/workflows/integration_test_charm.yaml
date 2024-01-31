@@ -357,7 +357,7 @@ jobs:
           sudo sos collect \
               -i ~/.local/share/juju/ssh/juju_id_rsa --ssh-user ubuntu --no-local \
               --nodes "$NODES" \
-              --only-plugins systemd,logs \
+              --only-plugins systemd,logs,juju \
               -k logs.all_logs=true \
               --batch \
               --clean \

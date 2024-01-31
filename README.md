@@ -59,3 +59,4 @@ If you do not want to use Renovate, pin to the latest major version (e.g. `v1`).
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
+See [TROUBLESHOOTING_CHARMS.md](TROUBLESHOOTING_CHARMS.md)
