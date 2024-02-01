@@ -345,6 +345,11 @@ jobs:
       - name: Run SOS in LXCs if Needed
         if: ${{ inputs.cloud == 'lxd' && (failure() && steps.tests.outcome == 'failure') }}
         run: |
+          if [ -z $(sudo lxc list -f csv | wc -l) ]; then
+              echo "No containers available, nothing to collect logs for..."
+              exit 0
+          fi
+
           juju exec --parallel=true --all -- sudo snap install sosreport --channel=latest/stable --classic
           sudo snap install jq
           export NODES
