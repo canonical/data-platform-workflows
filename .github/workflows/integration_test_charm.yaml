@@ -344,6 +344,7 @@ jobs:
           path: ~/logs/
           if-no-files-found: error
       - name: Disk usage
+        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: df --human-readable
     outputs:
       juju-snap-channel-for-artifact: ${{ steps.parse-versions.outputs.snap_channel_for_artifact }}
