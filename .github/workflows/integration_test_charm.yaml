@@ -222,6 +222,8 @@ jobs:
           if AGENT_VERSION:
               output += f"--agent-version={AGENT_VERSION}"
           output += f"\nsnap_channel={snap_channel}"
+          # GitHub artifact name cannot contain "/"
+          output += f'\nsnap_channel_for_artifact={snap_channel.replace("/", "-")}'
 
           print(output)
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
@@ -320,7 +322,7 @@ jobs:
         if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
         uses: actions/upload-artifact@v4
         with:
-          name: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-${{ matrix.groups.artifact_group_id }}
+          name: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ matrix.groups.artifact_group_id }}
           path: allure-results/
           if-no-files-found: error
       - name: Select model
@@ -338,11 +340,13 @@ jobs:
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-intergration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-${{ matrix.groups.artifact_group_id }}
+          name: logs-intergration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ matrix.groups.artifact_group_id }}
           path: ~/logs/
           if-no-files-found: error
       - name: Disk usage
         run: df --human-readable
+    outputs:
+      juju-snap-channel-for-artifact: ${{ steps.parse-versions.outputs.snap_channel_for_artifact }}
 
   allure-report:
     # TODO future improvement: use concurrency group for job
@@ -378,7 +382,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: allure-results/
-          pattern: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || inputs.juju-snap-channel }}-*
+          pattern: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || needs.integration-test.outputs.juju-snap-channel-for-artifact }}-*
           merge-multiple: true
       - name: Load test report history
         run: |
