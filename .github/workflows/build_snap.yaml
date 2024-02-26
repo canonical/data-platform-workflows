@@ -6,8 +6,8 @@
 on:
   workflow_call:
     inputs:
-      artifact-name:
-        description: Snap package is uploaded to this GitHub artifact name
+      artifact-prefix:
+        description: Snap packages are uploaded to GitHub artifacts beginning with this prefix
         default: packed-snap
         type: string
       path-to-snap-project-directory:
@@ -18,9 +18,9 @@ on:
         default: .
         type: string
     outputs:
-      artifact-name:
-        description: Snap package is uploaded to this GitHub artifact name
-        value: ${{ inputs.artifact-name }}
+      artifact-prefix:
+        description: Snap packages are uploaded to GitHub artifacts beginning with this prefix
+        value: ${{ inputs.artifact-prefix }}
 
 jobs:
   build:
@@ -50,13 +50,13 @@ jobs:
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-snapcraft-build-${{ inputs.artifact-name }}
+          name: logs-snapcraft-build-${{ inputs.artifact-prefix }}
           path: ~/.local/state/snapcraft/log/
           if-no-files-found: error
       - name: Upload snap package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}
+          name: ${{ inputs.artifact-prefix }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
