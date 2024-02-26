@@ -11,9 +11,17 @@ import sys
 
 import yaml
 
+from . import charmcraft
+
 RUNNERS = {
-    "amd64": "ubuntu-latest",
-    "arm64": ["self-hosted", "data-platform", "ubuntu", "ARM64", "4cpu16ram"],
+    charmcraft.Architecture.X64: "ubuntu-latest",
+    charmcraft.Architecture.ARM64: [
+        "self-hosted",
+        "data-platform",
+        "ubuntu",
+        "ARM64",
+        "4cpu16ram",
+    ],
 }
 
 
@@ -34,12 +42,8 @@ def main():
         assert (
             len(architectures) == 1
         ), f"Multiple architectures ({architectures}) in one (charmcraft.yaml) base not supported. Use one base per architecture"
-        architecture = architectures[0]
-        try:
-            runner = RUNNERS[architecture]
-        except KeyError:
-            raise ValueError(f"Unsupported {architecture=}")
-        runners.append(runner)
+        architecture = charmcraft.Architecture(architectures[0])
+        runners.append(RUNNERS[architecture])
     bases = [{"index": index, "runner": runner} for index, runner in enumerate(runners)]
     logging.info(f"Collected {bases=}")
     default_prefix = (
