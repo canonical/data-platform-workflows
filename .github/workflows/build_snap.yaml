@@ -50,13 +50,13 @@ jobs:
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-snapcraft-build-${{ inputs.artifact-prefix }}
+          name: logs-snapcraft-build-${{ inputs.artifact-prefix }}-amd64
           path: ~/.local/state/snapcraft/log/
           if-no-files-found: error
       - name: Upload snap package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-prefix }}
+          name: ${{ inputs.artifact-prefix }}-amd64
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
