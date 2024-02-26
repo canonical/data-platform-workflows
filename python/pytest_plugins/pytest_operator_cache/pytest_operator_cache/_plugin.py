@@ -22,6 +22,7 @@ async def build_charm(
     self, charm_path: typing.Union[str, os.PathLike], bases_index: int = None
 ) -> pathlib.Path:
     charm_path = pathlib.Path(charm_path)
+    # TODO: add support for multiple architectures
     if bases_index is not None:
         charmcraft_yaml = yaml.safe_load((charm_path / "charmcraft.yaml").read_text())
         assert charmcraft_yaml["type"] == "charm"
@@ -31,7 +32,7 @@ async def build_charm(
         version = base.get("build-on", [base])[0]["channel"]
         packed_charms = list(charm_path.glob(f"*{version}-amd64.charm"))
     else:
-        packed_charms = list(charm_path.glob("*.charm"))
+        packed_charms = list(charm_path.glob("*-amd64.charm"))
     if len(packed_charms) == 1:
         # python-libjuju's model.deploy(), juju deploy, and juju bundle files expect local charms
         # to begin with `./` or `/` to distinguish them from Charmhub charms.
