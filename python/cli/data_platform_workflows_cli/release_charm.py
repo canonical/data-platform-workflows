@@ -135,12 +135,15 @@ def main():
             run(command)
 
     # Output GitHub release info
-    release_tag = f"rev{max(charm_revisions)}"
-    if len(charm_revisions) == 1:
+    revisions = []
+    for revs in charm_revisions.values():
+        revisions.extend(revs)
+    release_tag = f"rev{max(revisions)}"
+    if len(revisions) == 1:
         release_title = "Revision "
     else:
         release_title = "Revisions "
-    release_title += ", ".join(str(revision) for revision in charm_revisions)
+    release_title += ", ".join(str(revision) for revision in revisions)
     oci_info = "OCI images:"
     for architecture, resources in oci_resources.items():
         oci_info += f"\n- {architecture}:"
