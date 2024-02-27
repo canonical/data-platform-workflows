@@ -9,7 +9,7 @@ import sys
 
 import yaml
 
-from . import charmcraft
+from . import craft
 
 
 @dataclasses.dataclass
@@ -49,7 +49,7 @@ def main():
     charm_directory = pathlib.Path(args.charm_directory)
 
     # Upload charm file(s) & store revision
-    charm_revisions: dict[charmcraft.Architecture, list[int]] = {}
+    charm_revisions: dict[craft.Architecture, list[int]] = {}
     for charm_file in charm_directory.glob("*.charm"):
         # Examples of `charm_file.name`:
         # - "mysql-router-k8s_ubuntu-22.04-amd64.charm"
@@ -60,7 +60,7 @@ def main():
         assert (
             len(architectures) == 1
         ), f"Multiple architectures ({architectures}) in one (charmcraft.yaml) base not supported. Use one base per architecture"
-        architecture = charmcraft.Architecture(architectures[0])
+        architecture = craft.Architecture(architectures[0])
         logging.info(f"Uploading {charm_file=} {architecture=}")
         output = run(["charmcraft", "upload", "--format", "json", charm_file])
         revision: int = json.loads(output)["revision"]
@@ -72,7 +72,7 @@ def main():
     charm_name = metadata_file["name"]
 
     # (Only for Kubernetes charms) upload OCI image(s) & store revision
-    oci_resources: dict[charmcraft.Architecture, list[OCIResource]] = {}
+    oci_resources: dict[craft.Architecture, list[OCIResource]] = {}
     resources = metadata_file.get("resources", {})
     for resource_name, resource in resources.items():
         if resource["type"] != "oci-image":
@@ -87,7 +87,7 @@ def main():
                 )
             elif upstream_source:
                 # Default to X64
-                upstream_sources = {charmcraft.Architecture.X64.value: upstream_source}
+                upstream_sources = {craft.Architecture.X64.value: upstream_source}
             else:
                 upstream_sources = resource["upstream-sources"]
             image_name = upstream_sources[architecture.value]
