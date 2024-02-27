@@ -63,7 +63,7 @@ jobs:
     strategy:
       matrix:
         base: ${{ fromJSON(needs.collect-bases.outputs.bases) }}
-    name: 'Build snap | architecture #${{ matrix.base.index }}'
+    name: 'Build snap | ${{ matrix.base.id }}'
     needs:
       - get-workflow-version
       - collect-bases
@@ -92,19 +92,19 @@ jobs:
       - name: Pack snap
         id: pack
         working-directory: ${{ inputs.path-to-snap-project-directory }}
-        run: sg lxd -c "snapcraft pack -v"
+        run: sg lxd -c "snapcraft pack -v --build-for='${{ matrix.base.id }}'"
       - name: Upload snapcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-snapcraft-build-${{ inputs.artifact-prefix }}-architecture-${{ matrix.base.index }}
+          name: logs-snapcraft-build-${{ inputs.artifact-prefix }}-architecture-${{ matrix.base.id }}
           path: ~/.local/state/snapcraft/log/
           if-no-files-found: error
       - run: touch .empty
       - name: Upload snap package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-architecture-${{ matrix.base.index }}
+          name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-architecture-${{ matrix.base.id }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |

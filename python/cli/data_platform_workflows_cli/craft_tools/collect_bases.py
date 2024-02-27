@@ -96,10 +96,14 @@ def collect(craft_: Craft):
         craft_file = craft_file.parent / "snap" / craft_file.name
     yaml_data = yaml.safe_load(craft_file.read_text())
     bases_ = get_bases(craft_=craft_, yaml_data=yaml_data)
-    bases = [
-        {"index": index, "runner": RUNNERS[architecture]}
-        for index, architecture in enumerate(bases_)
-    ]
+    bases = []
+    for index, architecture in enumerate(bases_):
+        # id used to select base in `*craft pack`
+        if craft_ is Craft.CHARM:
+            id_ = index
+        else:
+            id_ = architecture
+        bases.append({"id": id_, "runner": RUNNERS[architecture]})
     logging.info(f"Collected {bases=}")
     default_prefix = f'packed-{craft_.value}-{args.directory.replace("/", "-")}'
     if craft_ is Craft.CHARM:
