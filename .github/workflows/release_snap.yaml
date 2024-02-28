@@ -78,6 +78,7 @@ jobs:
         id: release
         run: release-snap --directory='${{ inputs.path-to-snap-project-directory }}' --channel='${{ inputs.channel }}'
         env:
+          SNAPCRAFT_STORE_AUTH: candid
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snap-store-token }}
       - name: Upload snapcraft logs
         if: ${{ failure() && steps.release.outcome == 'failure' }}
