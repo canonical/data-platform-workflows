@@ -102,7 +102,7 @@ def collect(craft_: Craft):
         if craft_ is Craft.CHARM:
             id_ = index
         else:
-            id_ = architecture
+            id_ = architecture.value
         bases.append({"id": id_, "runner": RUNNERS[architecture]})
     logging.info(f"Collected {bases=}")
     default_prefix = f'packed-{craft_.value}-{args.directory.replace("/", "-")}'
