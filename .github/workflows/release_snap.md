@@ -30,3 +30,5 @@ jobs:
     permissions:
       contents: write  # Needed to create GitHub release
 ```
+
+`SNAP_STORE_TOKEN` should be generated with `SNAPCRAFT_STORE_AUTH=candid` (e.g. `SNAPCRAFT_STORE_AUTH=candid snapcraft export-login`)
