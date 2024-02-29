@@ -10,9 +10,11 @@ packages = [{include = "data_platform_workflows_cli"}]
 
 [tool.poetry.scripts]
 redact-secrets = "data_platform_workflows_cli.redact_secrets:main"
-collect-charm-bases = "data_platform_workflows_cli.collect_charm_bases:main"
+collect-snap-bases = "data_platform_workflows_cli.craft_tools.collect_bases:snap"
+collect-rock-bases = "data_platform_workflows_cli.craft_tools.collect_bases:rock"
+collect-charm-bases = "data_platform_workflows_cli.craft_tools.collect_bases:charm"
 get-pack-command = "data_platform_workflows_cli.get_pack_command:main"
-release-charm = "data_platform_workflows_cli.release_charm:main"
+release-charm = "data_platform_workflows_cli.craft_tools.release_charm:main"
 update-bundle = "data_platform_workflows_cli.update_bundle:main"
 parse-snap-version = "data_platform_workflows_cli.parse_snap_version:main"
 

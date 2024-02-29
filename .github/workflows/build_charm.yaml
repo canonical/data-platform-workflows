@@ -74,7 +74,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Collect charm bases to build from charmcraft.yaml
         id: collect
-        run: collect-charm-bases --charm-directory='${{ inputs.path-to-charm-directory }}' --cache='${{ inputs.cache }}'
+        run: collect-charm-bases --directory='${{ inputs.path-to-charm-directory }}' --cache='${{ inputs.cache }}'
     outputs:
       bases: ${{ steps.collect.outputs.bases }}
       artifact-prefix-with-inputs: ${{ inputs.artifact-prefix || steps.collect.outputs.default_prefix }}
@@ -83,7 +83,7 @@ jobs:
     strategy:
       matrix:
         base: ${{ fromJSON(needs.collect-bases.outputs.bases) }}
-    name: 'Build charm | base #${{ matrix.base.index }}'
+    name: 'Build charm | base #${{ matrix.base.id }}'
     needs:
       - get-workflow-version
       - collect-bases
@@ -130,7 +130,7 @@ jobs:
       - run: snap list
       - name: Get pack command
         id: pack-command
-        run: get-pack-command --cache='${{ inputs.cache }}' --charm-directory='${{ inputs.path-to-charm-directory }}' --bases-index='${{ matrix.base.index }}'
+        run: get-pack-command --cache='${{ inputs.cache }}' --charm-directory='${{ inputs.path-to-charm-directory }}' --bases-index='${{ matrix.base.id }}'
       - name: Pack charm
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
@@ -139,14 +139,14 @@ jobs:
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-charmcraft-build-${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.base.index }}
+          name: logs-charmcraft-build-${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.base.id }}
           path: ~/.local/state/charmcraft/log/
           if-no-files-found: error
       - run: touch .empty
       - name: Upload charm package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.base.index }}
+          name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.base.id }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
