@@ -97,7 +97,7 @@ jobs:
           sudo apt-get install python3-pip python3-venv -y
           python3 -m pip install pipx
           python3 -m pipx ensurepath
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Parse charmcraft version inputs
