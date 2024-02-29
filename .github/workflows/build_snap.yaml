@@ -70,6 +70,14 @@ jobs:
     runs-on: ${{ matrix.base.runner }}
     timeout-minutes: 15
     steps:
+      - name: (GitHub-hosted ARM runner) Install pipx
+        if: ${{ matrix.base.runner == 'Ubuntu_ARM64_4C_16G_01' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install python3-pip python3-venv -y
+          python3 -m pip install pipx
+          python3 -m pipx ensurepath
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Parse snapcraft version inputs
