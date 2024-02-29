@@ -2,7 +2,7 @@ Workflow file: [build_snap.yaml](build_snap.yaml)
 
 ## Usage
 ```yaml
-# Copyright 2023 Canonical Ltd.
+# Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 jobs:
   build:

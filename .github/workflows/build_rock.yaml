@@ -1,36 +1,33 @@
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Usage documentation: build_snap.md
+# Usage documentation: build_rock.md
 
 on:
   workflow_call:
     inputs:
       artifact-prefix:
-        description: Snap packages are uploaded to GitHub artifacts beginning with this prefix
-        default: packed-snap
+        description: Rock packages are uploaded to GitHub artifacts beginning with this prefix
+        default: packed-rock
         type: string
-      path-to-snap-project-directory:
-        description: |
-          Relative path to snap project directory from repository directory
-
-          The "snap project directory" is the directory that contains the `snap` directory, not the `snap` directory itself.
+      path-to-rock-directory:
+        description: Relative path to rock directory from repository directory
         default: .
         type: string
-      snapcraft-snap-revision:
-        description: snapcraft snap revision
+      rockcraft-snap-revision:
+        description: rockcraft snap revision
         required: false
         type: string
-      snapcraft-snap-channel:
+      rockcraft-snap-channel:
         description: |
-          snapcraft snap channel
+          rockcraft snap channel
 
-          Cannot be used if `snapcraft-snap-revision` input is passed
+          Cannot be used if `rockcraft-snap-revision` input is passed
         required: false
         type: string
     outputs:
       artifact-prefix:
-        description: Snap packages are uploaded to GitHub artifacts beginning with this prefix
+        description: Rock packages are uploaded to GitHub artifacts beginning with this prefix
         value: ${{ jobs.collect-bases.outputs.artifact-prefix-with-inputs }}
 
 jobs:
@@ -39,10 +36,10 @@ jobs:
     uses: ./.github/workflows/_get_workflow_version.yaml
     with:
       repository-name: canonical/data-platform-workflows
-      file-name: build_snap.yaml
+      file-name: build_rock.yaml
 
   collect-bases:
-    name: Collect architectures for snap | ${{ inputs.path-to-snap-project-directory }}
+    name: Collect platforms for rock | ${{ inputs.path-to-rock-directory }}
     needs:
       - get-workflow-version
     runs-on: ubuntu-latest
@@ -52,9 +49,9 @@ jobs:
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Collect snap architectures to build from snapcraft.yaml
+      - name: Collect rock platforms to build from rockcraft.yaml
         id: collect
-        run: collect-snap-bases --directory='${{ inputs.path-to-snap-project-directory }}'
+        run: collect-rock-bases --directory='${{ inputs.path-to-rock-directory }}'
     outputs:
       bases: ${{ steps.collect.outputs.bases }}
       artifact-prefix-with-inputs: ${{ inputs.artifact-prefix || steps.collect.outputs.default_prefix }}
@@ -63,7 +60,7 @@ jobs:
     strategy:
       matrix:
         base: ${{ fromJSON(needs.collect-bases.outputs.bases) }}
-    name: 'Build snap | ${{ matrix.base.id }}'
+    name: 'Build rock | ${{ matrix.base.id }}'
     needs:
       - get-workflow-version
       - collect-bases
@@ -72,9 +69,9 @@ jobs:
     steps:
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
-      - name: Parse snapcraft version inputs
-        id: snapcraft-snap-version
-        run: parse-snap-version --revision='${{ inputs.snapcraft-snap-revision }}' --channel='${{ inputs.snapcraft-snap-channel }}' --revision-input-name=snapcraft-snap-revision --channel-input-name=snapcraft-snap-channel
+      - name: Parse rockcraft version inputs
+        id: rockcraft-snap-version
+        run: parse-snap-version --revision='${{ inputs.rockcraft-snap-revision }}' --channel='${{ inputs.rockcraft-snap-channel }}' --revision-input-name=rockcraft-snap-revision --channel-input-name=rockcraft-snap-channel
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up environment
@@ -87,27 +84,27 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
 
-          sudo snap install snapcraft --classic ${{ steps.snapcraft-snap-version.outputs.install_flag }}
+          sudo snap install rockcraft --classic ${{ steps.rockcraft-snap-version.outputs.install_flag }}
       - run: snap list
-      - name: Pack snap
+      - name: Pack rock
         id: pack
-        working-directory: ${{ inputs.path-to-snap-project-directory }}
-        run: sg lxd -c "snapcraft pack -v --build-for='${{ matrix.base.id }}'"
-      - name: Upload snapcraft logs
+        working-directory: ${{ inputs.path-to-rock-directory }}
+        run: sg lxd -c "rockcraft pack -v --platform='${{ matrix.base.id }}'"
+      - name: Upload rockcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-snapcraft-build-${{ inputs.artifact-prefix }}-architecture-${{ matrix.base.id }}
-          path: ~/.local/state/snapcraft/log/
+          name: logs-rockcraft-build-${{ inputs.artifact-prefix }}-architecture-${{ matrix.base.id }}
+          path: ~/.local/state/rockcraft/log/
           if-no-files-found: error
       - run: touch .empty
-      - name: Upload snap package
+      - name: Upload rock package
         uses: actions/upload-artifact@v4
         with:
           name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-architecture-${{ matrix.base.id }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
-            ${{ inputs.path-to-snap-project-directory }}/*.snap
+            ${{ inputs.path-to-rock-directory }}/*.rock
             .empty
           if-no-files-found: error
