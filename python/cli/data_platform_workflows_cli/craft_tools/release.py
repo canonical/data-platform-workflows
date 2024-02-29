@@ -4,12 +4,15 @@ import json
 import logging
 import os
 import pathlib
+import re
 import subprocess
 import sys
 
 import yaml
 
 from . import craft
+
+logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 
 @dataclasses.dataclass
@@ -35,22 +38,53 @@ def run(command_: list):
     return process.stdout
 
 
-def main():
+def snap():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--directory", required=True)
+    parser.add_argument("--channel", required=True)
+    args = parser.parse_args()
+    directory = pathlib.Path(args.directory)
+
+    revisions = []
+    for snap_file in directory.glob("*.snap"):
+        output = run(["snapcraft", "upload", "--release", args.channel, snap_file])
+        # Example: "Revision 3 created for 'charmed-postgresql' and released to 'latest/edge'\n"
+        match = re.match("Revision ([0-9]+) created for ", output)
+        assert match, "Unable to parse revision"
+        revision = int(match.group(1))
+        revisions.append(revision)
+
+    # Output GitHub release info
+    release_tag = f"rev{max(revisions)}"
+    if len(revisions) == 1:
+        release_title = "Revision "
+    else:
+        release_title = "Revisions "
+    release_title += ", ".join(str(revision) for revision in revisions)
+    release_notes = f"Released to {args.channel}"
+    with open("release_notes.txt", "w") as file:
+        file.write(release_notes)
+    output = f"release_tag={release_tag}\nrelease_title={release_title}"
+    logging.info(output)
+    with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+        file.write(output)
+
+
+def charm():
     # Remove `charmcraft.yaml` from working directory (directory that subprocess will run as) if it
     # exists.
     # Workaround for https://github.com/canonical/charmcraft/issues/1389
     pathlib.Path("charmcraft.yaml").unlink(missing_ok=True)
 
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     parser = argparse.ArgumentParser()
-    parser.add_argument("--charm-directory", required=True)
+    parser.add_argument("--directory", required=True)
     parser.add_argument("--channel", required=True)
     args = parser.parse_args()
-    charm_directory = pathlib.Path(args.charm_directory)
+    directory = pathlib.Path(args.directory)
 
     # Upload charm file(s) & store revision
     charm_revisions: dict[craft.Architecture, list[int]] = {}
-    for charm_file in charm_directory.glob("*.charm"):
+    for charm_file in directory.glob("*.charm"):
         # Examples of `charm_file.name`:
         # - "mysql-router-k8s_ubuntu-22.04-amd64.charm"
         # - "mysql-router-k8s_ubuntu-22.04-amd64-arm64.charm"
@@ -68,7 +102,7 @@ def main():
         charm_revisions.setdefault(architecture, []).append(revision)
     assert len(charm_revisions) > 0, "No charm packages found"
 
-    metadata_file = yaml.safe_load((charm_directory / "metadata.yaml").read_text())
+    metadata_file = yaml.safe_load((directory / "metadata.yaml").read_text())
     charm_name = metadata_file["name"]
 
     # (Only for Kubernetes charms) upload OCI image(s) & store revision

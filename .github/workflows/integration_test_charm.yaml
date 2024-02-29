@@ -10,7 +10,7 @@ on:
         description: |
           Prefix for charm package GitHub artifact(s)
 
-          Use another canonical/data-platform-workflows workflow to build the charm(s)
+          Use canonical/data-platform-workflows build_charm.yaml to build the charm(s)
         required: true
         type: string
       cloud:

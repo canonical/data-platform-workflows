@@ -35,13 +35,7 @@ RUNNERS = {
 }
 
 
-class Craft(str, enum.Enum):
-    SNAP = "snap"
-    ROCK = "rock"
-    CHARM = "charm"
-
-
-def get_bases(*, craft_: Craft, yaml_data):
+def get_bases(*, craft_: craft.Craft, yaml_data):
     """Get architecture for each base
 
     For charms, multiple bases can have the same architecture
@@ -49,24 +43,24 @@ def get_bases(*, craft_: Craft, yaml_data):
 
     For snaps & rocks, the Ubuntu version is the same for all architectures.
     """
-    if craft_ is Craft.ROCK:
+    if craft_ is craft.Craft.ROCK:
         # https://canonical-rockcraft.readthedocs-hosted.com/en/latest/reference/rockcraft.yaml/#platforms
         return [craft.Architecture(arch) for arch in yaml_data["platforms"]]
-    if craft_ is Craft.SNAP:
+    if craft_ is craft.Craft.SNAP:
         bases = yaml_data.get("architectures")
         if not bases:
             # Default to X64
             return [craft.Architecture.X64]
-    elif craft_ is Craft.CHARM:
+    elif craft_ is craft.Craft.CHARM:
         bases = yaml_data["bases"]
     else:
         raise ValueError
     arch_for_bases = []
     for platform in bases:
-        if craft_ is Craft.SNAP:
+        if craft_ is craft.Craft.SNAP:
             # https://snapcraft.io/docs/explanation-architectures
             build_on_architectures = platform["build-on"]
-        elif craft_ is Craft.CHARM:
+        elif craft_ is craft.Craft.CHARM:
             # https://discourse.charmhub.io/t/charmcraft-bases-provider-support/4713
             build_on_architectures = (platform.get("build-on") or platform).get(
                 "architectures"
@@ -84,29 +78,29 @@ def get_bases(*, craft_: Craft, yaml_data):
     return arch_for_bases
 
 
-def collect(craft_: Craft):
+def collect(craft_: craft.Craft):
     """Collect bases to build from *craft.yaml"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
-    if craft_ is Craft.CHARM:
+    if craft_ is craft.Craft.CHARM:
         parser.add_argument("--cache", required=True)
     args = parser.parse_args()
     craft_file = pathlib.Path(args.directory, f"{craft_.value}craft.yaml")
-    if craft_ is Craft.SNAP:
+    if craft_ is craft.Craft.SNAP:
         craft_file = craft_file.parent / "snap" / craft_file.name
     yaml_data = yaml.safe_load(craft_file.read_text())
     bases_ = get_bases(craft_=craft_, yaml_data=yaml_data)
     bases = []
     for index, architecture in enumerate(bases_):
         # id used to select base in `*craft pack`
-        if craft_ is Craft.CHARM:
+        if craft_ is craft.Craft.CHARM:
             id_ = index
         else:
             id_ = architecture.value
         bases.append({"id": id_, "runner": RUNNERS[architecture]})
     logging.info(f"Collected {bases=}")
     default_prefix = f'packed-{craft_.value}-{args.directory.replace("/", "-")}'
-    if craft_ is Craft.CHARM:
+    if craft_ is craft.Craft.CHARM:
         default_prefix = f'packed-{craft_.value}-cache-{args.cache}-{args.directory.replace("/", "-")}'
     logging.info(f"{default_prefix=}")
     with open(os.environ["GITHUB_OUTPUT"], "a") as file:
@@ -114,12 +108,12 @@ def collect(craft_: Craft):
 
 
 def snap():
-    collect(Craft.SNAP)
+    collect(craft.Craft.SNAP)
 
 
 def rock():
-    collect(Craft.ROCK)
+    collect(craft.Craft.ROCK)
 
 
 def charm():
-    collect(Craft.CHARM)
+    collect(craft.Craft.CHARM)

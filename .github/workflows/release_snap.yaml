@@ -1,44 +1,47 @@
-# Copyright 2023 Canonical Ltd.
+# Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Usage documentation: release_charm.md
+# Usage documentation: release_snap.md
 
 on:
   workflow_call:
     inputs:
       channel:
-        description: Charmhub channel to release to
+        description: Snap Store channel to release to
         required: true
         type: string
       artifact-prefix:
         description: |
-          Prefix for charm package GitHub artifact(s)
+          Prefix for snap package GitHub artifact(s)
 
-          Use canonical/data-platform-workflows build_charm.yaml to build the charm(s)
+          Use canonical/data-platform-workflows build_snap.yaml to build the snap(s)
         required: true
         type: string
-      path-to-charm-directory:
-        description: Relative path to charm directory from repository directory
+      path-to-snap-project-directory:
+        description: |
+          Relative path to snap project directory from repository directory
+
+          The "snap project directory" is the directory that contains the `snap` directory, not the `snap` directory itself.
         default: .
         type: string
       create-github-release:
         description: Create git tag & GitHub release
         default: true
         type: boolean
-      charmcraft-snap-revision:
-        description: charmcraft snap revision
+      snapcraft-snap-revision:
+        description: snapcraft snap revision
         required: false
         type: string
-      charmcraft-snap-channel:
+      snapcraft-snap-channel:
         description: |
-          charmcraft snap channel
+          snapcraft snap channel
 
-          Cannot be used if `charmcraft-snap-revision` input is passed
+          Cannot be used if `snapcraft-snap-revision` input is passed
         required: false
         type: string
     secrets:
-      charmhub-token:
-        description: Charmhub login token
+      snap-store-token:
+        description: Snap Store login token
         required: true
 
 jobs:
@@ -47,10 +50,10 @@ jobs:
     uses: ./.github/workflows/_get_workflow_version.yaml
     with:
       repository-name: canonical/data-platform-workflows
-      file-name: release_charm.yaml
+      file-name: release_snap.yaml
 
-  release-charm:
-    name: Release charm
+  release-snap:
+    name: Release snap
     needs:
       - get-workflow-version
     runs-on: ubuntu-latest
@@ -58,30 +61,31 @@ jobs:
     steps:
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
-      - name: Parse charmcraft version inputs
-        id: charmcraft-snap-version
-        run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
-      - name: Install charmcraft
-        run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+      - name: Parse snapcraft version inputs
+        id: snapcraft-snap-version
+        run: parse-snap-version --revision='${{ inputs.snapcraft-snap-revision }}' --channel='${{ inputs.snapcraft-snap-channel }}' --revision-input-name=snapcraft-snap-revision --channel-input-name=snapcraft-snap-channel
+      - name: Install snapcraft
+        run: sudo snap install snapcraft --classic ${{ steps.snapcraft-snap-version.outputs.install_flag }}
       - run: snap list
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Download charm package(s)
+      - name: Download snap package(s)
         uses: actions/download-artifact@v4
         with:
           pattern: ${{ inputs.artifact-prefix }}-*
           merge-multiple: true
-      - name: Upload & release charm
+      - name: Upload & release snap
         id: release
-        run: release-charm --directory='${{ inputs.path-to-charm-directory }}' --channel='${{ inputs.channel }}'
+        run: release-snap --directory='${{ inputs.path-to-snap-project-directory }}' --channel='${{ inputs.channel }}'
         env:
-          CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
-      - name: Upload charmcraft logs
+          SNAPCRAFT_STORE_AUTH: candid
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snap-store-token }}
+      - name: Upload snapcraft logs
         if: ${{ failure() && steps.release.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-charmcraft-release-${{ inputs.artifact-prefix }}
-          path: ~/.local/state/charmcraft/log/
+          name: logs-snapcraft-release-${{ inputs.artifact-prefix }}
+          path: ~/.local/state/snapcraft/log/
           if-no-files-found: error
       - name: Create GitHub release
         if: ${{ inputs.create-github-release }}
