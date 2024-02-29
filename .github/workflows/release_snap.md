@@ -7,6 +7,10 @@ Add `.yaml` file to `.github/workflows/`
 # See LICENSE file for licensing details.
 name: Release to Snap Store
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches:
