@@ -1,0 +1,54 @@
+# Copyright 2024 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# Usage documentation: release_rock.md
+
+on:
+  workflow_call:
+    inputs:
+      artifact-prefix:
+        description: |
+          Prefix for rock package GitHub artifact(s)
+
+          Use canonical/data-platform-workflows build_rock.yaml to build the rock(s)
+        required: true
+        type: string
+      path-to-rock-directory:
+        description: Relative path to rock directory from repository directory
+        default: .
+        type: string
+
+jobs:
+  get-workflow-version:
+    name: Get workflow version
+    uses: ./.github/workflows/_get_workflow_version.yaml
+    with:
+      repository-name: canonical/data-platform-workflows
+      file-name: release_rock.yaml
+
+  release-rock:
+    name: Release rock
+    needs:
+      - get-workflow-version
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
+      - name: Install skopeo
+        run: sudo apt-get install skopeo -y
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: unused  # Required input—but not used
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download rock package(s)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.artifact-prefix }}-*
+          merge-multiple: true
+      - name: Upload & release rock
+        run: release-rock --directory='${{ inputs.path-to-rock-directory }}'
