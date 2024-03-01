@@ -45,25 +45,35 @@ def snap():
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
+    @dataclasses.dataclass
+    class Revision:
+        value: int
+        architecture: str
+
     revisions = []
     for snap_file in directory.glob("*.snap"):
+        # Example `snap_file.name`: "charmed-postgresql_14.11_amd64.snap"
+        # Example: "amd64"
+        architecture = snap_file.name.removesuffix(".snap").split("_")[-1]
         logging.info(f"Uploading {snap_file=}")
         output = run(["snapcraft", "upload", "--release", args.channel, snap_file])
-        # Example: "Revision 3 created for 'charmed-postgresql' and released to 'latest/edge'\n"
+        # Example `output`: "Revision 3 created for 'charmed-postgresql' and released to 'latest/edge'\n"
         match = re.match("Revision ([0-9]+) created for ", output)
         assert match, "Unable to parse revision"
         revision = int(match.group(1))
-        logging.info(f"Uploaded snap {revision=}")
-        revisions.append(revision)
+        logging.info(f"Uploaded snap {revision=} {architecture=}")
+        revisions.append(Revision(value=revision, architecture=architecture))
 
     # Output GitHub release info
-    release_tag = f"rev{max(revisions)}"
+    release_tag = f"rev{max(revision.value for revision in revisions)}"
     if len(revisions) == 1:
         release_title = "Revision "
     else:
         release_title = "Revisions "
-    release_title += ", ".join(str(revision) for revision in revisions)
+    release_title += ", ".join(str(revision.value) for revision in revisions)
     release_notes = f"Released to {args.channel}"
+    for revision in revisions:
+        release_notes += f"\n- {revision.architecture}: revision {revision.value}"
     with open("release_notes.txt", "w") as file:
         file.write(release_notes)
     output = f"release_tag={release_tag}\nrelease_title={release_title}"
