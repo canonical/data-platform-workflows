@@ -65,7 +65,8 @@ def get_bases(*, craft_: craft.Craft, yaml_data):
             build_on = platform.get("build-on")
             if build_on:
                 assert isinstance(build_on, list) and len(build_on) == 1
-            build_on_architectures = (build_on[0] or platform).get("architectures")
+                platform = build_on[0]
+            build_on_architectures = platform.get("architectures")
             if not build_on_architectures:
                 # Default to X64
                 arch_for_bases.append(craft.Architecture.X64)
