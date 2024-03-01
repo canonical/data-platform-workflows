@@ -6,6 +6,6 @@ Workflow file: [build_charm.yaml](build_charm.yaml)
 # See LICENSE file for licensing details.
 jobs:
   build:
-    name: Build charms
+    name: Build charm
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v0.0.0
 ```

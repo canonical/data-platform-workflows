@@ -1,11 +1,17 @@
 ## Usage
-[Reusable workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows) (and documentation) are located at [.github/workflows](.github/workflows)
-
-Workflows that do **not** begin with an underscore (e.g. `foo.yaml`) may be called outside this repository.
-
-Workflows that begin with one underscore (e.g. `_foo.yaml`) are internal and are only intended to be called by reusable workflows in this repository (that begin with zero or one underscores).
-
-Workflows that begin with two underscores (e.g. `__foo.yaml`) are for this repository only. They may only be (triggered by an event on this repository or) called by workflows in this repository that begin with two underscores.
+### Workflows
+| Name                                                                       | Description                                                                |
+|----------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| [lint.yaml](.github/workflows/lint.md)                                     | Lint GitHub Actions workflows (`.github/workflows/`) and `tox run -e lint` |
+| [integration_test_charm.yaml](.github/workflows/integration_test_charm.md) | Integration test charm                                                     |
+| [build_snap.yaml](.github/workflows/build_snap.md)                         | Build snap                                                                 |
+| [build_rock.yaml](.github/workflows/build_rock.md)                         | Build rock                                                                 |
+| [build_charm.yaml](.github/workflows/build_charm.md)                       | Build charm                                                                |
+| [release_snap.yaml](.github/workflows/release_snap.md)                     | Release snap to Snap Store                                                 |
+| [release_rock.yaml](.github/workflows/release_rock.md)                     | Release rock to GitHub Container Registry                                  |
+| [release_charm.yaml](.github/workflows/release_charm.md)                   | Release charm to Charmhub                                                  |
+| [update_bundle.yaml](.github/workflows/update_bundle.md)                   | Update charm revisions in bundle                                           |
+| [sync_issue_to_jira.yaml](.github/workflows/sync_issue_to_jira.md)         | Sync GitHub issues to Jira issues                                          |
 
 ### Version
 Recommendation: pin the latest version (e.g. `v1.0.0`) and use [Renovate](https://docs.renovatebot.com/) to stay up-to-date.
@@ -56,6 +62,13 @@ Example Renovate configuration:
 Note: all workflows in this repository share a version number. If a breaking change is made to the public interface of one workflow, all workflows will have a new major version even if they have no breaking changes.
 
 If you do not want to use Renovate, pin to the latest major version (e.g. `v1`).
+
+### Public interface
+Workflows that do **not** begin with an underscore (e.g. `foo.yaml`) may be called outside this repository.
+
+Workflows that begin with one underscore (e.g. `_foo.yaml`) are internal and are only intended to be called by reusable workflows in this repository (that begin with zero or one underscores).
+
+Workflows that begin with two underscores (e.g. `__foo.yaml`) are for this repository only. They may only be (triggered by an event on this repository or) called by workflows in this repository that begin with two underscores.
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
