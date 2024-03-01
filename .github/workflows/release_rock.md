@@ -31,3 +31,5 @@ jobs:
     permissions:
       packages: write  # Needed to publish to GitHub Container Registry
 ```
+
+Grant package `Write` role to GitHub Actions for the source GitHub repository: https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility#ensuring-workflow-access-to-your-package
