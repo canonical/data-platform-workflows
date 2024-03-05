@@ -203,8 +203,9 @@ def charm():
                 "--channel",
                 args.channel,
             ]
-            for oci in oci_resources[architecture]:
-                command += ["--resource", f"{oci.resource_name}:{oci.revision}"]
+            if oci_resources:
+                for oci in oci_resources[architecture]:
+                    command += ["--resource", f"{oci.resource_name}:{oci.revision}"]
             run(command)
 
     # Output GitHub release info
