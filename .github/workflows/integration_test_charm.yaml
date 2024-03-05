@@ -164,6 +164,7 @@ jobs:
       - name: (self-hosted) Install pipx
         if: ${{ matrix.groups.self_hosted }}
         run: |
+          sudo apt-get update
           sudo apt-get install python3-pip python3-venv -y
           python3 -m pip install --user pipx
           python3 -m pipx ensurepath
@@ -248,6 +249,7 @@ jobs:
       - name: Set up microk8s
         if: ${{ inputs.cloud == 'microk8s' }}
         run: |
+          sudo apt-get update
           sudo apt-get install retry -y
           sudo snap install microk8s --channel='${{ inputs.microk8s-snap-channel }}'
           sudo adduser "$USER" '${{ steps.parse-cloud.outputs.group }}'
@@ -364,7 +366,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install Allure
-        run: sudo apt-get install ./allure_*.deb -y
+        run: |
+          sudo apt-get update
+          sudo apt-get install ./allure_*.deb -y
       # For first run, manually create branch with no history
       # (e.g.
       # git checkout --orphan gh-pages-beta

@@ -36,7 +36,9 @@ jobs:
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
       - name: Install skopeo
-        run: sudo apt-get install skopeo -y
+        run: |
+          sudo apt-get update
+          sudo apt-get install skopeo -y
       - name: Checkout
         uses: actions/checkout@v4
       - name: Login to GitHub Container Registry
