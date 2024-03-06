@@ -114,7 +114,6 @@ def rock():
     # Example: "14.10-22.04_edge"
     tag = f'{yaml_data["version"]}-{yaml_data["base"].split("@")[-1]}_edge'
     command = [
-        "sudo",
         "docker",
         "manifest",
         "create",
@@ -126,7 +125,6 @@ def rock():
     logging.info("Created multi-architecture image. Uploading")
     run(
         [
-            "sudo",
             "docker",
             "manifest",
             "push",
