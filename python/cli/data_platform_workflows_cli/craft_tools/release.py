@@ -111,6 +111,7 @@ def rock():
         )
         logging.info(f"Uploaded rock {digest=}")
         digests.append(digest)
+    logging.info("Creating multi-architecture image")
     # Example: "14.10-22.04_edge"
     tag = f'{yaml_data["version"]}-{yaml_data["base"].split("@")[-1]}_edge'
     command = [
