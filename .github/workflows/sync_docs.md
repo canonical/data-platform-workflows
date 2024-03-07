@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Open PR with docs changes
-        uses: deusebio/discourse-gatekeeper@c8adb89ea1cbceca54d78da798658373615487ac
+        uses: canonical/data-platform-workflows/.github/workflows/_sync_docs.yaml
         id: docs-pr
         with:
           discourse_host: discourse.charmhub.io
