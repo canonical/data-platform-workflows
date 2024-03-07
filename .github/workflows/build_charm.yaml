@@ -100,6 +100,7 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: (GitHub-hosted ARM runner) Install libpq-dev
         if: ${{ matrix.base.runner == 'Ubuntu_ARM64_4C_16G_01' }}
+        # Needed for `charmcraftcache` to resolve dependencies (for postgresql charms with psycopg2)
         run: sudo apt-get install libpq-dev -y
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
