@@ -72,3 +72,4 @@ Workflows that begin with two underscores (e.g. `__foo.yaml`) are for this repos
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
+See [TROUBLESHOOTING_CHARMS.md](TROUBLESHOOTING_CHARMS.md)
