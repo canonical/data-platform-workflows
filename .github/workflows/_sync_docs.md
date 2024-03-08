@@ -5,6 +5,7 @@ Workflow file: [_sync_docs.yaml](_sync_docs.yaml)
 
 ## Usage
 Add `.yaml` file to `.github/workflows/`
+
 ```yaml
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
@@ -20,27 +21,19 @@ on:
 
 jobs:
   sync-docs:
-    name: Open PR with docs changes
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Open PR with docs changes
-        uses: canonical/data-platform-workflows/.github/workflows/_sync_docs.yaml
-        id: docs-pr
-        with:
-          discourse_host: discourse.charmhub.io
-          discourse_api_username: ${{ secrets.DISCOURSE_API_USERNAME }}
-          discourse_api_key: ${{ secrets.DISCOURSE_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          dry_run: "true"
-      - name: Show migrate output
-        run: echo '${{ steps.docs-pr.outputs.migrate }}'
-      - name: Show reconcile output
-        run: echo '${{ steps.docs-pr.outputs.reconcile }}'
+    name: Sync docs from discourse
+    uses: canonical/data-platform-workflows/.github/workflows/_sync_docs.yaml
+    with:
+      discourse_host: discourse.charmhub.io
+    secrets:
+      discourse_api_username: ${{ secrets.DISCOURSE_API_USERNAME }}
+      discourse_api_key: ${{ secrets.DISCOURSE_API_KEY }}
+      github_token: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: write  # Needed to login to Discourse
       pull-requests: write  # Needed to create PR
 ```
+
 ## Run schedule
 
 |             repository            |   run time  |     cron      |
