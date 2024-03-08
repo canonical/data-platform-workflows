@@ -89,24 +89,50 @@ def rock():
     directory = pathlib.Path(args.directory)
 
     yaml_data = yaml.safe_load((directory / "rockcraft.yaml").read_text())
-
+    digests = []
     for rock_file in directory.glob("*.rock"):
-        # Example `rock_file.name`: "charmed-postgresql_14.10_amd64.rock"
-        architecture = rock_file.name.removesuffix(".rock").split("_")[-1]
-        # Example: "14.10-22.04-amd64"
-        tag = (
-            f'{yaml_data["version"]}-{yaml_data["base"].split("@")[-1]}-{architecture}'
-        )
+        digest = run(
+            [
+                "skopeo",
+                "inspect",
+                f"oci-archive:{rock_file.name}",
+                "--format",
+                "{{ .Digest }}",
+            ]
+        ).strip()
         logging.info(f"Uploading {rock_file=}")
         run(
             [
                 "skopeo",
                 "copy",
                 f"oci-archive:{rock_file.name}",
-                f'docker://ghcr.io/canonical/{yaml_data["name"]}:{tag}',
+                f'docker://ghcr.io/canonical/{yaml_data["name"]}@{digest}',
             ]
         )
-        logging.info(f"Uploaded rock {tag=}")
+        logging.info(f"Uploaded rock {digest=}")
+        digests.append(digest)
+    logging.info("Creating multi-architecture image")
+    # Example: "14.10-22.04_edge"
+    tag = f'{yaml_data["version"]}-{yaml_data["base"].split("@")[-1]}_edge'
+    command = [
+        "docker",
+        "manifest",
+        "create",
+        f'ghcr.io/canonical/{yaml_data["name"]}:{tag}',
+    ]
+    for digest in digests:
+        command.extend(("--amend", f'ghcr.io/canonical/{yaml_data["name"]}@{digest}'))
+    run(command)
+    logging.info("Created multi-architecture image. Uploading")
+    run(
+        [
+            "docker",
+            "manifest",
+            "push",
+            f'ghcr.io/canonical/{yaml_data["name"]}:{tag}',
+        ]
+    )
+    logging.info("Uploaded multi-architecture image")
 
 
 def charm():
