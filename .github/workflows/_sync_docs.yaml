@@ -13,7 +13,8 @@ jobs:
     name: Sync discourse docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Open PR with changes to discourse topics
         uses: deusebio/discourse-gatekeeper@c8adb89ea1cbceca54d78da798658373615487ac
         id: docs-pr

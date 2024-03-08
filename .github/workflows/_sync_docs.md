@@ -1,5 +1,8 @@
 Workflow file: [_sync_docs.yaml](_sync_docs.yaml)
 
+> [!WARNING]
+> Subject to **breaking changes on patch release**. `_sync_docs.yaml` is experimental & not part of the public interface.
+
 ## Usage
 Add `.yaml` file to `.github/workflows/`
 ```yaml
@@ -19,9 +22,6 @@ jobs:
   sync-docs:
     name: Open PR with docs changes
     runs-on: ubuntu-latest
-    permissions:
-      contents: write  # Needed to login to Discourse
-      pull-requests: write # Needed to create PR
     steps:
       - uses: actions/checkout@v3
       - name: Open PR with docs changes
@@ -37,6 +37,9 @@ jobs:
         run: echo '${{ steps.docs-pr.outputs.migrate }}'
       - name: Show reconcile output
         run: echo '${{ steps.docs-pr.outputs.reconcile }}'
+    permissions:
+      contents: write  # Needed to login to Discourse
+      pull-requests: write  # Needed to create PR
 ```
 ## Run schedule
 
