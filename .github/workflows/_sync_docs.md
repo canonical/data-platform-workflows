@@ -28,7 +28,6 @@ jobs:
     secrets:
       discourse_api_username: ${{ secrets.DISCOURSE_API_USERNAME }}
       discourse_api_key: ${{ secrets.DISCOURSE_API_KEY }}
-      github_token: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: write  # Needed to login to Discourse
       pull-requests: write  # Needed to create PR
