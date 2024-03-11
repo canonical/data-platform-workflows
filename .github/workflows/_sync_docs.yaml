@@ -10,13 +10,13 @@ on:
 
 jobs:
   sync-docs:
-    name: Sync discourse docs
+    name: Sync Discourse docs
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Open PR with changes to discourse topics
+      - name: Open PR with changes to Discourse topics
         uses: deusebio/discourse-gatekeeper@c8adb89ea1cbceca54d78da798658373615487ac
         id: docs-pr
         with:

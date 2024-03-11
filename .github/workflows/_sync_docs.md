@@ -27,7 +27,7 @@ jobs:
       discourse_api_username: ${{ secrets.DISCOURSE_API_USERNAME }}
       discourse_api_key: ${{ secrets.DISCOURSE_API_KEY }}
     permissions:
-      contents: write  # Needed to create commits with Discourse content and update tags
+      contents: write  # Needed to push branch & tag
       pull-requests: write  # Needed to create PR
 ```
 
