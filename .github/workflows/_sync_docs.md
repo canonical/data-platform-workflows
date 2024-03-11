@@ -35,43 +35,43 @@ jobs:
 ### SQL
 | repository                | run time | cron          |
 |:-------------------------:|:--------:|:-------------:|
-| mysql-k8s-operator        | 12:10 AM | `10 00 * * *` |
-| mysql-operator            | 12:20 AM | `20 00 * * *` |
-| mysql-test-app            | 3:00 AM  | `00 03 * * *` |
-| mysql-router-k8s-operator | 3:20 AM  | `20 03 * * *` |
-| mysql-router-operator     | 3:30 AM  | `30 03 * * *` |
-| postgresql-k8s-operator   | 12:30 AM | `30 00 * * *` |
-| postgresql-operator       | 12:40 AM | `40 00 * * *` |
-| postgresql-test-app       | 3:10 AM  | `10 03 * * *` |
-| pgbouncer-k8s-operator    | 3:40 AM  | `40 03 * * *` |
-| pgbouncer-operator        | 3:50 AM  | `50 03 * * *` |
+| mysql-k8s-operator        | 12:00 AM | `00 00 * * *` |
+| mysql-operator            | 12:10 AM | `10 00 * * *` |
+| mysql-test-app            | 12:20 AM | `20 00 * * *` |
+| mysql-router-k8s-operator | 12:30 AM | `30 00 * * *` |
+| mysql-router-operator     | 12:40 AM | `40 00 * * *` |
+| postgresql-k8s-operator   | 12:50 AM | `50 00 * * *` |
+| postgresql-operator       | 01:00 AM | `00 01 * * *` |
+| postgresql-test-app       | 01:10 AM | `10 01 * * *` |
+| pgbouncer-k8s-operator    | 01:20 AM | `20 01 * * *` |
+| pgbouncer-operator        | 01:30 AM | `30 01 * * *` |
 
 ### NoSQL
 | repository                     | run time | cron          |
 |:------------------------------:|:--------:|:-------------:|
-| mongodb-k8s-operator           | 12:50 AM | `50 00 * * *` |
-| mongodb-operator               | 1:00 AM  | `00 01 * * *` |
-| mongos-operator                | 4:30 AM  | `30 04 * * *` |
-| opensearch-k8s-operator        | 1:30 AM  | `30 01 * * *` |
-| opensearch-operator            | 1:40 AM  | `40 01 * * *` |
-| opensearch-dashboards-operator | 4:20 AM  | `20 04 * * *` |
-| redis-k8s-operator             | 1:10 AM  | `10 01 * * *` |
-| redis-operator                 | 1:20 AM  | `20 01 * * *` |
+| mongodb-k8s-operator           | 01:40 AM | `40 01 * * *` |
+| mongodb-operator               | 01:50 AM | `50 01 * * *` |
+| mongos-operator                | 02:00 AM | `00 02 * * *` |
+| opensearch-k8s-operator        | 02:10 AM | `10 02 * * *` |
+| opensearch-operator            | 02:20 AM | `20 02 * * *` |
+| opensearch-dashboards-operator | 02:30 AM | `30 02 * * *` |
+| redis-k8s-operator             | 02:40 AM | `40 02 * * *` |
+| redis-operator                 | 02:50 AM | `50 02 * * *` |
 
 ### Big Data
 | repository                        | run time | cron          |
 |:---------------------------------:|:--------:|:-------------:|
-| kafka-k8s-operator                | 1:50 AM  | `50 01 * * *` |
-| kafka-operator                    | 2:00 AM  | `00 02 * * *` |
-| kafka-test-app                    | 2:50 AM  | `50 02 * * *` |
-| zookeeper-k8s-operator            | 4:00 AM  | `00 04 * * *` |
-| zookeeper-operator                | 4:10 AM  | `10 04 * * *` |
-| spark-history-server-k8s-operator | 2:10 AM  | `10 02 * * *` |
-| spark-client-snap                 | 4:40 AM  | `40 04 * * *` |
+| kafka-k8s-operator                | 03:00 AM | `00 03 * * *` |
+| kafka-operator                    | 03:10 AM | `10 03 * * *` |
+| kafka-test-app                    | 03:20 AM | `20 03 * * *` |
+| zookeeper-k8s-operator            | 03:30 AM | `30 03 * * *` |
+| zookeeper-operator                | 03:40 AM | `40 03 * * *` |
+| spark-history-server-k8s-operator | 03:50 AM | `50 03 * * *` |
+| spark-client-snap                 | 04:00 AM | `00 04 * * *` |
 
 ### Other
 | repository         | run time | cron          |
 |:------------------:|:--------:|:-------------:|
-| data-integrator    | 2:20 AM  | `20 02 * * *` |
-| s3-integrator      | 2:30 AM  | `30 02 * * *` |
-| data-platform-libs | 2:40 AM  | `40 02 * * *` |
+| data-integrator    | 04:10 AM | `10 04 * * *` |
+| s3-integrator      | 04:20 AM | `20 04 * * *` |
+| data-platform-libs | 04:30 AM | `30 04 * * *` |
