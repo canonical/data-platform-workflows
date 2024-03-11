@@ -23,8 +23,6 @@ jobs:
   sync-docs:
     name: Sync docs from discourse
     uses: canonical/data-platform-workflows/.github/workflows/_sync_docs.yaml@v0.0.0
-    with:
-      discourse_host: discourse.charmhub.io
     secrets:
       discourse_api_username: ${{ secrets.DISCOURSE_API_USERNAME }}
       discourse_api_key: ${{ secrets.DISCOURSE_API_KEY }}
