@@ -21,13 +21,13 @@ on:
 
 jobs:
   sync-docs:
-    name: Sync docs from discourse
+    name: Sync docs from Discourse
     uses: canonical/data-platform-workflows/.github/workflows/_sync_docs.yaml@v0.0.0
     secrets:
       discourse_api_username: ${{ secrets.DISCOURSE_API_USERNAME }}
       discourse_api_key: ${{ secrets.DISCOURSE_API_KEY }}
     permissions:
-      contents: write  # Needed to login to Discourse
+      contents: write  # Needed to create commits with Discourse content and update tags
       pull-requests: write  # Needed to create PR
 ```
 
