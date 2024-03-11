@@ -22,7 +22,7 @@ on:
 jobs:
   sync-docs:
     name: Sync docs from discourse
-    uses: canonical/data-platform-workflows/.github/workflows/_sync_docs.yaml
+    uses: canonical/data-platform-workflows/.github/workflows/_sync_docs.yaml@v0.0.0
     with:
       discourse_host: discourse.charmhub.io
     secrets:
