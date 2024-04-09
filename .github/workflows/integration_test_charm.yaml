@@ -339,6 +339,7 @@ jobs:
         run: juju status --color --relations | tee ~/logs/juju-status.txt
       - name: juju debug-log
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
+        # TODO future improvement: show unit-controller-0 logs in juju-debug-log.txt to match `juju debug-log`
         run: |
           if [[ '${{ inputs.cloud }}' == 'lxd' ]]
           then
