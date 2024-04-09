@@ -40,7 +40,7 @@ def main():
             check=True,
             encoding="utf-8",
         ).stdout
-    )["test"]["controller-uuid"]
+    )["test"]["model-uuid"]
     with logsink.open("r", encoding="utf-8") as logsink_file, output.open(
         "w", encoding="utf-8"
     ) as output_file:
