@@ -5,7 +5,7 @@ import pathlib
 import re
 
 PATTERN = re.compile(
-    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}: (?P<entity>.*?) [0-9]{4}-[0-9]{2}-[0-9]{2} (?P<time>[0-9]{2}:[0-9]{2}:[0-9]{2}) (?P<level>DEBUG|INFO|WARNING|ERROR|CRITICAL) (?P<message>.*) "
+    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}: (?P<entity>.*?) [0-9]{4}-[0-9]{2}-[0-9]{2} (?P<time>[0-9]{2}:[0-9]{2}:[0-9]{2}) (?P<level>DEBUG|INFO|WARNING|ERROR|CRITICAL) (?P<message>.*)\n"
 )
 LEVEL_COLORS = {
     "DEBUG": "[32m",
@@ -34,5 +34,5 @@ def main():
                 # "276ce0fa-a69d-4e2c-8793-031a46bac9e1: machine-3 2024-04-05 14:50:47 INFO juju.worker.leadership tracker.go:194 opensearch/2 promoted to leadership of opensearch "
                 # Example of replaced line:
                 # "machine-3: 14:50:47 [94mINFO[0m juju.worker.leadership tracker.go:194 opensearch/2 promoted to leadership of opensearch"
-                line = f'{match.group("entity")}: {match.group("time")} {LEVELS[match.group("level")]} {match.group("message")}'
+                line = f'{match.group("entity")}: {match.group("time")} {LEVELS[match.group("level")]} {match.group("message").rstrip(" ")}\n'
             output_file.write(line)
