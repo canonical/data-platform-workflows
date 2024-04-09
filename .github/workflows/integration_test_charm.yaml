@@ -337,12 +337,13 @@ jobs:
         run: juju status --color --relations | tee ~/logs/juju-status.txt
       - name: juju debug-log
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        # TODO future improvement: show unit-controller-0 logs in juju-debug-log.txt to match `juju debug-log`
+        # TODO future improvement: show models/ logs in juju-debug-log.txt to match `juju debug-log`
         run: |
           if [[ '${{ inputs.cloud }}' == 'lxd' ]]
           then
-            juju scp --model controller controller/0:/var/log/juju/unit-controller-0.log ~/logs/unit-controller-0.log
-            juju scp --model controller controller/0:/var/log/juju/logsink.log ~/logs/controller-logsink.log
+            mkdir ~/logs/models/
+            juju scp --model controller 0:/var/log/juju/models/* ~/logs/models/
+            juju scp --model controller 0:/var/log/juju/logsink.log ~/logs/controller-logsink.log
             convert-logsink-to-debug-log ~/logs/controller-logsink.log ~/logs/juju-debug-log.txt
             cat ~/logs/juju-debug-log.txt
           else
