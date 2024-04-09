@@ -340,6 +340,7 @@ jobs:
         run: |
           if [[ '${{ inputs.cloud }}' == 'lxd' ]]
           then
+            juju scp --model controller controller/0:/var/log/juju/unit-controller-0.log ~/logs/unit-controller-0.log
             juju scp --model controller controller/0:/var/log/juju/logsink.log ~/logs/controller-logsink.log
             convert-logsink-to-debug-log ~/logs/controller-logsink.log ~/logs/juju-debug-log.txt
             cat ~/logs/juju-debug-log.txt
