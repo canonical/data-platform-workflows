@@ -206,6 +206,7 @@ jobs:
         id: parse-versions
         shell: python
         run: |
+          import json
           import os
 
           AGENT_VERSION = "${{ inputs.juju-agent-version }}"
@@ -226,6 +227,7 @@ jobs:
           # GitHub artifact name cannot contain "/"
           output += f'\nsnap_channel_for_artifact={snap_channel.replace("/", "-")}'
 
+          output += f'\njuju_2={json.dumps(snap_channel.startswith("2/") or snap_channel.startswith("2."))}'
           print(output)
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
@@ -340,8 +342,13 @@ jobs:
         run: |
           if [[ '${{ inputs.cloud }}' == 'lxd' ]]
           then
-            juju scp --model controller controller/0:/var/log/juju/unit-controller-0.log ~/logs/unit-controller-0.log
-            juju scp --model controller controller/0:/var/log/juju/logsink.log ~/logs/controller-logsink.log
+            if '${{ steps.parse-versions.outputs.juju_2 }}'
+            then
+              juju scp --model controller 0:/var/log/juju/logsink.log ~/logs/controller-logsink.log
+            else
+              juju scp --model controller controller/0:/var/log/juju/unit-controller-0.log ~/logs/unit-controller-0.log
+              juju scp --model controller controller/0:/var/log/juju/logsink.log ~/logs/controller-logsink.log
+            fi
             convert-logsink-to-debug-log ~/logs/controller-logsink.log ~/logs/juju-debug-log.txt
             cat ~/logs/juju-debug-log.txt
           else
