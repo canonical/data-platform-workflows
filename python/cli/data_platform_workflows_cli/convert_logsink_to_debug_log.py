@@ -27,16 +27,6 @@ class Level(enum.Enum):
 
 
 def main():
-    # Assumes `logging-config` of `<root>=INFO; unit=DEBUG`
-    assert (
-        subprocess.run(
-            ["juju", "model-config", "logging-config"],
-            capture_output=True,
-            check=True,
-            encoding="utf-8",
-        ).stdout.rstrip("\n")
-        == "<root>=INFO; unit=DEBUG"
-    )
     parser = argparse.ArgumentParser()
     parser.add_argument("logsink_file")
     parser.add_argument("output_file")
