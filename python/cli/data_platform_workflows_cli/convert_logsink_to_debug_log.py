@@ -41,7 +41,6 @@ def main():
             encoding="utf-8",
         ).stdout
     )["test"]["controller-uuid"]
-    print(model)
     with logsink.open("r", encoding="utf-8") as logsink_file, output.open(
         "w", encoding="utf-8"
     ) as output_file:

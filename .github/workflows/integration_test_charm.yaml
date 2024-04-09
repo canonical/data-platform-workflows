@@ -280,18 +280,6 @@ jobs:
           juju add-model test
           pipx install tox
           pipx install poetry
-      - name: foo
-        shell: python
-        run: |
-          model = json.loads(
-              subprocess.run(
-                  ["juju", "show-model", "--format", "json"],
-                  capture_output=True,
-                  check=True,
-                  encoding="utf-8",
-              ).stdout
-          )["test"]["controller-uuid"]
-          print(model)
       - name: Update python-libjuju version
         if: ${{ inputs.libjuju-version-constraint }}
         run: poetry add --lock --group integration juju@'${{ inputs.libjuju-version-constraint }}'
