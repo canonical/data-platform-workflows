@@ -53,16 +53,16 @@ def main():
                 skip = False
                 if match.group("model") != model:
                     skip = True
-                # Example of original line:
-                # "276ce0fa-a69d-4e2c-8793-031a46bac9e1: machine-3 2024-04-05 14:50:47 INFO juju.worker.leadership tracker.go:194 opensearch/2 promoted to leadership of opensearch "
-                # Example of replaced line:
-                # "machine-3: 14:50:47 [94mINFO[0m juju.worker.leadership opensearch/2 promoted to leadership of opensearch"
                 message = re.sub(
                     LINE_NUMBER_PATTERN,
                     " ",
                     match.group("message").rstrip(" "),
                     count=1,
                 )
+                # Example of original line:
+                # "276ce0fa-a69d-4e2c-8793-031a46bac9e1: machine-3 2024-04-05 14:50:47 INFO juju.worker.leadership tracker.go:194 opensearch/2 promoted to leadership of opensearch "
+                # Example of replaced line:
+                # "machine-3: 14:50:47 [94mINFO[0m juju.worker.leadership opensearch/2 promoted to leadership of opensearch"
                 line = f'{match.group("entity")}: {match.group("time")} {Level[match.group("level")]} {message}\n'
             if not skip:
                 output_file.write(line)
