@@ -9,6 +9,7 @@ import subprocess
 PATTERN = re.compile(
     r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}: (?P<entity>.*?) [0-9]{4}-[0-9]{2}-[0-9]{2} (?P<time>[0-9]{2}:[0-9]{2}:[0-9]{2}) (?P<level>TRACE|DEBUG|INFO|WARNING|ERROR|CRITICAL) (?P<message>.*)\n"
 )
+LINE_NUMBER_PATTERN = re.compile(r" \S+\.go:[0-9]+ ")
 
 
 class Level(enum.Enum):
@@ -67,7 +68,13 @@ def main():
                 # Example of original line:
                 # "276ce0fa-a69d-4e2c-8793-031a46bac9e1: machine-3 2024-04-05 14:50:47 INFO juju.worker.leadership tracker.go:194 opensearch/2 promoted to leadership of opensearch "
                 # Example of replaced line:
-                # "machine-3: 14:50:47 [94mINFO[0m juju.worker.leadership tracker.go:194 opensearch/2 promoted to leadership of opensearch"
-                line = f'{entity}: {match.group("time")} {level} {match.group("message").rstrip(" ")}\n'
+                # "machine-3: 14:50:47 [94mINFO[0m juju.worker.leadership opensearch/2 promoted to leadership of opensearch"
+                message = re.sub(
+                    LINE_NUMBER_PATTERN,
+                    " ",
+                    match.group("message").rstrip(" "),
+                    count=1,
+                )
+                line = f'{entity}: {match.group("time")} {level} {message}\n'
             if not skip:
                 output_file.write(line)
