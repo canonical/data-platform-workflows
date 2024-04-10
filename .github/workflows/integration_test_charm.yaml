@@ -337,7 +337,18 @@ jobs:
         run: juju status --color --relations | tee ~/logs/juju-status.txt
       - name: juju debug-log
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju debug-log --color --replay --no-tail | tee ~/logs/juju-debug-log.txt
+        # TODO future improvement: show models/ logs in juju-debug-log.txt to match `juju debug-log`
+        run: |
+          if [[ '${{ inputs.cloud }}' == 'lxd' ]]
+          then
+            mkdir ~/logs/models/
+            juju scp --model controller 0:/var/log/juju/models/* ~/logs/models/
+            juju scp --model controller 0:/var/log/juju/logsink.log ~/logs/controller-logsink.log
+            convert-logsink-to-debug-log ~/logs/controller-logsink.log ~/logs/juju-debug-log.txt
+            cat ~/logs/juju-debug-log.txt
+          else
+            juju debug-log --color --replay --no-tail | tee ~/logs/juju-debug-log.txt
+          fi
       - name: Upload logs
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v4
