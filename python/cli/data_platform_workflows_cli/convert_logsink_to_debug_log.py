@@ -23,7 +23,7 @@ class Level(enum.Enum):
 
     def __str__(self):
         """Name with ANSI color code"""
-        return f"{self.value[1]}{self.name}[0m"
+        return f"{self.value}{self.name}[0m"
 
 
 def main():
