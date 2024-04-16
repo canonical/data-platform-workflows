@@ -94,11 +94,11 @@ jobs:
     with:
       # ...
     secrets:
+      # GitHub appears to redact each line of a multi-line secret
+      # Avoid putting `{` or `}` on a line by itself so that it doesn't get redacted in logs
       integration-test: |
-        {
-          "AWS_ACCESS_KEY_ID": "${{ secrets.AWS_ACCESS_KEY_ID }}",
-          "AWS_SECRET_ACCESS_KEY": "${{ secrets.AWS_SECRET_ACCESS_KEY }}",
-        }
+        { "AWS_ACCESS_KEY_ID": "${{ secrets.AWS_ACCESS_KEY_ID }}",
+          "AWS_SECRET_ACCESS_KEY": "${{ secrets.AWS_SECRET_ACCESS_KEY }}", }
 ```
 
 Python code to verify the string format:
