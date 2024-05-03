@@ -34,22 +34,20 @@ on:
         value: ${{ jobs.collect-bases.outputs.artifact-prefix-with-inputs }}
 
 jobs:
-  get-workflow-version:
-    name: Get workflow version
-    uses: ./.github/workflows/_get_workflow_version.yaml
-    with:
-      repository-name: canonical/data-platform-workflows
-      file-name: build_snap.yaml
-
   collect-bases:
     name: Collect architectures for snap | ${{ inputs.path-to-snap-project-directory }}
-    needs:
-      - get-workflow-version
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: canonical/data-platform-workflows
+          file-name: build_snap.yaml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
       - name: Checkout
         uses: actions/checkout@v4
       - name: Collect snap architectures to build from snapcraft.yaml
@@ -65,7 +63,6 @@ jobs:
         base: ${{ fromJSON(needs.collect-bases.outputs.bases) }}
     name: 'Build snap | ${{ matrix.base.id }}'
     needs:
-      - get-workflow-version
       - collect-bases
     runs-on: ${{ matrix.base.runner }}
     timeout-minutes: 15
@@ -78,8 +75,15 @@ jobs:
           python3 -m pip install pipx
           python3 -m pipx ensurepath
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: canonical/data-platform-workflows
+          file-name: build_snap.yaml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ needs.get-workflow-version.outputs.version }}'#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
       - name: Parse snapcraft version inputs
         id: snapcraft-snap-version
         run: parse-snap-version --revision='${{ inputs.snapcraft-snap-revision }}' --channel='${{ inputs.snapcraft-snap-channel }}' --revision-input-name=snapcraft-snap-revision --channel-input-name=snapcraft-snap-channel
