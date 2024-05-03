@@ -47,8 +47,6 @@ on:
 jobs:
   release-snap:
     name: Release snap
-    needs:
-      - get-workflow-version
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
