@@ -6,6 +6,7 @@ import subprocess
 
 import boto3
 import pytest
+from tenacity import Retrying, retry, stop_after_attempt, wait_fixed
 
 
 @dataclasses.dataclass(frozen=True)
@@ -42,6 +43,20 @@ def microceph():
     key = json.loads(output)["keys"][0]
     key_id = key["access_key"]
     secret_key = key["secret_key"]
+
+    for attempt in Retrying(stop=stop_after_attempt(5), wait=wait_fixed(30)):
+        with attempt:
+            ceph_status = subprocess.check_output(
+                "sudo microceph.ceph status".split()
+            )
+            if "HEALTH_OK" in ceph_status:
+                break
+            logger.info(
+                subprocess.check_output(
+                    "sudo microceph.ceph health detail".split()
+                )
+            )
+
     logger.info("Creating microceph bucket")
     boto3.client(
         "s3",
