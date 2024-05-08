@@ -129,8 +129,12 @@ def _collect_groups(items):
         assert name.split(".")[0] == "integration"
         # Example: "tests/integration/relations/test_database.py"
         path_to_test_file = f"tests/{name.replace('.', '/')}.py"
-        # Example: "relations/test_database.py | group 1"
-        job_name = f"{'/'.join(path_to_test_file.split('/')[2:])} | group {group_id}"
+        # Example: "relations/test_database.py | {0} | group 1"
+        # "{0}" used for formatting (to add architecture) in workflow YAML file
+        # (https://docs.github.com/en/actions/learn-github-actions/expressions#format)
+        job_name = (
+            f"{'/'.join(path_to_test_file.split('/')[2:])} | {{0}} | group {group_id}"
+        )
         # Example: "relations-test_database.py-group-1"
         artifact_group_id = (
             f"{'-'.join(path_to_test_file.split('/')[2:])}-group-{group_id}"
