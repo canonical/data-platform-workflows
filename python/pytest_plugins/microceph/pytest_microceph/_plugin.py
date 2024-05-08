@@ -53,12 +53,10 @@ def microceph():
                 aws_access_key_id=key_id,
                 aws_secret_access_key=secret_key,
             ).create_bucket(Bucket=_BUCKET)
-        except botocore.exceptions.EndpointConnectionError as exception:
+        except botocore.exceptions.EndpointConnectionError:
             if attempt == 2:
                 raise
-            logger.debug(
-                "Unable to connect to microceph via S3. Retrying", exc_info=exception
-            )
+            logger.debug("Unable to connect to microceph via S3. Retrying")
             time.sleep(1)
         else:
             break
