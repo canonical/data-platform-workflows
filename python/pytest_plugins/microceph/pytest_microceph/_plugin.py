@@ -56,6 +56,7 @@ def microceph():
         except botocore.exceptions.EndpointConnectionError:
             if attempt == 2:
                 raise
+            # microceph is not ready yet
             logger.debug("Unable to connect to microceph via S3. Retrying")
             time.sleep(1)
         else:
