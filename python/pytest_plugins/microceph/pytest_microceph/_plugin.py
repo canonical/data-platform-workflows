@@ -57,7 +57,7 @@ def microceph():
             if attempt == 2:
                 raise
             # microceph is not ready yet
-            logger.debug("Unable to connect to microceph via S3. Retrying")
+            logger.info("Unable to connect to microceph via S3. Retrying")
             time.sleep(1)
         else:
             break
