@@ -171,7 +171,7 @@ jobs:
       fail-fast: false
       matrix:
         groups: ${{ fromJSON(needs.collect-integration-tests.outputs.groups) }}
-    name: ${{ format(matrix.groups.job_name, inputs.architecture) }}
+    name: ${{ matrix.groups.job_name }}
     needs:
       - get-workflow-version
       - collect-integration-tests
