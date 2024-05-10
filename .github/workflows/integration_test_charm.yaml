@@ -175,7 +175,7 @@ jobs:
     needs:
       - get-workflow-version
       - collect-integration-tests
-    runs-on: ${{ matrix.groups.runner || needs.collect-integration-tests.outputs.default_runner }}
+    runs-on: ${{ matrix.groups.runner || 'ubuntu-latest' }}
     timeout-minutes: 120
     steps:
       - name: Free up disk space
