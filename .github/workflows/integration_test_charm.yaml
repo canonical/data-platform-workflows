@@ -269,12 +269,6 @@ jobs:
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
           sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
-      - name: (self-hosted) Set up Juju proxy config
-        if: ${{ matrix.groups.self_hosted }}
-        # `https-proxy` sets `HTTPS_PROXY` environment variable inside Juju machines
-        # (same for `http-proxy` -> `HTTP_PROXY` and `no-proxy` -> `NO_PROXY`)
-        # Self-hosted runners require proxy
-        run: juju model-defaults http-proxy="$HTTP_PROXY" https-proxy="$HTTPS_PROXY" no-proxy="$NO_PROXY"
       - name: Set up environment
         run: |
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
