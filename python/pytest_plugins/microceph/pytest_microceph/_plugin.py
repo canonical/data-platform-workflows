@@ -3,8 +3,10 @@ import json
 import logging
 import os
 import subprocess
+import time
 
 import boto3
+import botocore.exceptions
 import pytest
 
 
@@ -43,12 +45,22 @@ def microceph():
     key_id = key["access_key"]
     secret_key = key["secret_key"]
     logger.info("Creating microceph bucket")
-    boto3.client(
-        "s3",
-        endpoint_url="http://localhost",
-        aws_access_key_id=key_id,
-        aws_secret_access_key=secret_key,
-    ).create_bucket(Bucket=_BUCKET)
+    for attempt in range(3):
+        try:
+            boto3.client(
+                "s3",
+                endpoint_url="http://localhost",
+                aws_access_key_id=key_id,
+                aws_secret_access_key=secret_key,
+            ).create_bucket(Bucket=_BUCKET)
+        except botocore.exceptions.EndpointConnectionError:
+            if attempt == 2:
+                raise
+            # microceph is not ready yet
+            logger.info("Unable to connect to microceph via S3. Retrying")
+            time.sleep(1)
+        else:
+            break
     logger.info("Set up microceph")
     return ConnectionInformation(key_id, secret_key, _BUCKET)
 
