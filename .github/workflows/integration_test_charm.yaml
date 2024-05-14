@@ -13,8 +13,16 @@ on:
           Use canonical/data-platform-workflows build_charm.yaml to build the charm(s)
         required: true
         type: string
+      architecture:
+        # Keep description synchronized with "Parse architecture input" step
+        description: |
+          Processor architecture
+          
+          Must be one of "amd64", "arm64"
+        default: amd64
+        type: string
       cloud:
-        # Keep description synchronized with "Validate input" step
+        # Keep description synchronized with "Parse cloud input" step
         description: |
           Juju cloud
 
@@ -95,13 +103,34 @@ jobs:
     # ci.yaml will not show up on the GitHub Actions sidebar.
     # If this workflow is called with a matrix (e.g. to test multiple juju versions), the ci.yaml
     # job name containing the Juju version will be lost.
-    # So, we add the Juju version to one of the first jobs in this workflow.
+    # So, we add the Juju version & architecture to one of the first jobs in this workflow.
     # (In the UI, when this workflow is called with a matrix, GitHub will separate each matrix
     # combination and preserve job ordering within a matrix combination.)
-    name: ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | Collect integration test groups
+    name: ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | ${{ inputs.architecture }} | Collect integration test groups
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Parse architecture input
+        id: parse-architecture
+        shell: python
+        # Keep synchronized with inputs.architecture description
+        run: |
+          import json
+          import os
+          
+          DEFAULT_RUNNERS = {
+              "amd64": "ubuntu-latest",
+              "arm64": "Ubuntu_ARM64_4C_16G_01",
+          }
+          ARCHITECTURE = "${{ inputs.architecture }}"
+          try:
+              default_runner = DEFAULT_RUNNERS[ARCHITECTURE]
+          except KeyError:
+              raise ValueError(f"`architecture` input not recognized: {ARCHITECTURE}")
+          output = f"default_runner={json.dumps(default_runner)}"
+          print(output)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(output)
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install tox & poetry
@@ -128,6 +157,7 @@ jobs:
         run: tox run -e integration -- tests/integration -m '${{ steps.select-test-stability.outputs.mark_expression }}' --collect-groups
     outputs:
       groups: ${{ steps.collect-groups.outputs.groups }}
+      default_runner: ${{ steps.parse-architecture.outputs.default_runner }}
 
   integration-test:
     strategy:
@@ -137,11 +167,11 @@ jobs:
     name: ${{ matrix.groups.job_name }}
     needs:
       - collect-integration-tests
-    runs-on: ${{ matrix.groups.runner || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
     timeout-minutes: 120
     steps:
       - name: Free up disk space
-        if: ${{ !matrix.groups.self_hosted }}
+        if: ${{ !(inputs.architecture == 'arm64' || matrix.groups.self_hosted) }}
         run: |
           printf '\nDisk usage before cleanup\n'
           df --human-readable
@@ -151,10 +181,13 @@ jobs:
           printf '\nDisk usage after cleanup\n'
           df --human-readable
       - name: (self-hosted) Disk usage
-        if: ${{ matrix.groups.self_hosted }}
+        if: ${{ inputs.architecture == 'arm64' || matrix.groups.self_hosted }}
         run: df --human-readable
+      - name: (arm64 GitHub-hosted) Link python to python3
+        if: ${{ inputs.architecture == 'arm64' && !matrix.groups.self_hosted }}
+        run: sudo ln -s /usr/bin/python3 /usr/bin/python
       - name: (self-hosted) Install pipx
-        if: ${{ matrix.groups.self_hosted }}
+        if: ${{ inputs.architecture == 'arm64' || matrix.groups.self_hosted }}
         run: |
           sudo apt-get update
           sudo apt-get install python3-pip python3-venv -y
@@ -274,6 +307,11 @@ jobs:
           juju add-model test
           pipx install tox
           pipx install poetry
+      - name: Add architecture model constraint
+        if: ${{ inputs.cloud == 'lxd' }}
+        # Unable to set constraint on all models because of Juju bug:
+        # https://bugs.launchpad.net/juju/+bug/2065050
+        run: juju set-model-constraints arch='${{ inputs.architecture }}'
       - name: Update python-libjuju version
         if: ${{ inputs.libjuju-version-constraint }}
         run: poetry add --lock --group integration juju@'${{ inputs.libjuju-version-constraint }}'
@@ -318,7 +356,7 @@ jobs:
         if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
         uses: actions/upload-artifact@v4
         with:
-          name: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ matrix.groups.artifact_group_id }}
+          name: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
           path: allure-results/
           if-no-files-found: error
       - name: Select model
@@ -347,7 +385,7 @@ jobs:
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-intergration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ matrix.groups.artifact_group_id }}
+          name: logs-intergration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
           path: ~/logs/
           if-no-files-found: error
       - name: Disk usage
@@ -392,7 +430,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: allure-results/
-          pattern: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || needs.integration-test.outputs.juju-snap-channel-for-artifact }}-*
+          pattern: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || needs.integration-test.outputs.juju-snap-channel-for-artifact }}-${{ inputs.architecture }}-*
           merge-multiple: true
       - name: Load test report history
         run: |
