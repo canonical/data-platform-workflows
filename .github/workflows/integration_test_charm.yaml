@@ -301,17 +301,13 @@ jobs:
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
           sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
-      - name: Set up environment
-        run: |
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
           juju add-model test
+          # Unable to set constraint on all models because of Juju bug:
+          # https://bugs.launchpad.net/juju/+bug/2065050
+          juju set-model-constraints arch='${{ inputs.architecture }}'
           pipx install tox
           pipx install poetry
-      - name: Add architecture model constraint
-        if: ${{ inputs.cloud == 'lxd' }}
-        # Unable to set constraint on all models because of Juju bug:
-        # https://bugs.launchpad.net/juju/+bug/2065050
-        run: juju set-model-constraints arch='${{ inputs.architecture }}'
       - name: Update python-libjuju version
         if: ${{ inputs.libjuju-version-constraint }}
         run: poetry add --lock --group integration juju@'${{ inputs.libjuju-version-constraint }}'
