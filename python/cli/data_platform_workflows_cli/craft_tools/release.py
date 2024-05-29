@@ -176,22 +176,12 @@ def charm():
     for resource_name, resource in resources.items():
         if resource["type"] != "oci-image":
             continue
+        image_name = resource["upstream-source"]
         for architecture in charm_revisions.keys():
-            # Format: ST111 - Multi-architecture `upstream-source` in charm OCI resources
-            # https://docs.google.com/document/d/19pzpza7zj7qswDRSHBlpqdBrA7Ndcnyh6_75cCxMKSo/edit
-            upstream_source = resource.get("upstream-source")
-            if upstream_source is not None and "upstream-sources" in resource:
-                raise ValueError(
-                    "`upstream-sources` and `upstream-source` cannot be used simultaneously. Use only `upstream-sources`"
-                )
-            elif upstream_source:
-                # Default to X64
-                upstream_sources = {craft.Architecture.X64.value: upstream_source}
-            else:
-                upstream_sources = resource["upstream-sources"]
-            image_name = upstream_sources[architecture.value]
             logging.info(f"Downloading OCI image ({architecture=}): {image_name}")
-            run(["docker", "pull", image_name])
+            run(["docker", "pull", "--platform", f"linux/{architecture}", image_name])
+            # TODO use buildx inspect to specify platform instead?
+            # or use buildx inspect and then pull based on that
             image_id = run(
                 ["docker", "image", "inspect", image_name, "--format", "'{{.Id}}'"]
             )
