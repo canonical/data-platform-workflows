@@ -393,8 +393,11 @@ jobs:
   allure-report:
     # TODO future improvement: use concurrency group for job
     name: (beta) Publish Allure report
-    if: ${{ !cancelled() && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1'}}
+    # If `collect-integration-tests` fails, uploading an empty Allure report will clear the history
+    # for the next report (which we want to avoid)
+    if: ${{ !cancelled() && needs.collect-integration-tests.result == 'success' && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1'}}
     needs:
+      - collect-integration-tests
       - integration-test
     runs-on: ubuntu-latest
     timeout-minutes: 5
