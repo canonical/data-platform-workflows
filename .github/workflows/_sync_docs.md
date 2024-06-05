@@ -15,9 +15,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: # Refer to Run schedule below
-  push:
-    branches:
-      - main
 
 jobs:
   sync-docs:
