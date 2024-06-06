@@ -1,3 +1,5 @@
+[Allure Report](https://allurereport.org/) for [integration_test_charm.yaml](integration_test_charm.md)
+
 ## Usage
 > [!WARNING]
 > This feature is in beta and **not part of the public interface**. It is subject to breaking changes or removal on a patch version bump.
