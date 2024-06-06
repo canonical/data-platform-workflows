@@ -170,10 +170,11 @@ jobs:
       - name: (beta) Upload Allure collection results
         # Default test results in case the integration tests time out or runner set up fails
         # (So that Allure report will show "unknown"/"failed" test result, instead of omitting the test)
-        if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
+        if: ${{ inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
         uses: actions/upload-artifact@v4
         with:
-          name: allure-collection-default-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}
+          # TODO future improvement: ensure artifact name is unique (if called with a matrix that changes inputs)
+          name: allure-collection-default-results-integration-test-charm
           path: allure-collection-default-results/
           if-no-files-found: error
     outputs:
@@ -458,7 +459,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: allure-collection-default-results/
-          name: allure-collection-default-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}
+          name: allure-collection-default-results-integration-test-charm
       - name: Download test results
         uses: actions/download-artifact@v4
         with:
