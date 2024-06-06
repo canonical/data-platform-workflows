@@ -20,7 +20,7 @@ release-charm = "data_platform_workflows_cli.craft_tools.release:charm"
 update-bundle = "data_platform_workflows_cli.update_bundle:main"
 parse-snap-version = "data_platform_workflows_cli.parse_snap_version:main"
 convert-logsink-to-debug-log = "data_platform_workflows_cli.convert_logsink_to_debug_log:main"
-allure-add-default-for-missing-results = "data_platform_workflows_cli.convert_logsink_to_debug_log:main"
+allure-add-default-for-missing-results = "data_platform_workflows_cli.allure_pytest_collection_report:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"
