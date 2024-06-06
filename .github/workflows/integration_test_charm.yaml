@@ -168,7 +168,7 @@ jobs:
     needs:
       - collect-integration-tests
     runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
-    timeout-minutes: 206  # Sum of steps `timeout-minutes` + 5
+    timeout-minutes: 216  # Sum of steps `timeout-minutes` + 5
     steps:
       - name: Free up disk space
         timeout-minutes: 1
@@ -312,7 +312,7 @@ jobs:
       - timeout-minutes: 1
         run: snap list
       - name: Set up environment
-        timeout-minutes: 15
+        timeout-minutes: 25
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
           sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
