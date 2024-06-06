@@ -1,4 +1,5 @@
 """Get release semantic version"""
+
 import os
 import re
 import subprocess
