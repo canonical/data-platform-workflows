@@ -10,6 +10,7 @@
 allure-pytest-collection-report = {git = "https://github.com/canonical/data-platform-workflows", tag = "v0.0.0", subdirectory = "python/pytest_plugins/allure_pytest_collection_report"}
 ```
 to your integration test dependencies in `pyproject.toml`.
+
 3. Set `_beta_allure_report: true` for **one** instance of `integration_test_charm.yaml`. If `integration_test_charm.yaml` is called with a matrix, `_beta_allure_report` can only be `true` for one combination of the matrix.
 4. Add permission to `integration_test_charm.yaml` job and all calling workflows
 ```yaml
