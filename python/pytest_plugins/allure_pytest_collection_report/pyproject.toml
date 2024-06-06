@@ -15,6 +15,7 @@ allure_collection_report = "allure_pytest_collection_report._plugin"
 [tool.poetry.dependencies]
 python = "^3.8"
 pytest = "*"
+allure-pytest = ">=2.13.5"
 
 
 [build-system]
