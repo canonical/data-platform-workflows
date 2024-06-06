@@ -8,7 +8,6 @@ readme = "README.md"
 classifiers = [
     "Framework :: Pytest",
 ]
-packages = [{include = "pytest_operator_groups"}]
 
 [tool.poetry.plugins."pytest11"]
 operator_groups = "pytest_operator_groups._plugin"
