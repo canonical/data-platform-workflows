@@ -35,6 +35,8 @@ def pytest_collection_finish(session):
             stop=allure_commons.utils.now(),
         )
 
+        # TODO: remove some metadata?
+
         # Copied from `allure_pytest.listener.AllureListener.pytest_runtest_setup`
         params = (
             allure_pytest.listener.AllureListener._AllureListener__get_pytest_params(
