@@ -10,6 +10,11 @@ def pytest_addoption(parser):
     parser.addoption("--allure-collection-dir", help="")  # TODO: help
 
 
+def pytest_configure(config):
+    if config.option.allure_collection_dir:
+        config.option.collectonly = True
+
+
 def pytest_collection_finish(session):
     report_dir = session.config.option.allure_collection_dir
     if not (report_dir and session.config.option.collectonly):
