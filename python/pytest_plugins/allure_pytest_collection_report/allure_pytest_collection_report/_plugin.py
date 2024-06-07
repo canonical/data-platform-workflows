@@ -25,7 +25,7 @@ def pytest_collection_finish(session):
 
     # Copied from `allure_pytest.listener.AllureListener._cache`
     _cache = allure_pytest.listener.ItemCache()
-    # Modified from `pytest_configure`
+    # Modified from `allure_pytest.plugin.pytest_configure`
     file_logger = allure_commons.logger.AllureFileLogger(report_dir)
 
     for item in session.items:
