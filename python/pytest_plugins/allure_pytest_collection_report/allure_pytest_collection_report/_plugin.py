@@ -29,7 +29,7 @@ def pytest_collection_finish(session):
     file_logger = allure_commons.logger.AllureFileLogger(report_dir)
 
     for item in session.items:
-        # Copied from `allure_pytest.listener.AllureListener.pytest_runtest_protocol`
+        # Modified from `allure_pytest.listener.AllureListener.pytest_runtest_protocol`
         uuid = _cache.push(item.nodeid)
         test_result = allure_commons.model2.TestResult(name=item.name, uuid=uuid)
 
