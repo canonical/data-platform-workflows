@@ -41,6 +41,8 @@ def main():
                 id_ = json.load(file)["testCaseId"]
             results_.add(Result(id_, path))
 
+    actual_results.mkdir(exist_ok=True)
+
     missing_results = results[default_results] - results[actual_results]
     for default_result in missing_results:
         # Move to `actual_results` directory
