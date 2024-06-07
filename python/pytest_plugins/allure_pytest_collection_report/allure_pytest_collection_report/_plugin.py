@@ -1,3 +1,6 @@
+# Upstream feature request to replace this plugin:
+# https://github.com/allure-framework/allure-python/issues/821
+
 import allure_commons.logger
 import allure_commons.model2
 import allure_commons.types
