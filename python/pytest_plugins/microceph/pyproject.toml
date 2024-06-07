@@ -8,7 +8,6 @@ readme = "README.md"
 classifiers = [
     "Framework :: Pytest",
 ]
-packages = [{include = "pytest_microceph"}]
 
 [tool.poetry.plugins."pytest11"]
 microceph = "pytest_microceph._plugin"

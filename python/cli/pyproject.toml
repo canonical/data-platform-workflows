@@ -6,7 +6,6 @@ description = ""
 license = "Apache-2.0"
 authors = ["Carl Csaposs <carl.csaposs@canonical.com>"]
 readme = "README.md"
-packages = [{include = "data_platform_workflows_cli"}]
 
 [tool.poetry.scripts]
 redact-secrets = "data_platform_workflows_cli.redact_secrets:main"
