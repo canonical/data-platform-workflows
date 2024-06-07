@@ -7,7 +7,10 @@ import allure_pytest.utils
 
 
 def pytest_addoption(parser):
-    parser.addoption("--allure-collection-dir", help="")  # TODO: help
+    parser.addoption(
+        "--allure-collection-dir",
+        help="Generate default Allure results (used by GitHub Actions) in this directory for tests that are missing Allure results",
+    )
 
 
 def pytest_configure(config):
