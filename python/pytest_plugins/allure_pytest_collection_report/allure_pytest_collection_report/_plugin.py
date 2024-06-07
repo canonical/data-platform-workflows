@@ -31,14 +31,7 @@ def pytest_collection_finish(session):
     for item in session.items:
         # Copied from `allure_pytest.listener.AllureListener.pytest_runtest_protocol`
         uuid = _cache.push(item.nodeid)
-        test_result = allure_commons.model2.TestResult(
-            name=item.name,
-            uuid=uuid,
-            start=allure_commons.utils.now(),
-            stop=allure_commons.utils.now(),
-        )
-
-        # TODO: remove some metadata?
+        test_result = allure_commons.model2.TestResult(name=item.name, uuid=uuid)
 
         # Copied from `allure_pytest.listener.AllureListener.pytest_runtest_setup`
         params = (
