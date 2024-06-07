@@ -20,7 +20,7 @@ def pytest_configure(config):
 
 def pytest_collection_finish(session):
     report_dir = session.config.option.allure_collection_dir
-    if not (report_dir and session.config.option.collectonly):
+    if not report_dir:
         return
 
     # Copied from `allure_pytest.listener.AllureListener._cache`
