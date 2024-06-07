@@ -152,9 +152,31 @@ jobs:
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
+      - name: (beta) Get Allure collection option
+        if: ${{ inputs._beta_allure_report }}
+        id: allure-collection-option
+        # TODO future improvement: check if allure-pytest installed instead
+        shell: python
+        run: |
+          import os
+
+          output = "option=--allure-collection-dir=allure-collection-default-results"
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+              file.write(output)
       - name: Collect test groups
         id: collect-groups
-        run: tox run -e integration -- tests/integration -m '${{ steps.select-test-stability.outputs.mark_expression }}' --collect-groups
+        run: tox run -e integration -- tests/integration -m '${{ steps.select-test-stability.outputs.mark_expression }}' --collect-groups ${{ steps.allure-collection-option.outputs.option }}
+      - name: (beta) Upload Allure collection results
+        # Default test results in case the integration tests time out or runner set up fails
+        # (So that Allure report will show "unknown"/"failed" test result, instead of omitting the test)
+        if: ${{ inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
+        uses: actions/upload-artifact@v4
+        with:
+          # TODO future improvement: ensure artifact name is unique (if called with a matrix that changes inputs)
+          name: allure-collection-default-results-integration-test-charm
+          path: allure-collection-default-results/
+          if-no-files-found: error
     outputs:
       groups: ${{ steps.collect-groups.outputs.groups }}
       default_runner: ${{ steps.parse-architecture.outputs.default_runner }}
@@ -425,6 +447,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: canonical/data-platform-workflows
+          file-name: integration_test_charm.yaml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
       - name: Download Allure
         # Following instructions from https://allurereport.org/docs/gettingstarted-installation/#install-via-the-system-package-manager-for-linux
         run: gh release download --repo allure-framework/allure2 --pattern 'allure_*.deb'
@@ -448,12 +479,24 @@ jobs:
         with:
           ref: gh-pages-beta
           path: repo/
+      - name: Download default test collection results
+        # Default test results in case the integration tests time out or runner set up fails
+        # (So that Allure report will show "unknown"/"failed" test result, instead of omitting the test)
+        uses: actions/download-artifact@v4
+        with:
+          path: allure-collection-default-results/
+          name: allure-collection-default-results-integration-test-charm
       - name: Download test results
         uses: actions/download-artifact@v4
         with:
           path: allure-results/
           pattern: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || needs.integration-test.outputs.juju-snap-channel-for-artifact }}-${{ inputs.architecture }}-*
           merge-multiple: true
+      - name: Combine Allure default results & actual results
+        # For every test: if actual result available, use that. Otherwise, use default result
+        # So that, if actual result not available, Allure report will show "unknown"/"failed" test result
+        # instead of omitting the test
+        run: allure-add-default-for-missing-results --allure-results-dir=allure-results --allure-collection-default-results-dir=allure-collection-default-results
       - name: Load test report history
         run: |
           if [[ -d repo/_latest/history/ ]]
