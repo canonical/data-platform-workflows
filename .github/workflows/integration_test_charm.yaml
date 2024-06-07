@@ -168,9 +168,10 @@ jobs:
     needs:
       - collect-integration-tests
     runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
-    timeout-minutes: 120
+    timeout-minutes: 216  # Sum of steps `timeout-minutes` + 5
     steps:
       - name: Free up disk space
+        timeout-minutes: 1
         if: ${{ !(inputs.architecture == 'arm64' || matrix.groups.self_hosted) }}
         run: |
           printf '\nDisk usage before cleanup\n'
@@ -181,12 +182,15 @@ jobs:
           printf '\nDisk usage after cleanup\n'
           df --human-readable
       - name: (self-hosted) Disk usage
+        timeout-minutes: 1
         if: ${{ inputs.architecture == 'arm64' || matrix.groups.self_hosted }}
         run: df --human-readable
       - name: (arm64 GitHub-hosted) Link python to python3
+        timeout-minutes: 1
         if: ${{ inputs.architecture == 'arm64' && !matrix.groups.self_hosted }}
         run: sudo ln -s /usr/bin/python3 /usr/bin/python
       - name: (self-hosted) Install pipx
+        timeout-minutes: 3
         if: ${{ inputs.architecture == 'arm64' || matrix.groups.self_hosted }}
         run: |
           sudo apt-get update
@@ -195,6 +199,7 @@ jobs:
           python3 -m pipx ensurepath
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Get workflow version
+        timeout-minutes: 2
         id: workflow-version
         uses: canonical/get-workflow-version-action@v1
         with:
@@ -202,12 +207,15 @@ jobs:
           file-name: integration_test_charm.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
+        timeout-minutes: 2
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
       - name: Redact secrets from log
+        timeout-minutes: 1
         run: redact-secrets
         env:
           SECRETS: ${{ secrets.integration-test }}
       - name: Parse cloud input
+        timeout-minutes: 1
         id: parse-cloud
         shell: python
         # Keep synchronized with inputs.cloud description
@@ -236,6 +244,7 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
       - name: Parse Juju agent version & snap channel
+        timeout-minutes: 1
         id: parse-versions
         shell: python
         run: |
@@ -263,12 +272,15 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
       - name: Checkout
+        timeout-minutes: 3
         uses: actions/checkout@v4
       - name: Set up environment
+        timeout-minutes: 5
         run: |
           # `--classic` applies to juju 2 snap; ignored for juju 3 snap
           sudo snap install juju --classic --channel='${{ steps.parse-versions.outputs.snap_channel }}'
       - name: Set up lxd
+        timeout-minutes: 5
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
           sudo snap refresh lxd --channel='${{ inputs.lxd-snap-channel }}'
@@ -280,6 +292,7 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
       - name: Set up microk8s
+        timeout-minutes: 15
         if: ${{ inputs.cloud == 'microk8s' }}
         run: |
           sudo apt-get update
@@ -296,8 +309,10 @@ jobs:
           mkdir ~/.kube
           # Used by lightkube and kubernetes (Python package)
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s config > ~/.kube/config"
-      - run: snap list
+      - timeout-minutes: 1
+        run: snap list
       - name: Set up environment
+        timeout-minutes: 25
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
           sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
@@ -309,14 +324,17 @@ jobs:
           pipx install tox
           pipx install poetry
       - name: Update python-libjuju version
+        timeout-minutes: 3
         if: ${{ inputs.libjuju-version-constraint }}
         run: poetry add --lock --group integration juju@'${{ inputs.libjuju-version-constraint }}'
       - name: Download packed charm(s)
+        timeout-minutes: 5
         uses: actions/download-artifact@v4
         with:
           pattern: ${{ inputs.artifact-prefix }}-*
           merge-multiple: true
       - name: Select test stability level
+        timeout-minutes: 1
         id: select-test-stability
         shell: python
         run: |
@@ -332,6 +350,7 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
       - name: (beta) Get Allure option
+        timeout-minutes: 1
         if: ${{ inputs._beta_allure_report }}
         id: allure-option
         # TODO future improvement: check if allure-pytest installed instead
@@ -344,11 +363,13 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
       - name: Run integration tests
+        timeout-minutes: 120
         id: tests
         run: sg '${{ steps.parse-cloud.outputs.group }}' -c "tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_id }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test ${{ steps.allure-option.outputs.option }}"
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
       - name: (beta) Upload Allure results
+        timeout-minutes: 3
         if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
         uses: actions/upload-artifact@v4
         with:
@@ -356,14 +377,17 @@ jobs:
           path: allure-results/
           if-no-files-found: error
       - name: Select model
+        timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: |
           juju switch test
           mkdir ~/logs/
       - name: juju status
+        timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: juju status --color --relations | tee ~/logs/juju-status.txt
       - name: juju debug-log
+        timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         # TODO future improvement: show models/ logs in juju-debug-log.txt to match `juju debug-log`
         run: |
@@ -378,6 +402,7 @@ jobs:
             juju debug-log --color --replay --no-tail | tee ~/logs/juju-debug-log.txt
           fi
       - name: Upload logs
+        timeout-minutes: 5
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v4
         with:
@@ -385,6 +410,7 @@ jobs:
           path: ~/logs/
           if-no-files-found: error
       - name: Disk usage
+        timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: df --human-readable
     outputs:
