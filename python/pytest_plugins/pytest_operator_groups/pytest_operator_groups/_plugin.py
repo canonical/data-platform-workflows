@@ -45,7 +45,10 @@ def _get_group_id(function) -> typing.Optional[str]:
     ]
     if not group_markers:
         return
-    assert len(group_markers) == 1
+    # FIXME: pytest-asyncio-0.27.3 duplicates markers, making this assertion fail
+    # it's generally safe to ignore this assertion since no test should have more than one group marker
+    # ref: https://github.com/pytest-dev/pytest-asyncio/issues/813
+    # assert len(group_markers) == 1
     marker_args = group_markers[0].args
     assert len(marker_args) == 1
     group_id = marker_args[0]
@@ -89,7 +92,7 @@ def _get_runner(function) -> typing.Optional[_Runner]:
         else:
             return tuple(runner)
     raise TypeError(
-        f"`pytest.mark.runner(runs_on)` must be str, tuple[str], or list[str]"
+        "`pytest.mark.runner(runs_on)` must be str, tuple[str], or list[str]"
     )
 
 
