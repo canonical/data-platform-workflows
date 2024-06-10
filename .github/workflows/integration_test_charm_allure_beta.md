@@ -24,4 +24,4 @@ https://github.com/canonical/data-platform-workflows/blob/5a2c81678ff87333458752
 
 Example for 1, 3-4: https://github.com/canonical/mysql-router-k8s-operator/pull/198
 
-Example for 2:
+Example for 2: https://github.com/canonical/mysql-router-k8s-operator/pull/252
