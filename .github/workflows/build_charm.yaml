@@ -91,7 +91,8 @@ jobs:
         if: ${{ matrix.base.runner == 'Ubuntu_ARM64_4C_16G_01' }}
         run: |
           sudo apt-get update
-          sudo apt-get install python3-pip python3-venv -y
+          # python3-pip recommends build-essential—a relatively large package we don't need
+          sudo apt-get install python3-pip python3-venv -y --no-install-recommends
           python3 -m pip install pipx
           python3 -m pipx ensurepath
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
