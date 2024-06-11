@@ -107,7 +107,7 @@ jobs:
     # (In the UI, when this workflow is called with a matrix, GitHub will separate each matrix
     # combination and preserve job ordering within a matrix combination.)
     name: ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | ${{ inputs.architecture }} | Collect integration test groups
-    # Only run arm64 integration tests on `schedule` and Juju 3
+    # Only run arm64 integration tests on `schedule`
     # Temporary solution to decrease costs (of GitHub-hosted arm64 runners) while IS-hosted arm64 runners are unstable.
     # Context: https://chat.canonical.com/canonical/channels/actions-incident
     if: ${{ inputs.architecture == 'amd64' || (inputs.architecture == 'arm64' && github.event_name == 'schedule' && github.run_attempt == '1') }}
