@@ -33,16 +33,16 @@ def main():
     args = parser.parse_args()
     logsink = pathlib.Path(args.logsink_file).expanduser()
     output = pathlib.Path(args.output_file).expanduser()
-    model = json.loads(
+    model = next(iter(json.loads(
         subprocess.run(
             ["juju", "show-model", "--format", "json"],
             capture_output=True,
             check=True,
             encoding="utf-8",
         ).stdout
-    )["test"]["model-uuid"]
+    ).values()))["model-uuid"]
     with logsink.open("r", encoding="utf-8") as logsink_file, output.open(
-        "w", encoding="utf-8"
+        "a", encoding="utf-8"
     ) as output_file:
         # `skip` used for multi-line log messages
         skip = False

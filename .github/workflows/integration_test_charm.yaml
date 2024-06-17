@@ -412,21 +412,49 @@ jobs:
       - name: juju status
         timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju status --color --relations | tee ~/logs/juju-status.txt
+        run: |
+          FILE=~/logs/juju-status.txt
+          MODELS=$(juju models --format json | jq -r '.models.[] | select(."short-name" != "controller") | ."short-name"' | sed ':a;N;$!ba;s/\n/ /g')
+          for MODEL in $MODELS
+          do
+            if [ -f $FILE ]; then
+              echo "\n" | tee -a $FILE
+            fi
+            juju status --model=$MODEL --color --relations | tee -a $FILE
+          done
       - name: juju debug-log
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         # TODO future improvement: show models/ logs in juju-debug-log.txt to match `juju debug-log`
         run: |
+          FILE=~/logs/juju-debug-log.txt
+          MODELS=$(juju models --format json | jq -r '.models.[] | select(."short-name" != "controller") | ."short-name"' | sed ':a;N;$!ba;s/\n/ /g')
           if [[ '${{ inputs.cloud }}' == 'lxd' ]]
           then
             mkdir ~/logs/models/
             juju scp --model controller 0:/var/log/juju/models/* ~/logs/models/
             juju scp --model controller 0:/var/log/juju/logsink.log ~/logs/controller-logsink.log
-            convert-logsink-to-debug-log ~/logs/controller-logsink.log ~/logs/juju-debug-log.txt
-            cat ~/logs/juju-debug-log.txt
+            ORIGINAL_MODEL=$(juju switch)
+            for MODEL in $MODELS
+            do
+              juju switch $MODEL
+              if [ -f $FILE ]; then
+                echo "\n" | tee -a $FILE
+              fi
+              echo "Model: $MODEL" | tee -a $FILE
+              convert-logsink-to-debug-log ~/logs/controller-logsink.log $FILE
+            done
+            juju switch $ORIGINAL_MODEL
+            cat $FILE
           else
-            juju debug-log --color --replay --no-tail | tee ~/logs/juju-debug-log.txt
+            for MODEL in $MODELS
+            do
+              if [ -f $FILE ]; then
+                echo "\n" | tee -a $FILE
+              fi
+              echo "Model: $MODEL" | tee -a $FILE
+              juju debug-log --model=$MODEL --color --replay --no-tail | tee -a $FILE
+            done
           fi
       - name: Upload logs
         timeout-minutes: 5
