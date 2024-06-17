@@ -414,7 +414,7 @@ jobs:
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: |
           FILE=~/logs/juju-status.txt
-          MODELS=$(juju models --format json | jq -r '.models.[] | select(."short-name" != "controller") | ."short-name"' | sed ':a;N;$!ba;s/\n/ /g')
+          MODELS=$(juju models --format json | jq -r '.models[] | select(."short-name" != "controller") | ."short-name"' | sed ':a;N;$!ba;s/\n/ /g')
           for MODEL in $MODELS
           do
             if [ -f $FILE ]; then
@@ -428,7 +428,7 @@ jobs:
         # TODO future improvement: show models/ logs in juju-debug-log.txt to match `juju debug-log`
         run: |
           FILE=~/logs/juju-debug-log.txt
-          MODELS=$(juju models --format json | jq -r '.models.[] | select(."short-name" != "controller") | ."short-name"' | sed ':a;N;$!ba;s/\n/ /g')
+          MODELS=$(juju models --format json | jq -r '.models[] | select(."short-name" != "controller") | ."short-name"' | sed ':a;N;$!ba;s/\n/ /g')
           if [[ '${{ inputs.cloud }}' == 'lxd' ]]
           then
             mkdir ~/logs/models/
