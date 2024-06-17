@@ -418,9 +418,9 @@ jobs:
           for MODEL in $MODELS
           do
             if [ -f $FILE ]; then
-              echo "\n" | tee -a $FILE
+              printf "\n" | tee -a $FILE
             fi
-            juju status --model=$MODEL --color --relations | tee -a $FILE
+            juju status --model="$MODEL" --color --relations | tee -a $FILE
           done
       - name: juju debug-log
         timeout-minutes: 3
@@ -437,23 +437,23 @@ jobs:
             ORIGINAL_MODEL=$(juju switch)
             for MODEL in $MODELS
             do
-              juju switch $MODEL
+              juju switch "$MODEL"
               if [ -f $FILE ]; then
-                echo "\n" | tee -a $FILE
+                printf "\n" | tee -a $FILE
               fi
-              echo "Model: $MODEL" | tee -a $FILE
+              printf "Model: %s\n" "$MODEL" | tee -a $FILE
               convert-logsink-to-debug-log ~/logs/controller-logsink.log $FILE
             done
-            juju switch $ORIGINAL_MODEL
+            juju switch "$ORIGINAL_MODEL"
             cat $FILE
           else
             for MODEL in $MODELS
             do
               if [ -f $FILE ]; then
-                echo "\n" | tee -a $FILE
+                printf "\n" | tee -a $FILE
               fi
-              echo "Model: $MODEL" | tee -a $FILE
-              juju debug-log --model=$MODEL --color --replay --no-tail | tee -a $FILE
+              printf "Model: %s\n" "$MODEL" | tee -a $FILE
+              juju debug-log --model="$MODEL" --color --replay --no-tail | tee -a $FILE
             done
           fi
       - name: Upload logs
