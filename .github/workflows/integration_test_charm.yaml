@@ -108,8 +108,9 @@ jobs:
     # combination and preserve job ordering within a matrix combination.)
     name: ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | ${{ inputs.architecture }} | Collect integration test groups
     # Only run arm64 integration tests on `schedule`
-    # Temporary solution to decrease costs (of GitHub-hosted arm64 runners) while IS-hosted arm64 runners are unstable.
+    # Temporary solution to decrease costs (of GitHub hosted arm64 runners) while IS hosted arm64 runners are unstable.
     # Context: https://chat.canonical.com/canonical/channels/actions-incident
+    # TODO: remove (since we're using Azure-hosted runners now)
     if: ${{ inputs.architecture == 'amd64' || (inputs.architecture == 'arm64' && github.event_name == 'schedule' && github.run_attempt == '1') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -124,7 +125,7 @@ jobs:
           
           DEFAULT_RUNNERS = {
               "amd64": "ubuntu-latest",
-              "arm64": "Ubuntu_ARM64_4C_16G_01",
+              "arm64": ["self-hosted", "data-platform", "ubuntu", "ARM64", "4cpu16ram"],
           }
           ARCHITECTURE = "${{ inputs.architecture }}"
           try:
@@ -196,9 +197,21 @@ jobs:
     runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
     timeout-minutes: 216  # Sum of steps `timeout-minutes` + 5
     steps:
-      - name: Free up disk space
+      - name: (Data Platform hosted) Write job name to file
+        # Data Platform hosted
+        # `inputs.architecture == 'arm64' && matrix.groups.runner == null` means Data Platform hosted (default runner)
+        if: ${{ matrix.groups.data_platform_hosted || (inputs.architecture == 'arm64' && matrix.groups.runner == null) }}
+        # Used to show job name in GitHub Actions annotation
+        # (https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-a-notice-message)
+        # if spot instance evicted by Azure
+        run: |
+          mkdir ~/dpw/
+          echo 'Integration test charm | ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | ${{ inputs.architecture }} / ${{ matrix.groups.job_name }}' > ~/dpw/job_name
+      - name: (GitHub hosted) Free up disk space
         timeout-minutes: 1
-        if: ${{ !(inputs.architecture == 'arm64' || matrix.groups.self_hosted) }}
+        # If not (IS hosted or Data Platform hosted)
+        # `inputs.architecture == 'arm64' && matrix.groups.runner == null` means Data Platform hosted (default runner)
+        if: ${{ !(matrix.groups.is_hosted || matrix.groups.data_platform_hosted || (inputs.architecture == 'arm64' && matrix.groups.runner == null)) }}
         run: |
           printf '\nDisk usage before cleanup\n'
           df --human-readable
@@ -207,17 +220,15 @@ jobs:
           rm -r /opt/hostedtoolcache/
           printf '\nDisk usage after cleanup\n'
           df --human-readable
-      - name: (self-hosted) Disk usage
+      - name: (self hosted) Disk usage
         timeout-minutes: 1
-        if: ${{ inputs.architecture == 'arm64' || matrix.groups.self_hosted }}
+        # If IS hosted or Data Platform hosted
+        # `inputs.architecture == 'arm64' && matrix.groups.runner == null` means Data Platform hosted (default runner)
+        if: ${{ matrix.groups.is_hosted || matrix.groups.data_platform_hosted || (inputs.architecture == 'arm64' && matrix.groups.runner == null) }}
         run: df --human-readable
-      - name: (arm64 GitHub-hosted) Link python to python3
-        timeout-minutes: 1
-        if: ${{ inputs.architecture == 'arm64' && !matrix.groups.self_hosted }}
-        run: sudo ln -s /usr/bin/python3 /usr/bin/python
-      - name: (self-hosted) Install pipx
+      - name: (self hosted) Install pipx
         timeout-minutes: 3
-        if: ${{ inputs.architecture == 'arm64' || matrix.groups.self_hosted }}
+        if: ${{ matrix.groups.is_hosted }}
         run: |
           sudo apt-get update
           # python3-pip recommends build-essential—a relatively large package we don't need
@@ -251,13 +262,13 @@ jobs:
           import os
 
           CLOUD = "${{ inputs.cloud }}"
-          self_hosted = json.loads("${{ matrix.groups.self_hosted }}")
-          assert isinstance(self_hosted, bool)
+          is_hosted = json.loads("${{ matrix.groups.is_hosted }}")
+          assert isinstance(is_hosted, bool)
           if CLOUD == "lxd":
               group = "lxd"
           elif CLOUD == "microk8s":
-              if self_hosted:
-                  raise ValueError("microk8s not supported on self-hosted runners")
+              if is_hosted:
+                  raise ValueError("microk8s not supported on IS hosted runners")
               SNAP_CHANNEL = "${{ inputs.microk8s-snap-channel }}"
               assert (
                   SNAP_CHANNEL != ""
@@ -333,7 +344,7 @@ jobs:
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/coredns"
           sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microk8s enable hostpath-storage"
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/hostpath-provisioner"
-          mkdir ~/.kube
+          mkdir ~/.kube/
           # Used by lightkube and kubernetes (Python package)
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s config > ~/.kube/config"
       - timeout-minutes: 1
