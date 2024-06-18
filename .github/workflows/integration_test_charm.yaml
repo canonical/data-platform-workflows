@@ -206,7 +206,7 @@ jobs:
         # if spot instance evicted by Azure
         run: |
           mkdir ~/dpw/
-          echo '${{ matrix.groups.job_name }}' > ~/dpw/job_name
+          echo 'Integration test charm | ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | ${{ inputs.architecture }} / ${{ matrix.groups.job_name }}' > ~/dpw/job_name
       - name: (GitHub hosted) Free up disk space
         timeout-minutes: 1
         # If not (IS hosted or Data Platform hosted)
