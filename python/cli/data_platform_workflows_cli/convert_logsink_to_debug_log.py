@@ -42,7 +42,7 @@ def main():
         ).stdout
     ).values()))["model-uuid"]
     with logsink.open("r", encoding="utf-8") as logsink_file, output.open(
-        "a", encoding="utf-8"
+        "w", encoding="utf-8"
     ) as output_file:
         # `skip` used for multi-line log messages
         skip = False

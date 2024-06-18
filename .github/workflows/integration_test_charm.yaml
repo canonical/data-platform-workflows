@@ -413,21 +413,17 @@ jobs:
         timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: |
-          FILE=~/logs/juju-status.txt
           MODELS=$(juju models --format json | jq -r '.models[] | select(."short-name" != "controller") | ."short-name"' | sed ':a;N;$!ba;s/\n/ /g')
           for MODEL in $MODELS
           do
-            if [ -f $FILE ]; then
-              printf "\n" | tee -a $FILE
-            fi
-            juju status --model="$MODEL" --color --relations | tee -a $FILE
+            juju status --model="$MODEL" --color --relations | tee "$HOME/logs/juju-status-$MODEL.txt"
+            printf "\n"
           done
       - name: juju debug-log
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         # TODO future improvement: show models/ logs in juju-debug-log.txt to match `juju debug-log`
         run: |
-          FILE=~/logs/juju-debug-log.txt
           MODELS=$(juju models --format json | jq -r '.models[] | select(."short-name" != "controller") | ."short-name"' | sed ':a;N;$!ba;s/\n/ /g')
           if [[ '${{ inputs.cloud }}' == 'lxd' ]]
           then
@@ -437,23 +433,19 @@ jobs:
             ORIGINAL_MODEL=$(juju switch)
             for MODEL in $MODELS
             do
-              juju switch "$MODEL"
-              if [ -f $FILE ]; then
-                printf "\n" | tee -a $FILE
-              fi
-              printf "Model: %s\n" "$MODEL" | tee -a $FILE
-              convert-logsink-to-debug-log ~/logs/controller-logsink.log $FILE
+              juju switch --quiet "$MODEL"
+              convert-logsink-to-debug-log ~/logs/controller-logsink.log "$HOME/logs/juju-debug-log-$MODEL.txt"
+              printf "Model: %s\n" "$MODEL"
+              cat "$HOME/logs/juju-debug-log-$MODEL.txt"
+              printf "\n"
             done
-            juju switch "$ORIGINAL_MODEL"
-            cat $FILE
+            juju switch --quiet "$ORIGINAL_MODEL"
           else
             for MODEL in $MODELS
             do
-              if [ -f $FILE ]; then
-                printf "\n" | tee -a $FILE
-              fi
-              printf "Model: %s\n" "$MODEL" | tee -a $FILE
-              juju debug-log --model="$MODEL" --color --replay --no-tail | tee -a $FILE
+              printf "Model: %s\n" "$MODEL"
+              juju debug-log --model="$MODEL" --color --replay --no-tail | tee "$HOME/logs/juju-debug-log-$MODEL.txt"
+              printf "\n"
             done
           fi
       - name: Upload logs
