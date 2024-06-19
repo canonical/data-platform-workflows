@@ -413,7 +413,7 @@ jobs:
         timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: |
-          declare -a MODELS=($(juju models --format json | jq -r '.models[] | select(."short-name" != "controller") | ."short-name"'))
+          mapfile -t MODELS < <(juju models --format json | jq -r '.models[] | select(."short-name" != "controller") | ."short-name"')
           for MODEL in "${MODELS[@]}"; do
             echo "::group::${MODEL}"
             juju status --model="${MODEL}" --color --relations | tee ~/logs/"juju-status-${MODEL}.txt"
@@ -424,7 +424,7 @@ jobs:
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         # TODO future improvement: show models/ logs in juju-debug-log.txt to match `juju debug-log`
         run: |
-          declare -a MODELS=($(juju models --format json | jq -r '.models[] | select(."short-name" != "controller") | ."short-name"'))
+          mapfile -t MODELS < <(juju models --format json | jq -r '.models[] | select(."short-name" != "controller") | ."short-name"')
           if [[ '${{ inputs.cloud }}' == 'lxd' ]]
           then
             mkdir ~/logs/models/
