@@ -416,8 +416,9 @@ jobs:
           MODELS=$(juju models --format json | jq -r '.models[] | select(."short-name" != "controller") | ."short-name"' | sed ':a;N;$!ba;s/\n/ /g')
           for MODEL in $MODELS
           do
+            echo "::group::$MODEL"
             juju status --model="$MODEL" --color --relations | tee "$HOME/logs/juju-status-$MODEL.txt"
-            printf "\n"
+            echo "::endgroup::"
           done
       - name: juju debug-log
         timeout-minutes: 3
@@ -435,17 +436,17 @@ jobs:
             do
               juju switch --quiet "$MODEL"
               convert-logsink-to-debug-log ~/logs/controller-logsink.log "$HOME/logs/juju-debug-log-$MODEL.txt"
-              printf "Model: %s\n" "$MODEL"
+              echo "::group::$MODEL"
               cat "$HOME/logs/juju-debug-log-$MODEL.txt"
-              printf "\n"
+              echo "::endgroup::"
             done
             juju switch --quiet "$ORIGINAL_MODEL"
           else
             for MODEL in $MODELS
             do
-              printf "Model: %s\n" "$MODEL"
+              echo "::group::$MODEL"
               juju debug-log --model="$MODEL" --color --replay --no-tail | tee "$HOME/logs/juju-debug-log-$MODEL.txt"
-              printf "\n"
+              echo "::endgroup::"
             done
           fi
       - name: Upload logs
