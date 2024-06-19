@@ -166,14 +166,6 @@ def charm():
     for resource_name, resource in resources.items():
         if resource["type"] != "oci-image":
             continue
-        image_name = resource["upstream-source"]
-        logging.info(f"Downloading OCI image: {image_name}")
-        run(["docker", "pull", image_name])
-        image_id = run(
-            ["docker", "image", "inspect", image_name, "--format", "'{{.Id}}'"]
-        )
-        image_id = image_id.rstrip("\n").strip("'").removeprefix("sha256:")
-        assert "\n" not in image_id, f"Multiple local images found for {image_name}"
         logging.info(f"Uploading charm resource: {resource_name}")
         output = run(
             [
@@ -184,7 +176,7 @@ def charm():
                 charm_name,
                 resource_name,
                 "--image",
-                image_id,
+                f'docker://{resource["upstream-source"]}',
             ]
         )
         revision: int = json.loads(output)["revision"]
