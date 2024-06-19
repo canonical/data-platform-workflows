@@ -176,7 +176,7 @@ def charm():
                 charm_name,
                 resource_name,
                 "--image",
-                resource["upstream-source"],
+                f'docker://{resource["upstream-source"]}',
             ]
         )
         revision: int = json.loads(output)["revision"]
