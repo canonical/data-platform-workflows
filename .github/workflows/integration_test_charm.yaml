@@ -247,6 +247,13 @@ jobs:
         run: redact-secrets
         env:
           SECRETS: ${{ secrets.integration-test }}
+      - name: (Data Platform hosted) Add Data Platform team's SSH keys
+        # Data Platform hosted
+        # `inputs.architecture == 'arm64' && matrix.groups.runner == null` means Data Platform hosted (default runner)
+        if: ${{ matrix.groups.data_platform_hosted || (inputs.architecture == 'arm64' && matrix.groups.runner == null) }}
+        run: add-ssh-keys
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Parse cloud input
         timeout-minutes: 1
         id: parse-cloud
