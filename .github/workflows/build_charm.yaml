@@ -152,6 +152,9 @@ jobs:
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
         run: sg lxd -c "${{ steps.pack-command.outputs.command }}"
+        env:
+          # Used by charmcraftcache (to avoid GitHub API rate limit)
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
