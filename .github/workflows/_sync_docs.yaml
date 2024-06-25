@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Open PR with changes to Discourse topics
-        uses: deusebio/discourse-gatekeeper@c8adb89ea1cbceca54d78da798658373615487ac
+        uses: canonical/discourse-gatekeeper@main
         id: docs-pr
         with:
           discourse_host: discourse.charmhub.io
