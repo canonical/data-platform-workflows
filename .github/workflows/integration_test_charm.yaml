@@ -190,7 +190,7 @@ jobs:
     needs:
       - collect-integration-tests
     runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
-    timeout-minutes: 212  # Sum of steps `timeout-minutes` + 5
+    timeout-minutes: 216  # Sum of steps `timeout-minutes` + 5
     steps:
       - name: (Data Platform hosted) Write job name to file
         # Data Platform hosted
@@ -336,7 +336,7 @@ jobs:
           sudo snap install microk8s --channel='${{ inputs.microk8s-snap-channel }}'
           sudo adduser "$USER" '${{ steps.parse-cloud.outputs.group }}'
       - name: (IS hosted) Configure microk8s Docker Hub mirror
-        timeout-minutes: 1
+        timeout-minutes: 5
         if: ${{ inputs.cloud == 'microk8s' && matrix.groups.is_hosted }}
         run: |
           sudo tee /var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml << EOF
