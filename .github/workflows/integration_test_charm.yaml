@@ -190,7 +190,7 @@ jobs:
     needs:
       - collect-integration-tests
     runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
-    timeout-minutes: 206  # Sum of steps `timeout-minutes` + 5
+    timeout-minutes: 212  # Sum of steps `timeout-minutes` + 5
     steps:
       - name: (Data Platform hosted) Write job name to file
         # Data Platform hosted
@@ -264,13 +264,9 @@ jobs:
           import os
 
           CLOUD = "${{ inputs.cloud }}"
-          is_hosted = json.loads("${{ matrix.groups.is_hosted }}")
-          assert isinstance(is_hosted, bool)
           if CLOUD == "lxd":
               group = "lxd"
           elif CLOUD == "microk8s":
-              if is_hosted:
-                  raise ValueError("microk8s not supported on IS hosted runners")
               SNAP_CHANNEL = "${{ inputs.microk8s-snap-channel }}"
               assert (
                   SNAP_CHANNEL != ""
@@ -332,13 +328,29 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
       - name: Set up microk8s
-        timeout-minutes: 15
+        timeout-minutes: 5
         if: ${{ inputs.cloud == 'microk8s' }}
         run: |
           sudo apt-get update
           sudo apt-get install retry -y
           sudo snap install microk8s --channel='${{ inputs.microk8s-snap-channel }}'
           sudo adduser "$USER" '${{ steps.parse-cloud.outputs.group }}'
+      - name: (IS hosted) Configure microk8s Docker Hub mirror
+        timeout-minutes: 1
+        if: ${{ inputs.cloud == 'microk8s' && matrix.groups.is_hosted }}
+        run: |
+          sudo tee /var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml << EOF
+          server = "$DOCKERHUB_MIRROR"
+          [host."${DOCKERHUB_MIRROR#'https://'}"]
+          capabilities = ["pull", "resolve"]
+          EOF
+          # `newgrp` does not work in GitHub Actions; use `sg` instead
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s stop"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s start"
+      - name: Set up microk8s
+        timeout-minutes: 15
+        if: ${{ inputs.cloud == 'microk8s' }}
+        run: |
           # `newgrp` does not work in GitHub Actions; use `sg` instead
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s status --wait-ready"
           sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microk8s enable dns"
