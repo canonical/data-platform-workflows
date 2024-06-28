@@ -452,6 +452,13 @@ jobs:
           else
             juju debug-log --color --replay --no-tail | tee ~/logs/juju-debug-log.txt
           fi
+      - name: get snap.opensearch.daemon logs
+        timeout-minutes: 3
+        if: ${{ failure() && steps.tests.outcome == 'failure' }}
+        # TODO future improvement: show models/ logs in juju-debug-log.txt to match `juju debug-log`
+        run: |
+          juju exec --all -- sudo journalctl -u snap.opensearch.daemon -o cat > opensearch.log
+          cat opensearch.log
       - name: Upload logs
         timeout-minutes: 5
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
