@@ -457,7 +457,7 @@ jobs:
         if: ${{ failure() && steps.tests.outcome == 'failure' }}
         # TODO future improvement: show models/ logs in juju-debug-log.txt to match `juju debug-log`
         run: |
-          juju exec --all -- sudo journalctl -u snap.opensearch.daemon -o cat > opensearch.log
+          MODEL=test; for m in $(juju machines -m "$MODEL" --format=tabular | tail -n +2 | awk '{print $1}'); do printf "\n\n\nRUNNING FOR MACHINE $m\n\n\n" >> opensearch.log; juju ssh -m $MODEL $m -- 'sudo journalctl -u snap.opensearch.daemon -o cat' >> opensearch.log || true; done
           cat opensearch.log
       - name: Upload logs
         timeout-minutes: 5
