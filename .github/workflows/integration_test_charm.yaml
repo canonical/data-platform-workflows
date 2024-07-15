@@ -77,6 +77,11 @@ on:
           combination in the matrix
         default: false
         type: boolean
+      _beta_upterm:
+        description: |
+          (BETA) Enable Upterm in case of failure
+        default: false
+        type: boolean
     secrets:
       integration-test:
         description: |
@@ -419,6 +424,11 @@ jobs:
         run: sg '${{ steps.parse-cloud.outputs.group }}' -c "tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_id }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test ${{ steps.allure-option.outputs.option }}"
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
+      - name: (beta) Setup Upterm
+        if: ${{ (failure() && steps.tests.outcome == 'failure') && inputs._beta_upterm && github.event_name != 'schedule' }}
+        uses: lhotari/action-upterm@v1
+        with:
+          limit-access-to-actor: true
       - name: (beta) Upload Allure results
         timeout-minutes: 3
         if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
