@@ -33,8 +33,8 @@ def fetch_latest_revision(charm, charm_channel, series=None) -> int:
     revisions = []
     for channel in channel_map:
         if (
-            channel["channel"]["risk"] == risk 
-            and channel["channel"]["track"] == track 
+            channel["channel"]["risk"] == risk
+            and channel["channel"]["track"] == track
             and channel["channel"]["base"]["architecture"] == "amd64"
         ):
             if (
