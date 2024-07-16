@@ -47,7 +47,7 @@ jobs:
           file-name: update_bundle.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@lucas%2Fadd-arch-check#subdirectory=python/cli
       - name: Checkout
         uses: actions/checkout@v4
         with:
