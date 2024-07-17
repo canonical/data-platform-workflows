@@ -221,7 +221,7 @@ jobs:
         # `inputs.architecture == 'arm64' && matrix.groups.runner == null` means Data Platform hosted (default runner)
         if: ${{ matrix.groups.is_hosted || matrix.groups.data_platform_hosted || (inputs.architecture == 'arm64' && matrix.groups.runner == null) }}
         run: df --human-readable
-      - name: (self hosted) Install pipx
+      - name: (IS hosted) Install pipx
         timeout-minutes: 3
         if: ${{ matrix.groups.is_hosted }}
         run: |
