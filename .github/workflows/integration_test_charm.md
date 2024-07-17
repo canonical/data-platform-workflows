@@ -13,7 +13,7 @@ jobs:
       cache: true
 
   integration-test:
-    name: Integration test charm
+    name: Integration
     needs:
       - build
     uses: canonical/data-platform-workflows/.github/workflows/integration_test_charm.yaml@v0.0.0
