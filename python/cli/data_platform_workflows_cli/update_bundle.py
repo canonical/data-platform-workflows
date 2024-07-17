@@ -32,7 +32,11 @@ def fetch_latest_revision(charm, charm_channel, series=None) -> int:
     track, risk = charm_channel.split("/")
     revisions = []
     for channel in channel_map:
-        if channel["channel"]["risk"] == risk and channel["channel"]["track"] == track:
+        if (
+            channel["channel"]["risk"] == risk
+            and channel["channel"]["track"] == track
+            and channel["channel"]["base"]["architecture"] == "amd64"
+        ):
             if (
                 series is None
                 or get_ubuntu_version(series) == channel["channel"]["base"]["channel"]
