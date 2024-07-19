@@ -373,7 +373,7 @@ jobs:
         run: |
           if [[ '${{ inputs.architecture }}' == 'amd64' ]]
           then
-            # shellcheck disable=SC2078
+            # shellcheck disable=SC2193
             # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
             if [[ '${{ steps.parse-versions.outputs.snap_channel }}' == 2.* ]]
             then
