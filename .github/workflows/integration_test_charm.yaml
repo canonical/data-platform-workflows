@@ -373,9 +373,9 @@ jobs:
         run: |
           if [[ '${{ inputs.architecture }}' == 'amd64' ]]
           then
-            lxc image copy ubuntu:82b997ec581b local: --alias 'juju/ubuntu@22.04/amd64'
+            sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc image copy ubuntu:82b997ec581b local: --alias 'juju/ubuntu@22.04/amd64'"
           else
-            lxc image copy ubuntu:60d56aa663ed local: --alias 'juju/ubuntu@22.04/arm64'
+            sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc image copy ubuntu:60d56aa663ed local: --alias 'juju/ubuntu@22.04/arm64'"
           fi
       - name: Set up environment
         timeout-minutes: 15
