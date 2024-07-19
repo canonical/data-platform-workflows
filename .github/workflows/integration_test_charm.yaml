@@ -373,7 +373,12 @@ jobs:
         run: |
           if [[ '${{ inputs.architecture }}' == 'amd64' ]]
           then
-            sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc image copy ubuntu:82b997ec581b local: --alias 'juju/ubuntu@22.04/amd64'"
+            if [[ '${{ steps.parse-versions.outputs.snap_channel }}' == 2.* ]]
+            then
+              sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc image copy ubuntu:8de71f421b30 local: --alias 'juju/focal/amd64'"
+            else
+              sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc image copy ubuntu:82b997ec581b local: --alias 'juju/ubuntu@22.04/amd64'"
+            fi
           else
             sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc image copy ubuntu:60d56aa663ed local: --alias 'juju/ubuntu@22.04/arm64'"
           fi
