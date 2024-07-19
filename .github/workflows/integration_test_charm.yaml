@@ -190,7 +190,7 @@ jobs:
     needs:
       - collect-integration-tests
     runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
-    timeout-minutes: 216  # Sum of steps `timeout-minutes` + 5
+    timeout-minutes: 277  # Sum of steps `timeout-minutes` + 5
     steps:
       - name: (Data Platform hosted) Write job name to file
         # Data Platform hosted
@@ -362,6 +362,28 @@ jobs:
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s config > ~/.kube/config"
       - timeout-minutes: 1
         run: snap list
+      - name: Pre-download lxd image
+        timeout-minutes: 60
+        if: ${{ inputs.cloud == 'lxd' }}
+        # Temporary workaround for slow image downloads (https://portal.admin.canonical.com/C164453)
+        # Long-term solution: custom runner images
+        # Image fingerprint needs to be manually updated
+        # When this workaround is removed, revert
+        # https://github.com/canonical/self-hosted-runner-provisioner-azure/commit/a525d114065fda01f626a05bd87d0a6cf96e2a3d
+        run: |
+          if [[ '${{ inputs.architecture }}' == 'amd64' ]]
+          then
+            # shellcheck disable=SC2193
+            # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
+            if [[ '${{ steps.parse-versions.outputs.snap_channel }}' == 2.* ]]
+            then
+              sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc image copy ubuntu:8de71f421b30 local: --alias 'juju/focal/amd64'"
+            else
+              sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc image copy ubuntu:82b997ec581b local: --alias 'juju/ubuntu@22.04/amd64'"
+            fi
+          else
+            sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc image copy ubuntu:60d56aa663ed local: --alias 'juju/ubuntu@22.04/arm64'"
+          fi
       - name: Set up environment
         timeout-minutes: 15
         run: |
@@ -374,6 +396,10 @@ jobs:
           juju set-model-constraints arch='${{ inputs.architecture }}'
           pipx install tox
           pipx install poetry
+      - name: lxc image list
+        timeout-minutes: 1
+        if: ${{ inputs.cloud == 'lxd' }}
+        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc image list"
       - name: Update python-libjuju version
         timeout-minutes: 3
         if: ${{ inputs.libjuju-version-constraint }}
