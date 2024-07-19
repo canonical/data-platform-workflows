@@ -389,9 +389,10 @@ jobs:
           juju set-model-constraints arch='${{ inputs.architecture }}'
           pipx install tox
           pipx install poetry
-      - timeout-minutes: 1
+      - name: lxc image list
+        timeout-minutes: 1
         if: ${{ inputs.cloud == 'lxd' }}
-        run: lxc image list
+        run: sg '${{ steps.parse-cloud.outputs.group }}' -c "lxc image list"
       - name: Update python-libjuju version
         timeout-minutes: 3
         if: ${{ inputs.libjuju-version-constraint }}
