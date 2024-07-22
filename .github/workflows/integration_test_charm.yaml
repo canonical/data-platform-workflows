@@ -459,11 +459,11 @@ jobs:
       - name: juju status
         timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: tee-logs --log-command 'juju status --color --relations' --log-file-name juju-status.txt
+        run: tee-log-for-all-models --log-command 'juju status --color --relations' --log-file-name juju-status.txt
       - name: juju debug-log
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: tee-logs --log-command 'juju debug-log --color --replay --no-tail' --log-file-name juju-debug-log.txt
+        run: tee-log-for-all-models --log-command 'juju debug-log --color --replay --no-tail' --log-file-name juju-debug-log.txt
       - name: Upload logs
         timeout-minutes: 5
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
