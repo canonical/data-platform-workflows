@@ -30,6 +30,10 @@ def main():
             github_actions.begin_group(f"Model: {model}")
             log_path = log_path / f"model_{model}"
         log_path = log_path / args.log_file_name
-        subprocess.run(f"{args.log_command} --model '{model}' | tee {log_path}", shell=True, check=True)
+        subprocess.run(
+            f"{args.log_command} --model '{model}' | tee {log_path}",
+            shell=True,
+            check=True,
+        )
         if multiple_models:
             github_actions.end_group()
