@@ -388,7 +388,7 @@ jobs:
         timeout-minutes: 15
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
-          sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' --config model-logs-size=10G '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
           juju add-model test
           # Unable to set constraint on all models because of Juju bug:
