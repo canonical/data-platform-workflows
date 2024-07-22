@@ -29,6 +29,7 @@ def main():
         if multiple_models:
             github_actions.begin_group(f"Model: {model}")
             log_path = log_path / f"model_{model}"
+        log_path.expanduser().mkdir(parents=True, exist_ok=True)
         log_path = log_path / args.log_file_name
         subprocess.run(
             f"{args.log_command} --model '{model}' | tee {log_path}",

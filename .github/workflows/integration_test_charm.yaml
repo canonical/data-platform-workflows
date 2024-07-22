@@ -453,9 +453,6 @@ jobs:
           name: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
           path: allure-results/
           if-no-files-found: error
-      - timeout-minutes: 1
-        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: mkdir ~/logs/
       - name: juju status
         timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
