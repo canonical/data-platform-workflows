@@ -133,10 +133,11 @@ jobs:
               file.write(output)
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install tox & poetry
+      - name: Install tox, poetry, & jhack
         run: |
           pipx install tox
           pipx install poetry
+          pipx install git+https://github.com/canonical/jhack
       - name: Select test stability level
         id: select-test-stability
         shell: python
@@ -461,6 +462,10 @@ jobs:
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: tee-log-for-all-models --log-command 'juju debug-log --color --replay --no-tail' --log-file-name juju-debug-log.txt
+      - name: jhack tail
+        timeout-minutes: 3
+        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
+        run: tee-log-for-all-models --log-command 'jhack tail --replay --length=50000 --no-watch' --log-file-name jhack-tail.txt
       - name: Upload logs
         timeout-minutes: 5
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
