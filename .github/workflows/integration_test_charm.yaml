@@ -388,7 +388,7 @@ jobs:
         timeout-minutes: 15
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
-          sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "juju bootstrap '${{ inputs.cloud }}' --config model-logs-size=10G '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'"
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
           juju add-model test
           # Unable to set constraint on all models because of Juju bug:
@@ -466,18 +466,7 @@ jobs:
       - name: juju debug-log
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        # TODO future improvement: show models/ logs in juju-debug-log.txt to match `juju debug-log`
-        run: |
-          if [[ '${{ inputs.cloud }}' == 'lxd' ]]
-          then
-            mkdir ~/logs/models/
-            juju scp --model controller 0:/var/log/juju/models/* ~/logs/models/
-            juju scp --model controller 0:/var/log/juju/logsink.log ~/logs/controller-logsink.log
-            convert-logsink-to-debug-log ~/logs/controller-logsink.log ~/logs/juju-debug-log.txt
-            cat ~/logs/juju-debug-log.txt
-          else
-            juju debug-log --color --replay --no-tail | tee ~/logs/juju-debug-log.txt
-          fi
+        run: juju debug-log --color --replay --no-tail | tee ~/logs/juju-debug-log.txt
       - name: Upload logs
         timeout-minutes: 5
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
