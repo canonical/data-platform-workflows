@@ -11,6 +11,8 @@ import subprocess
 import requests
 import yaml
 
+from . import github_actions
+
 
 def get_ubuntu_version(series: str) -> str:
     """Gets Ubuntu version (e.g. "22.04") from series (e.g. "jammy")."""
@@ -71,7 +73,4 @@ def main():
     with open(file_path, "w") as file:
         yaml.dump(file_data, file)
 
-    output = f"updates_available={json.dumps(old_file_data != file_data)}"
-    print(output)
-    with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-        file.write(output)
+    github_actions.output["updates_available"] = json.dumps(old_file_data != file_data)

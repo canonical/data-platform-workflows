@@ -2,7 +2,6 @@ import argparse
 import dataclasses
 import json
 import logging
-import os
 import pathlib
 import re
 import subprocess
@@ -10,6 +9,7 @@ import sys
 
 import yaml
 
+from .. import github_actions
 from . import craft
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
@@ -66,20 +66,18 @@ def snap():
 
     # Output GitHub release info
     release_tag = f"rev{max(revision.value for revision in revisions)}"
+    github_actions.output["release_tag"] = release_tag
     if len(revisions) == 1:
         release_title = "Revision "
     else:
         release_title = "Revisions "
     release_title += ", ".join(str(revision.value) for revision in revisions)
+    github_actions.output["release_title"] = release_title
     release_notes = f"Released to {args.channel}"
     for revision in revisions:
         release_notes += f"\n- {revision.architecture}: revision {revision.value}"
     with open("release_notes.txt", "w") as file:
         file.write(release_notes)
-    output = f"release_tag={release_tag}\nrelease_title={release_title}"
-    logging.info(output)
-    with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-        file.write(output)
 
 
 def rock():
@@ -201,17 +199,15 @@ def charm():
 
     # Output GitHub release info
     release_tag = f"rev{max(charm_revisions)}"
+    github_actions.output["release_tag"] = release_tag
     if len(charm_revisions) == 1:
         release_title = "Revision "
     else:
         release_title = "Revisions "
     release_title += ", ".join(str(revision) for revision in charm_revisions)
+    github_actions.output["release_title"] = release_title
     release_notes = f"Released to {args.channel}\nOCI images:\n" + "\n".join(
         f"- {dataclasses.asdict(oci)}" for oci in oci_resources
     )
     with open("release_notes.txt", "w") as file:
         file.write(release_notes)
-    output = f"release_tag={release_tag}\nrelease_title={release_title}"
-    logging.info(output)
-    with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-        file.write(output)

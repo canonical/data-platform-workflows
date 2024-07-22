@@ -11,15 +11,14 @@ charms (subordinate) can be built on multiple Ubuntu versions
 """
 
 import argparse
-import enum
 import json
 import logging
-import os
 import pathlib
 import sys
 
 import yaml
 
+from .. import github_actions
 from . import craft
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
@@ -94,13 +93,11 @@ def collect(craft_: craft.Craft):
         else:
             id_ = architecture.value
         bases.append({"id": id_, "runner": RUNNERS[architecture]})
-    logging.info(f"Collected {bases=}")
+    github_actions.output["bases"] = json.dumps(bases)
     default_prefix = f'packed-{craft_.value}-{args.directory.replace("/", "-")}'
     if craft_ is craft.Craft.CHARM:
         default_prefix = f'packed-{craft_.value}-cache-{args.cache}-{args.directory.replace("/", "-")}'
-    logging.info(f"{default_prefix=}")
-    with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-        file.write(f"bases={json.dumps(bases)}\ndefault_prefix={default_prefix}")
+    github_actions.output["default_prefix"] = default_prefix
 
 
 def snap():
