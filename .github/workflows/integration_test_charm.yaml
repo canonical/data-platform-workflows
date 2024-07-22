@@ -133,11 +133,10 @@ jobs:
               file.write(output)
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install tox, poetry, & jhack
+      - name: Install tox & poetry
         run: |
           pipx install tox
           pipx install poetry
-          pipx install git+https://github.com/canonical/jhack
       - name: Select test stability level
         id: select-test-stability
         shell: python
@@ -397,6 +396,7 @@ jobs:
           juju set-model-constraints arch='${{ inputs.architecture }}'
           pipx install tox
           pipx install poetry
+          pipx install git+https://github.com/canonical/jhack
       - name: lxc image list
         timeout-minutes: 1
         if: ${{ inputs.cloud == 'lxd' }}
