@@ -77,3 +77,25 @@ https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-
 """
 
 sys.modules[__name__].__class__ = _ThisModule
+
+
+def begin_group(title: str):
+    """Begin an expandable group in the log
+
+    Anything printed to the log between `begin_group()` and `end_group()` is nested inside an
+    expandable entry in the log.
+
+    https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#grouping-log-lines
+    """
+    print(f"::group::{title}")
+
+
+def end_group():
+    """End an expandable group in the log
+
+    Anything printed to the log between `begin_group()` and `end_group()` is nested inside an
+    expandable entry in the log.
+
+    https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#grouping-log-lines
+    """
+    print("::endgroup::")
