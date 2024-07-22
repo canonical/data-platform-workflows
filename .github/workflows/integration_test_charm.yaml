@@ -191,8 +191,6 @@ jobs:
       - collect-integration-tests
     runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
     timeout-minutes: 277  # Sum of steps `timeout-minutes` + 5
-    env:
-      FORCE_COLOR: 1
     steps:
       - name: (Data Platform hosted) Write job name to file
         # Data Platform hosted
@@ -459,11 +457,11 @@ jobs:
       - name: juju status
         timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: tee-log-for-all-models --log-command 'juju status --relations' --log-file-name juju-status.txt
+        run: tee-log-for-all-models --log-command 'juju status --color --relations' --log-file-name juju-status.txt
       - name: juju debug-log
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: tee-log-for-all-models --log-command 'juju debug-log --replay --no-tail' --log-file-name juju-debug-log.txt
+        run: tee-log-for-all-models --log-command 'juju debug-log --color --replay --no-tail' --log-file-name juju-debug-log.txt
       - name: jhack tail
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
