@@ -10,7 +10,6 @@ import sys
 import yaml
 
 from .. import github_actions
-from . import craft
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
@@ -83,6 +82,7 @@ def snap():
 def rock():
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
+    parser.add_argument("--create-release-tag", required=True)
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
@@ -112,25 +112,38 @@ def rock():
     logging.info("Creating multi-architecture image")
     # Example: "14.10-22.04_edge"
     tag = f'{yaml_data["version"]}-{yaml_data["base"].split("@")[-1]}_edge'
-    command = [
-        "docker",
-        "manifest",
-        "create",
-        f'ghcr.io/canonical/{yaml_data["name"]}:{tag}',
-    ]
+    multi_arch_image_name = f'ghcr.io/canonical/{yaml_data["name"]}:{tag}'
+    command = ["docker", "manifest", "create", multi_arch_image_name]
     for digest in digests:
         command.extend(("--amend", f'ghcr.io/canonical/{yaml_data["name"]}@{digest}'))
     run(command)
     logging.info("Created multi-architecture image. Uploading")
-    run(
-        [
-            "docker",
-            "manifest",
-            "push",
-            f'ghcr.io/canonical/{yaml_data["name"]}:{tag}',
-        ]
-    )
+    run(["docker", "manifest", "push", multi_arch_image_name])
     logging.info("Uploaded multi-architecture image")
+    # Potential race condition if another image uploaded to same GHCR tag before this command runs
+    multi_arch_digest = run(
+        [
+            "skopeo",
+            "inspect",
+            f"docker://{multi_arch_image_name}",
+            "--format",
+            "{{ .Digest }}",
+        ]
+    ).strip()
+
+    if json.loads(args.create_release_tag) is not True:
+        return
+    logging.info("Pushing git tag")
+    # Create git tag
+    tag = f"image-{multi_arch_digest}"
+    subprocess.run(["git", "tag", tag], check=True)
+    subprocess.run(["git", "push", "origin", tag], check=True)
+    # Output GitHub release info
+    github_actions.output["release_tag"] = tag
+    github_actions.output["release_title"] = f"Image {multi_arch_digest}"
+    release_notes = f"Released to {multi_arch_image_name}"
+    with open("release_notes.txt", "w") as file:
+        file.write(release_notes)
 
 
 def charm():

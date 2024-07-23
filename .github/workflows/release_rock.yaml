@@ -17,6 +17,10 @@ on:
         description: Relative path to rock directory from repository directory
         default: .
         type: string
+      create-github-release:
+        description: Create git tag & GitHub release
+        default: true
+        type: boolean
 
 jobs:
   release-rock:
@@ -51,4 +55,10 @@ jobs:
           pattern: ${{ inputs.artifact-prefix }}-*
           merge-multiple: true
       - name: Upload & release rock
-        run: release-rock --directory='${{ inputs.path-to-rock-directory }}'
+        id: release
+        run: release-rock --directory='${{ inputs.path-to-rock-directory }}' --create-release-tag='${{ inputs.create-github-release }}'
+      - name: Create GitHub release
+        if: ${{ inputs.create-github-release }}
+        run: gh release create '${{ steps.release.outputs.release_tag }}' --verify-tag --generate-notes --title '${{ steps.release.outputs.release_title }}' --notes-file release_notes.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
