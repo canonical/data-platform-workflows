@@ -1,14 +1,12 @@
 import argparse
 import json
-import logging
-import os
 import pathlib
 import subprocess
-import sys
+
+from . import github_actions
 
 
 def main():
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     parser = argparse.ArgumentParser()
     parser.add_argument("--cache", required=True)
     parser.add_argument("--charm-directory", required=True)
@@ -45,6 +43,4 @@ def main():
             )
         else:
             command = f"charmcraft pack -v --bases-index='{args.bases_index}'"
-    logging.info(f"{command=}")
-    with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-        file.write(f"command={command}")
+    github_actions.output["command"] = command

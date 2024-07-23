@@ -1,5 +1,6 @@
 import argparse
-import os
+
+from . import github_actions
 
 
 def main():
@@ -9,15 +10,13 @@ def main():
     parser.add_argument("--revision-input-name", required=True)
     parser.add_argument("--channel-input-name", required=True)
     args = parser.parse_args()
-    output = "install_flag="
     if args.revision:
         assert (
             not args.channel
         ), f"`{args.channel_input_name}` input cannot be used if `{args.revision_input_name}` input is passed"
-        output += f"'--revision={args.revision}'"
+        install_flag = f"'--revision={args.revision}'"
     elif args.channel:
-        output += f"'--channel={args.channel}'"
-
-    print(output)
-    with open(os.environ["GITHUB_OUTPUT"], "a") as file:
-        file.write(output)
+        install_flag = f"'--channel={args.channel}'"
+    else:
+        install_flag = None
+    github_actions.output["install_flag"] = install_flag
