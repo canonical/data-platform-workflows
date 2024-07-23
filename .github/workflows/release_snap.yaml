@@ -74,7 +74,7 @@ jobs:
           merge-multiple: true
       - name: Upload & release snap
         id: release
-        run: release-snap --directory='${{ inputs.path-to-snap-project-directory }}' --channel='${{ inputs.channel }}'
+        run: release-snap --directory='${{ inputs.path-to-snap-project-directory }}' --channel='${{ inputs.channel }}' --create-release-tags='${{ inputs.create-github-release }}'
         env:
           SNAPCRAFT_STORE_AUTH: candid
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snap-store-token }}
