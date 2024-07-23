@@ -87,9 +87,6 @@ jobs:
           if-no-files-found: error
       - name: Create GitHub release
         if: ${{ inputs.create-github-release }}
-        run: |
-          # Sleep to wait for GitHub tags to update
-          sleep 1
-          gh release create '${{ steps.release.outputs.release_tag }}' --verify-tag --generate-notes --title '${{ steps.release.outputs.release_title }}' --notes-file release_notes.txt
+        run: gh release create '${{ steps.release.outputs.release_tag }}' --verify-tag --generate-notes --title '${{ steps.release.outputs.release_title }}' --notes-file release_notes.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
