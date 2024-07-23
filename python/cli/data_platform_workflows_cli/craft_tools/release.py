@@ -67,6 +67,7 @@ def snap():
 
     if json.loads(args.create_release_tags) is not True:
         return
+    logging.info("Pushing git tag(s)")
     # Create git tags
     for revision in revisions:
         subprocess.run(["git", "tag", str(revision.value)], check=True)
@@ -208,6 +209,7 @@ def charm():
     if json.loads(args.create_release_tags) is not True:
         return
     # Create git tags
+    logging.info("Pushing git tag(s)")
     for revision in charm_revisions:
         subprocess.run(["git", "tag", str(revision)], check=True)
         subprocess.run(["git", "push", "origin", str(revision)], check=True)
