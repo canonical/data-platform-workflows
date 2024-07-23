@@ -27,7 +27,7 @@ class _Output(_OutputBaseType):
             )
         with _output_file.open("a", encoding="utf-8") as file:
             file.write(f"{key}={value}\n")
-        print(f"GitHub Actions step output: {key}={value}")
+        print(f"GitHub Actions step output: {key}={value}", flush=True)
 
     def __delitem__(self, key):
         self.__setitem__(key, None)
@@ -87,7 +87,7 @@ def begin_group(title: str):
 
     https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#grouping-log-lines
     """
-    print(f"::group::{title}")
+    print(f"::group::{title}", flush=True)
 
 
 def end_group():
@@ -98,4 +98,4 @@ def end_group():
 
     https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#grouping-log-lines
     """
-    print("::endgroup::")
+    print("::endgroup::", flush=True)

@@ -453,20 +453,14 @@ jobs:
           name: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
           path: allure-results/
           if-no-files-found: error
-      - name: Select model
-        timeout-minutes: 1
-        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: |
-          juju switch test
-          mkdir ~/logs/
       - name: juju status
         timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju status --color --relations | tee ~/logs/juju-status.txt
+        run: tee-log-for-all-models --log-command 'juju status --color --relations' --log-file-name juju-status.txt
       - name: juju debug-log
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: juju debug-log --color --replay --no-tail | tee ~/logs/juju-debug-log.txt
+        run: tee-log-for-all-models --log-command 'juju debug-log --color --replay --no-tail' --log-file-name juju-debug-log.txt
       - name: Upload logs
         timeout-minutes: 5
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}

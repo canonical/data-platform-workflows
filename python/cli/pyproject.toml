@@ -20,6 +20,7 @@ update-bundle = "data_platform_workflows_cli.update_bundle:main"
 parse-snap-version = "data_platform_workflows_cli.parse_snap_version:main"
 allure-add-default-for-missing-results = "data_platform_workflows_cli.allure_add_default_for_missing_results:main"
 add-ssh-keys = "data_platform_workflows_cli.add_ssh_keys:main"
+tee-log-for-all-models = "data_platform_workflows_cli.tee_log_for_all_models:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"
