@@ -64,6 +64,10 @@ def snap():
         logging.info(f"Uploaded snap {revision=} {architecture=}")
         revisions.append(Revision(value=revision, architecture=architecture))
 
+    # Create git tags
+    for revision in revisions:
+        subprocess.run(["git", "tag", str(revision.value)], check=True)
+        subprocess.run(["git", "push", "origin", str(revision.value)], check=True)
     # Output GitHub release info
     release_tag = f"rev{max(revision.value for revision in revisions)}"
     github_actions.output["release_tag"] = release_tag
@@ -197,6 +201,10 @@ def charm():
             command += ["--resource", f"{oci.resource_name}:{oci.revision}"]
         run(command)
 
+    # Create git tags
+    for revision in charm_revisions:
+        subprocess.run(["git", "tag", str(revision)], check=True)
+        subprocess.run(["git", "push", "origin", str(revision)], check=True)
     # Output GitHub release info
     release_tag = f"rev{max(charm_revisions)}"
     github_actions.output["release_tag"] = release_tag
