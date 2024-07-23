@@ -70,8 +70,9 @@ def snap():
     logging.info("Pushing git tag(s)")
     # Create git tags
     for revision in revisions:
-        subprocess.run(["git", "tag", str(revision.value)], check=True)
-        subprocess.run(["git", "push", "origin", str(revision.value)], check=True)
+        tag = f"rev{revision.value}"
+        subprocess.run(["git", "tag", tag], check=True)
+        subprocess.run(["git", "push", "origin", tag], check=True)
     # Output GitHub release info
     release_tag = f"rev{max(revision.value for revision in revisions)}"
     github_actions.output["release_tag"] = release_tag
@@ -211,8 +212,9 @@ def charm():
     # Create git tags
     logging.info("Pushing git tag(s)")
     for revision in charm_revisions:
-        subprocess.run(["git", "tag", str(revision)], check=True)
-        subprocess.run(["git", "push", "origin", str(revision)], check=True)
+        tag = f"rev{revision}"
+        subprocess.run(["git", "tag", tag], check=True)
+        subprocess.run(["git", "push", "origin", tag], check=True)
     # Output GitHub release info
     release_tag = f"rev{max(charm_revisions)}"
     github_actions.output["release_tag"] = release_tag
