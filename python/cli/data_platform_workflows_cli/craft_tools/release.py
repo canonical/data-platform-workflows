@@ -42,6 +42,7 @@ def snap():
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
     parser.add_argument("--channel", required=True)
+    parser.add_argument("--create-release-tags", required=True)
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
@@ -64,6 +65,14 @@ def snap():
         logging.info(f"Uploaded snap {revision=} {architecture=}")
         revisions.append(Revision(value=revision, architecture=architecture))
 
+    if json.loads(args.create_release_tags) is not True:
+        return
+    logging.info("Pushing git tag(s)")
+    # Create git tags
+    for revision in revisions:
+        tag = f"rev{revision.value}"
+        subprocess.run(["git", "tag", tag], check=True)
+        subprocess.run(["git", "push", "origin", tag], check=True)
     # Output GitHub release info
     release_tag = f"rev{max(revision.value for revision in revisions)}"
     github_actions.output["release_tag"] = release_tag
@@ -142,6 +151,7 @@ def charm():
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
     parser.add_argument("--channel", required=True)
+    parser.add_argument("--create-release-tags", required=True)
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
@@ -197,6 +207,14 @@ def charm():
             command += ["--resource", f"{oci.resource_name}:{oci.revision}"]
         run(command)
 
+    if json.loads(args.create_release_tags) is not True:
+        return
+    # Create git tags
+    logging.info("Pushing git tag(s)")
+    for revision in charm_revisions:
+        tag = f"rev{revision}"
+        subprocess.run(["git", "tag", tag], check=True)
+        subprocess.run(["git", "push", "origin", tag], check=True)
     # Output GitHub release info
     release_tag = f"rev{max(charm_revisions)}"
     github_actions.output["release_tag"] = release_tag
