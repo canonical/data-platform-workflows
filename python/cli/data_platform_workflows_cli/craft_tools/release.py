@@ -121,15 +121,19 @@ def rock():
     run(["docker", "manifest", "push", multi_arch_image_name])
     logging.info("Uploaded multi-architecture image")
     # Potential race condition if another image uploaded to same GHCR tag before this command runs
-    multi_arch_digest = run(
-        [
-            "skopeo",
-            "inspect",
-            f"docker://{multi_arch_image_name}",
-            "--format",
-            "{{ .Digest }}",
-        ]
-    ).strip()
+    multi_arch_digest = (
+        run(
+            [
+                "skopeo",
+                "inspect",
+                f"docker://{multi_arch_image_name}",
+                "--format",
+                "{{ .Digest }}",
+            ]
+        )
+        .strip()
+        .removeprefix("sha256:")
+    )
 
     if json.loads(args.create_release_tag) is not True:
         return
