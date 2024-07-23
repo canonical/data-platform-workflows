@@ -65,7 +65,7 @@ jobs:
     needs:
       - collect-bases
     runs-on: ${{ matrix.base.runner }}
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: (GitHub-hosted ARM runner) Install pipx
         if: ${{ matrix.base.runner == 'Ubuntu_ARM64_4C_16G_01' }}
