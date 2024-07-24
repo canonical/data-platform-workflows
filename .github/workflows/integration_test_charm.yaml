@@ -190,7 +190,7 @@ jobs:
     needs:
       - collect-integration-tests
     runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
-    timeout-minutes: 277  # Sum of steps `timeout-minutes` + 5
+    timeout-minutes: 287  # Sum of steps `timeout-minutes` + 5
     steps:
       - name: (Data Platform hosted) Write job name to file
         # Data Platform hosted
@@ -347,6 +347,7 @@ jobs:
           sudo microk8s stop
           sudo microk8s start
       - name: Set up microk8s
+        id: microk8s-setup
         timeout-minutes: 15
         if: ${{ inputs.cloud == 'microk8s' }}
         run: |
@@ -360,6 +361,20 @@ jobs:
           mkdir ~/.kube/
           # Used by lightkube and kubernetes (Python package)
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s config > ~/.kube/config"
+      # Temporarily collect logs to debug intermittent issue
+      # https://github.com/canonical/data-platform-workflows/issues/217
+      - name: Collect microk8s logs for debugging
+        timeout-minutes: 5
+        if: ${{ failure() && steps.microk8s-setup.outcome == 'failure' }}
+        run: sudo microk8s inspect
+      - name: Upload microk8s logs for debugging
+        timeout-minutes: 5
+        if: ${{ failure() && steps.microk8s-setup.outcome == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-logs-microk8s-intergration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
+          path: /var/snap/microk8s/current/inspection-report-*.tar.gz
+          if-no-files-found: error
       - timeout-minutes: 1
         run: snap list
       - name: Pre-download lxd image
