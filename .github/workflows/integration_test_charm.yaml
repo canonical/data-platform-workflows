@@ -372,7 +372,7 @@ jobs:
         if: ${{ failure() && steps.microk8s-setup.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: debug-logs-microk8s-intergration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
+          name: debug-logs-microk8s-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
           path: /var/snap/microk8s/current/inspection-report-*.tar.gz
           if-no-files-found: error
       - timeout-minutes: 1
@@ -489,7 +489,7 @@ jobs:
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-intergration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
+          name: logs-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
           path: ~/logs/
           if-no-files-found: error
       - name: Disk usage
