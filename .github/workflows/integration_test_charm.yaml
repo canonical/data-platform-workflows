@@ -170,7 +170,7 @@ jobs:
       - name: (beta) Upload Allure collection results
         # Default test results in case the integration tests time out or runner set up fails
         # (So that Allure report will show "unknown"/"failed" test result, instead of omitting the test)
-        if: ${{ inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
+        if: ${{ inputs._beta_allure_report }}
         uses: actions/upload-artifact@v4
         with:
           # TODO future improvement: ensure artifact name is unique (if called with a matrix that changes inputs)
