@@ -44,26 +44,12 @@ jobs:
         with:
           ref: gh-pages-beta
           path: repo/
-      - name: Download default test collection results
-        # Default test results in case the integration tests time out or runner set up fails
-        # (So that Allure report will show "unknown"/"failed" test result, instead of omitting the test)
-        uses: actions/download-artifact@v4
-        with:
-          path: allure-collection-default-results/
-          pattern: allure-collection-default-results-integration-test-charm-*
-          merge-multiple: true
-          name: allure-collection-default-results-integration-test-charm
       - name: Download test results
         uses: actions/download-artifact@v4
         with:
           path: allure-results/
           pattern: allure-results-integration-test-charm-*
           merge-multiple: true
-      - name: Combine Allure default results & actual results
-        # For every test: if actual result available, use that. Otherwise, use default result
-        # So that, if actual result not available, Allure report will show "unknown"/"failed" test result
-        # instead of omitting the test
-        run: allure-add-default-for-missing-results --allure-results-dir=allure-results --allure-collection-default-results-dir=allure-collection-default-results
       - name: Load test report history
         run: |
           if [[ -d repo/_latest/history/ ]]
