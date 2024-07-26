@@ -7,8 +7,6 @@ jobs:
     # TODO future improvement: use concurrency group for job
     name: (beta) Publish Allure report
     if: ${{ !cancelled() }}
-    needs:
-      - integration-test
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
