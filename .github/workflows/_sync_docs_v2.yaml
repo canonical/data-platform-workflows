@@ -1,0 +1,51 @@
+on:
+  workflow_call:
+    inputs:
+      reviewers:
+        description: Comma separated list of GitHub usernames to request to review pull request (e.g. "canonical/data-platform-engineers,octocat")
+        required: false
+        type: string
+      secrets:
+        token:
+          description: |
+            GitHub App token or personal access token (not GITHUB_TOKEN)
+
+            Permissions needed for App token:
+            - Access: Read & write for Repository permissions: Pull requests
+            - Access: Read & write for Repository permissions: Contents
+            - If GitHub team is requested for pull request review,
+              Access: Read-only for Organization permissions: Members
+
+            Permissions needed for personal access token: write access to repository, read:org
+            Personal access tokens with fine grained access are not supported (by GraphQL API, which is used by GitHub CLI).
+
+            The GITHUB_TOKEN can create a pull request or push a branch, but `on: pull_request` workflows will not be triggered.
+
+            Source: https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
+          required: true
+
+jobs:
+  sync-docs-v2:
+    name: Sync Discourse docs (v2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+  steps:
+        - name: Get workflow version
+          id: workflow-version
+          uses: canonical/get-workflow-version-action@v1
+          with:
+            repository-name: canonical/data-platform-workflows
+            file-name: update_bundle.yaml
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+        - name: Install CLI
+          run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            token: ${{ secrets.token }}
+        - name: Download Discourse docs
+          id: sync-docs-v2
+          run:
+        - name: Push `sync-docs-v2` branch
+
+        - name: Create pull request
