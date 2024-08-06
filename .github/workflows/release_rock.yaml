@@ -56,9 +56,6 @@ jobs:
           merge-multiple: true
       - name: Upload & release rock
         id: release
-        run: release-rock --directory='${{ inputs.path-to-rock-directory }}' --create-release-tag='${{ inputs.create-github-release }}'
-      - name: Create GitHub release
-        if: ${{ inputs.create-github-release }}
-        run: gh release create '${{ steps.release.outputs.release_tag }}' --verify-tag --generate-notes --title '${{ steps.release.outputs.release_title }}' --notes-file release_notes.txt
+        run: release-rock --directory='${{ inputs.path-to-rock-directory }}' --create-release='${{ inputs.create-github-release }}'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
