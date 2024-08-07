@@ -30,22 +30,39 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
   steps:
-        - name: Get workflow version
-          id: workflow-version
-          uses: canonical/get-workflow-version-action@v1
-          with:
-            repository-name: canonical/data-platform-workflows
-            file-name: update_bundle.yaml
-            github-token: ${{ secrets.GITHUB_TOKEN }}
-        - name: Install CLI
-          run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
-        - name: Checkout
-          uses: actions/checkout@v4
-          with:
-            token: ${{ secrets.token }}
-        - name: Download Discourse docs
-          id: sync-docs-v2
-          run:
-        - name: Push `sync-docs-v2` branch
-
-        - name: Create pull request
+    - name: Get workflow version
+      id: workflow-version
+      uses: canonical/get-workflow-version-action@v1
+      with:
+        repository-name: canonical/data-platform-workflows
+        file-name: _sync_docs_v2.yaml
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install CLI
+      run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.token }}
+    - name: Download Discourse docs
+      id: sync-docs-v2
+      run:
+    - name: Push `sync-docs` branch
+      run: |
+        git checkout -b sync-docs
+        git add docs/
+        git config user.name "GitHub Actions"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git commit -m "Sync docs from Discourse"
+        git push origin sync-docs -f
+    - name: Create pull request
+      run: |
+        # Capture output in variable so that step fails if `gh pr list` exits with non-zero code
+        prs=$(gh pr list --head sync-docs --state open --json number)
+        if [[ $prs != "[]" ]]
+        then
+          echo Open pull request already exists
+          exit 0
+        fi
+        gh pr create --head sync-docs --title "Sync docs from Discourse" --body "Sync charm docs from https://discourse.charmhub.io" --reviewer '${{ inputs.reviewers }}'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
