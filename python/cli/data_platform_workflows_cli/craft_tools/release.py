@@ -61,6 +61,8 @@ def create_tags_and_release(
         else:
             logging.error(e.stderr)
             raise
+    if not release_notes.endswith("\n"):
+        release_notes += "\n"
     command = [
         "gh",
         "release",
