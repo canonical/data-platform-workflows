@@ -22,7 +22,7 @@ on:
         default: .
         type: string
       create-github-release:
-        description: Create git tag & GitHub release
+        description: Create git tag(s) & GitHub release
         default: true
         type: boolean
       charmcraft-snap-revision:
@@ -71,18 +71,14 @@ jobs:
           merge-multiple: true
       - name: Upload & release charm
         id: release
-        run: release-charm --directory='${{ inputs.path-to-charm-directory }}' --channel='${{ inputs.channel }}' --create-release-tags='${{ inputs.create-github-release }}'
+        run: release-charm --directory='${{ inputs.path-to-charm-directory }}' --channel='${{ inputs.channel }}' --create-release='${{ inputs.create-github-release }}'
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload charmcraft logs
         if: ${{ failure() && steps.release.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
           name: logs-charmcraft-release-${{ inputs.artifact-prefix }}
           path: ~/.local/state/charmcraft/log/
-          if-no-files-found: error
-      - name: Create GitHub release
-        if: ${{ inputs.create-github-release }}
-        run: gh release create '${{ steps.release.outputs.release_tag }}' --verify-tag --generate-notes --title '${{ steps.release.outputs.release_title }}' --notes-file release_notes.txt
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          if-no-files-found: ignore
