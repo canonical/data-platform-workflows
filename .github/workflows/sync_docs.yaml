@@ -7,8 +7,8 @@ on:
         type: string
 
 jobs:
-  sync-docs-v2:
-    name: Sync Discourse docs (v2)
+  sync-docs:
+    name: Sync Discourse docs
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -17,25 +17,29 @@ jobs:
       uses: canonical/get-workflow-version-action@v1
       with:
         repository-name: canonical/data-platform-workflows
-        file-name: _sync_docs_v2.yaml
+        file-name: sync_docs.yaml
         github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install CLI
       run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
     - name: Checkout
       uses: actions/checkout@v4
     - name: Download Discourse docs
-      id: sync-docs-v2
       run:
-    - name: Push `sync-docs` branch
+    - name: Push `sync-docs` branch & create pull request
       run: |
         git checkout -b sync-docs
         git add docs/
+        # Check if changes staged
+        if git diff --cached --quiet
+        then
+          echo 'No changes to docs/ from default git branch'
+          exit 0
+        fi
         git config user.name "GitHub Actions"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git commit -m "Sync docs from Discourse"
         git push origin sync-docs -f
-    - name: Create pull request
-      run: |
+        # Create pull request
         # Capture output in variable so that step fails if `gh pr list` exits with non-zero code
         prs=$(gh pr list --head sync-docs --state open --json number)
         if [[ $prs != "[]" ]]
