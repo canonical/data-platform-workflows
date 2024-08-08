@@ -14,7 +14,7 @@ name: Sync Discourse docs (v2)
 on:
   workflow_dispatch:
   schedule:
-    - cron:
+    - cron: '53 0 * * *'  # Daily at 00:53 UTC
 
 jobs:
   sync-docs-v2:
