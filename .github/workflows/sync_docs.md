@@ -1,6 +1,5 @@
 Workflow file: [sync_docs.yaml](sync_docs.yaml)
 
-
 ## Usage
 Add `.yaml` file to `.github/workflows/`
 
