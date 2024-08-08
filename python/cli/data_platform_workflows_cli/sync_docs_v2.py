@@ -82,7 +82,15 @@ def main():
     topic_id = overview_topic_link.split("/")[-1]
     overview_topic_markdown = get_topic(topic_id)
 
-    # Example of an expected markdown table:
+    # Extract navigation table from Markdown
+    match = re.search(
+        r"\[details=Navigation]\n(.*?)\n\[/details]",
+        overview_topic_markdown,
+        flags=re.DOTALL,
+    )
+    if not match:
+        raise ValueError("Unable to find navigation table")
+    # Example `table`:
     # | Level | Path | Navlink |
     # |--------|--------|-------------|
     # | 1 | tutorial | [Tutorial]() |
@@ -90,22 +98,7 @@ def main():
     # | 2 | t-set-up | [1. Set up the environment](/t/9709) |
     # | 2 | t-deploy | [2. Deploy PostgreSQL](/t/9697) |
     # | 1 | search | [Search](https://canonical.com/data/docs/postgresql/iaas) |
-
-    # Search for table delimiters NAVTABLE_START_MARKER and NAVTABLE_END_MARKER
-    start_index = overview_topic_markdown.find(NAVTABLE_START_MARKER)
-    if start_index == -1:
-        raise ValueError("Could not find Navtable start marker " + NAVTABLE_START_MARKER + " in the overview topic") 
-
-    end_index = overview_topic_markdown.find(NAVTABLE_END_MARKER)
-    if end_index == -1:
-        raise ValueError("Could not find Navtable end marker " + NAVTABLE_END_MARKER + " in the overview topic")
-
-    start_index += len(NAVTABLE_START_MARKER)
-    end_index = overview_topic_markdown.find(NAVTABLE_END_MARKER, start_index)
-
-    table_raw = overview_topic_markdown[start_index:end_index].strip() # remove leading and trailing whitespace
-    if table_raw == "":
-        raise ValueError("Could not find a valid table")
+    table = match.group(1).strip()
 
     # Convert Markdown table to list[dict[str, str]]
     # (https://stackoverflow.com/a/78254495)
