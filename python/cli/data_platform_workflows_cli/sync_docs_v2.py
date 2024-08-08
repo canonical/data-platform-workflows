@@ -116,7 +116,10 @@ def main():
         {key.strip(): value.strip() for key, value in row.items() if key != ''}
         for row in rows
     ]
-    shutil.rmtree(pathlib.Path("docs/"))
+    try:
+        shutil.rmtree(pathlib.Path("docs/"))
+    except FileNotFoundError:
+        pass
     
     for row in rows:
         # Example `row`: {'Level': '2', 'Path': 't-overview', 'Navlink': '[Overview](/t/9707)'} 
