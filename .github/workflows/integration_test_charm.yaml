@@ -477,13 +477,6 @@ jobs:
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: tee-log-for-all-models --log-command 'juju debug-log --color --replay --no-tail' --log-file-name juju-debug-log.txt
-      - name: jhack tail
-        timeout-minutes: 3
-        if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
-        run: tee-log-for-all-models --log-command 'jhack tail --color 256 --replay --length=50000 --no-watch' --log-file-name jhack-tail.txt
-        env:
-          # Increase table width
-          COLUMNS: 120
       - name: Upload logs
         timeout-minutes: 5
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
