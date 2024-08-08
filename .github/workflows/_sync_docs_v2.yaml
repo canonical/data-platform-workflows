@@ -11,7 +11,7 @@ jobs:
     name: Sync Discourse docs (v2)
     runs-on: ubuntu-latest
     timeout-minutes: 5
-  steps:
+    steps:
     - name: Get workflow version
       id: workflow-version
       uses: canonical/get-workflow-version-action@v1
