@@ -8,7 +8,7 @@ on:
 
 jobs:
   sync-docs:
-    name: Sync Discourse docs
+    name: Sync docs from Discourse
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
