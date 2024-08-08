@@ -9,6 +9,8 @@ import yaml
 NAVTABLE_START_MARKER = "[details=Navigation]"
 NAVTABLE_END_MARKER = "[/details]"
 
+DOCS_LOCAL_PATH = pathlib.Path("docs/")
+
 def get_topic(topic_id_: str):
     """Get markdown content of a discourse.charmhub.io topic"""
     
@@ -67,7 +69,7 @@ class Topic:
         }[topic_slug[:2]]
 
         # Example `path`: "docs/tutorial/t-overview.md"
-        path = pathlib.Path("docs/") / diataxis_directory / f"{topic_slug}.md"
+        path = DOCS_LOCAL_PATH / diataxis_directory / f"{topic_slug}.md"
 
         return cls(topic_id, path)
 
@@ -90,6 +92,7 @@ def main():
     )
     if not match:
         raise ValueError("Unable to find navigation table")
+    
     # Example `table`:
     # | Level | Path | Navlink |
     # |--------|--------|-------------|
@@ -102,7 +105,7 @@ def main():
 
     # Convert Markdown table to list[dict[str, str]]
     # (https://stackoverflow.com/a/78254495)
-    rows: list[dict] = list(csv.DictReader(table_raw.split("\n"), delimiter="|"))
+    rows: list[dict] = list(csv.DictReader(table.split("\n"), delimiter="|"))
     # Remove first row (e.g. "|--------|--------|-------------|")
     rows = rows[2:]
     rows: list[dict[str, str]] = [
@@ -110,7 +113,7 @@ def main():
         for row in rows
     ]
     try:
-        shutil.rmtree(pathlib.Path("docs/"))
+        shutil.rmtree(DOCS_LOCAL_PATH)
     except FileNotFoundError:
         pass
     
