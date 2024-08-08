@@ -24,7 +24,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Download Discourse docs
-      id: sync-docs-v2
       run:
     - name: Push `sync-docs` branch
       run: |
