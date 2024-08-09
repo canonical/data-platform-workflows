@@ -125,4 +125,4 @@ def main():
         
         # Download topic markdown to `topic.path`
         topic.path.parent.mkdir(parents=True, exist_ok=True)
-        topic.path.write_text(get_topic(topic_id))
+        topic.path.write_text(get_topic(topic.id))
