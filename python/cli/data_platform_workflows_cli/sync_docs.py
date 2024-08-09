@@ -6,9 +6,6 @@ import shutil
 import requests
 import yaml
 
-NAVTABLE_START_MARKER = "[details=Navigation]"
-NAVTABLE_END_MARKER = "[/details]"
-
 DOCS_LOCAL_PATH = pathlib.Path("docs/")
 
 def get_topic(topic_id_: str):
