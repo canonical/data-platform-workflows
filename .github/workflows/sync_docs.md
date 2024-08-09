@@ -26,7 +26,7 @@ jobs:
 
 Requirement: The overview topic must contain a navigation table with the columns "Level", "Path", and "Navlink"
 
-Requirement: The navigation table of the overview page must be wrapped by the `[details]` HTML/markdown element as follows:
+Requirement: The navigation table of the overview topic must be wrapped by the `[details]` HTML/markdown element as follows:
 
 ```
 # Navigation
@@ -40,11 +40,11 @@ Requirement: The navigation table of the overview page must be wrapped by the `[
 ```
 
 > [!NOTE]  
-> There should be a white space before and after the `[details]` and `[/details]` lines. Otherwise, Discourse/Charmhub may not parse them correctly.
+> Make sure to leave a white space before and after the `[details]` and `[/details]` lines. Otherwise, Discourse/Charmhub may not parse them correctly.
 
-Requirement: Links in the `Navlink` column must be formatted as `[Text](/t/<number>)`. 
+Requirement: Links to topics in the `Navlink` column must be formatted as `[Text](/t/<topic_id>)`. 
 
-They **must not** be formatted as `[Text](/t/<some-additional-slug-text>/<number>)`.
+They **must not** be formatted as `[Text](/t/<some-additional-slug-text>/<topic_id>)`.
 
 ### Examples
 The following documentation sets fulfill the above requirements and have been tested:
