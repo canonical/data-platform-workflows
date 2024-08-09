@@ -112,6 +112,7 @@ def main():
         {key.strip(): value.strip() for key, value in row.items() if key != ''}
         for row in rows
     ]
+
     try:
         shutil.rmtree(DOCS_LOCAL_PATH)
     except FileNotFoundError:
