@@ -24,7 +24,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Download Discourse docs
-      run:
+      run: sync-docs
     - name: Push `sync-docs` branch & create pull request
       run: |
         git checkout -b sync-docs
