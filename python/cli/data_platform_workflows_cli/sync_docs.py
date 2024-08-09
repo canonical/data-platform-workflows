@@ -72,7 +72,7 @@ class Topic:
         return cls(topic_id, path)
 
 def main():
-    """Download Discourse documentation topics to docs/ directory"""
+    """Update Discourse documentation topics to docs/ directory"""
     
     # Example `overview_topic_link`: "https://discourse.charmhub.io/t/charmed-postgresql-documentation/9710"
     overview_topic_link: str = yaml.safe_load(pathlib.Path("metadata.yaml").read_text())["docs"]
