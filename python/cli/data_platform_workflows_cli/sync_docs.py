@@ -75,7 +75,7 @@ class Topic:
 
 
 def main():
-    """Update Discourse documentation topics to docs/ directory"""
+    """Update Discourse documentation topics in docs/ directory"""
 
     # Example `overview_topic_link`: "https://discourse.charmhub.io/t/charmed-postgresql-documentation/9710"
     overview_topic_link: str = yaml.safe_load(
