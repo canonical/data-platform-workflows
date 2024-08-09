@@ -16,7 +16,7 @@ on:
 jobs:
   sync-docs:
     name: Sync docs from Discourse
-    uses: canonical/data-platform-workflows/.github/workflows/sync_docs.yaml@main
+    uses: canonical/data-platform-workflows/.github/workflows/sync_docs.yaml@v0.0.0
     permissions:
       contents: write  # Needed to push branch & tag
       pull-requests: write  # Needed to create PR
