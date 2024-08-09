@@ -9,13 +9,14 @@ import yaml
 
 DOCS_LOCAL_PATH = pathlib.Path("docs/")
 
+
 def get_topic(topic_id_: str):
     """Get markdown content of a discourse.charmhub.io topic"""
-    
+
     response = requests.get(
         f"https://discourse.charmhub.io/raw/{topic_id_}/1"
     )  # "/1" for post 1
-    
+
     response.raise_for_status()
     return response.text
 
@@ -27,6 +28,7 @@ class NoTopicToDownload(Exception):
     - no "Navlink" is provided (e.g. for a navigation group)
     - "Navlink" is an external URL
     """
+
 
 @dataclasses.dataclass
 class Topic:
@@ -71,11 +73,14 @@ class Topic:
 
         return cls(topic_id, path)
 
+
 def main():
     """Update Discourse documentation topics to docs/ directory"""
-    
+
     # Example `overview_topic_link`: "https://discourse.charmhub.io/t/charmed-postgresql-documentation/9710"
-    overview_topic_link: str = yaml.safe_load(pathlib.Path("metadata.yaml").read_text())["docs"]
+    overview_topic_link: str = yaml.safe_load(
+        pathlib.Path("metadata.yaml").read_text()
+    )["docs"]
     assert overview_topic_link.startswith("https://discourse.charmhub.io/")
 
     # Example `topic_id`: "9710"
@@ -90,7 +95,7 @@ def main():
     )
     if not match:
         raise ValueError("Unable to find navigation table")
-    
+
     # Example `table`:
     # | Level | Path | Navlink |
     # |--------|--------|-------------|
@@ -107,7 +112,7 @@ def main():
     # Remove first row (e.g. "|--------|--------|-------------|")
     rows = rows[2:]
     rows: list[dict[str, str]] = [
-        {key.strip(): value.strip() for key, value in row.items() if key != ''}
+        {key.strip(): value.strip() for key, value in row.items() if key != ""}
         for row in rows
     ]
 
@@ -115,14 +120,14 @@ def main():
         shutil.rmtree(DOCS_LOCAL_PATH)
     except FileNotFoundError:
         pass
-    
+
     for row in rows:
-        # Example `row`: {'Level': '2', 'Path': 't-overview', 'Navlink': '[Overview](/t/9707)'} 
+        # Example `row`: {'Level': '2', 'Path': 't-overview', 'Navlink': '[Overview](/t/9707)'}
         try:
             topic = Topic.from_csv_row(row)
         except NoTopicToDownload:
             continue
-        
+
         # Download topic markdown to `topic.path`
         topic.path.parent.mkdir(parents=True, exist_ok=True)
         topic.path.write_text(get_topic(topic.id))
