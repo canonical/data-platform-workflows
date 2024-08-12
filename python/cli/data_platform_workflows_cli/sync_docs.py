@@ -132,8 +132,7 @@ def main():
         pass
 
     # Manually create and download the overview topic, since its not part of the navtable
-    overview_topic = Topic(overview_topic_id, DOCS_LOCAL_PATH / "overview.md")
-    overview_topic.download_to_path()
+    Topic(overview_topic_id, DOCS_LOCAL_PATH / "overview.md").download_to_path()
 
     # Convert navtable rows into topics, then download
     for row in rows:
