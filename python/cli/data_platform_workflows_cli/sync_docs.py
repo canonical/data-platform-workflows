@@ -79,6 +79,12 @@ class Topic:
 
         return cls(topic_id, path)
 
+    def download_to_path(self):
+        # Download topic markdown to `topic.path`
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(get_topic(self.id))
+        logging.info(f"Downloaded {self=}")
+
 
 def main():
     """Update Discourse documentation topics in docs/ directory"""
@@ -128,9 +134,11 @@ def main():
     except FileNotFoundError:
         pass
 
-    # Manually create and append a row for the overview topic, since its not part of the navtable
-    rows.append({'Level' : '1', 'Path' : 'overview', 'Navlink' : f"[Overview](/t/{overview_topic_id})"})
+    # Manually create and download the overview topic, since its not part of the navtable
+    overview_topic = Topic(overview_topic_id, DOCS_LOCAL_PATH / "overview.md")
+    overview_topic.download_to_path()
 
+    # Convert navtable rows into topics, then download
     for row in rows:
         # Example `row`: {'Level': '2', 'Path': 't-introduction', 'Navlink': '[Introduction](/t/9707)'}
         try:
@@ -138,7 +146,4 @@ def main():
         except NoTopicToDownload:
             continue
 
-        # Download topic markdown to `topic.path`
-        topic.path.parent.mkdir(parents=True, exist_ok=True)
-        topic.path.write_text(get_topic(topic.id))
-        logging.info(f"Downloaded {topic=}")
+        topic.download_to_path()
