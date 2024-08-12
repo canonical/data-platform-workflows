@@ -76,7 +76,7 @@ class Topic:
 
         return cls(topic_id, path)
 
-    def download_to_path(self):
+    def download(self):
         """Download topic markdown to path"""
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(get_topic(self.id))
@@ -132,7 +132,7 @@ def main():
         pass
 
     # Manually create and download the overview topic, since its not part of the navtable
-    Topic(overview_topic_id, DOCS_LOCAL_PATH / "overview.md").download_to_path()
+    Topic(overview_topic_id, DOCS_LOCAL_PATH / "overview.md").download()
 
     # Convert navtable rows into topics, then download
     for row in rows:
@@ -142,4 +142,4 @@ def main():
         except NoTopicToDownload:
             continue
 
-        topic.download_to_path()
+        topic.download()
