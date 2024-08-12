@@ -113,7 +113,7 @@ def main():
     # (https://stackoverflow.com/a/78254495)
     rows: list[dict] = list(csv.DictReader(table.split("\n"), delimiter="|"))
     # Remove first row (e.g. "|--------|--------|-------------|")
-    rows = rows[2:]
+    rows = rows[1:]
     rows: list[dict[str, str]] = [
         {key.strip(): value.strip() for key, value in row.items() if key != ""}
         for row in rows
