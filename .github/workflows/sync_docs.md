@@ -64,9 +64,9 @@ Each Discourse topic is downloaded to either: `/docs`, `/docs/tutorial`, `/docs/
 
 ## Documentation requirements
 
-Requirement: The overview topic must contain a navigation table with the columns "Level", "Path", and "Navlink"
+**Requirement**: The overview topic must contain a navigation table with the columns "Level", "Path", and "Navlink"
 
-Requirement: The navigation table of the overview topic must be wrapped by the `[details]` HTML/markdown element as follows:
+**Requirement**: The navigation table of the overview topic must be wrapped by the `[details]` HTML/markdown element as follows:
 
 ```
 # Navigation
@@ -82,7 +82,7 @@ Requirement: The navigation table of the overview topic must be wrapped by the `
 > [!NOTE]  
 > Make sure to leave a white space before and after the `[details]` and `[/details]` lines. Otherwise, Discourse/Charmhub may not parse them correctly.
 
-Requirement: Links to topics in the `Navlink` column must be formatted as `[Text](/t/<topic_id>)`. 
+**Requirement**: Links to topics in the `Navlink` column must be formatted as `[Text](/t/<topic_id>)`. 
 
 They **must not** be formatted as `[Text](/t/<some-additional-slug-text>/<topic_id>)`.
 
