@@ -134,7 +134,7 @@ def main():
     # Download the overview topic since it's not part of the navtable
     Topic(overview_topic_id, DOCS_LOCAL_PATH / "overview.md").download()
 
-    # Convert navtable rows into topics, then download
+    # Download topics in navtable
     for row in rows:
         # Example `row`: {'Level': '2', 'Path': 't-introduction', 'Navlink': '[Introduction](/t/9707)'}
         try:
