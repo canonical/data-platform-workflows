@@ -1,12 +1,15 @@
 import csv
 import dataclasses
+import logging
 import pathlib
 import re
 import shutil
+import sys
 
 import requests
 import yaml
 
+logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 DOCS_LOCAL_PATH = pathlib.Path("docs/")
 
 
@@ -118,6 +121,7 @@ def main():
 
     try:
         shutil.rmtree(DOCS_LOCAL_PATH)
+        logging.info(f"Deleted {DOCS_LOCAL_PATH} directory")
     except FileNotFoundError:
         pass
 
@@ -131,3 +135,4 @@ def main():
         # Download topic markdown to `topic.path`
         topic.path.parent.mkdir(parents=True, exist_ok=True)
         topic.path.write_text(get_topic(topic.id))
+        logging.info(f"Downloaded {topic=}")
