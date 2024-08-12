@@ -35,8 +35,7 @@ jobs:
           echo 'No changes to docs/ from default git branch'
           # Delete branch on GitHub if it exists
           # (GitHub will automatically close PR if it exists)
-          git fetch origin
-          if [[ "$(git branch --remotes --list origin/sync-docs)" != "" ]]
+          if git ls-remote --exit-code origin sync-docs
           then
             git push origin --delete sync-docs
           fi
