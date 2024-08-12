@@ -33,6 +33,7 @@ jobs:
         if git diff --cached --quiet
         then
           echo 'No changes to docs/ from default git branch'
+          git push origin --delete sync-docs
           exit 0
         fi
         git config user.name "GitHub Actions"
