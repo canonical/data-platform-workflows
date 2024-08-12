@@ -131,7 +131,7 @@ def main():
     except FileNotFoundError:
         pass
 
-    # Manually create and download the overview topic, since its not part of the navtable
+    # Download the overview topic since it's not part of the navtable
     Topic(overview_topic_id, DOCS_LOCAL_PATH / "overview.md").download()
 
     # Convert navtable rows into topics, then download
