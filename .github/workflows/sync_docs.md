@@ -26,7 +26,10 @@ jobs:
 
 ## Behavior
 
-Downloads all Discourse topics in a charm's Charmhub documentation to a `/docs` folder in the charm's repository. If the folder doesn't exist, it creates one.
+Downloads all Discourse topics in the charm's Charmhub documentation to `/docs` directory in the charm's repository.
+
+>[!NOTE]
+> Any content in the `/docs` folder that is not part of this workflow will get removed.
 
 The topics are determined by the navigation table in the charm's overview page - i.e. the page linked in the `metadata.yaml` `docs:` field. 
 
