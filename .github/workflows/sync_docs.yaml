@@ -33,6 +33,8 @@ jobs:
         if git diff --cached --quiet
         then
           echo 'No changes to docs/ from default git branch'
+          # Delete branch on GitHub if it exists
+          # (GitHub will automatically close PR if it exists)
           if [[ "$(git branch --remotes --list origin/sync-docs)" != "" ]]
           then
             git push origin --delete sync-docs
