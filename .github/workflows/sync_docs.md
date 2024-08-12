@@ -24,6 +24,16 @@ jobs:
       pull-requests: write  # Needed to create PR
 ```
 
+## Behavior
+
+Downloads all Discourse topics in a charm's Charmhub documentation to a `/docs` folder in the charm's repository. If the folder doesn't exist, it creates one.
+
+The topics are determined by the navigation table in the charm's overview page - i.e. the page linked in the `metadata.yaml` `docs:` field. 
+
+If there is a change on Discourse, the workflow will open a PR in the `sync-docs` branch. If a new change is made before the PR is merged, the PR will simply be updated.
+
+Each Discourse topic is downloaded to either: `/docs`, `/docs/tutorial`, `/docs/how-to`, `/docs/reference`, or `/docs/explanation`. Sub-categories without a topic of their own will not be added as an additional directory.
+
 ## Documentation requirements
 
 Requirement: The overview topic must contain a navigation table with the columns "Level", "Path", and "Navlink"
