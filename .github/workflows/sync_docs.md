@@ -33,9 +33,34 @@ Downloads all Discourse topics in the charm's Charmhub documentation to `/docs` 
 
 The topics are determined by the navigation table in the charm's overview page - i.e. the page linked in the `metadata.yaml` `docs:` field. 
 
-If there is a change on Discourse, the workflow will open a PR in the `sync-docs` branch. If a new change is made before the PR is merged, the PR will simply be updated.
+When the workflow is triggered, it downloads all Discourse topics in their latest state and compares them to the `/docs` folder in the `main` branch.
+* If the contents match, GitHub is up to date with Discourse. Nothing happens.
+* If the contents do not match, Discourse is ahead of GitHub. The workflow opens or updates a PR for the `sync-docs` branch with the diff between Discourse and GitHub.
 
-Each Discourse topic is downloaded to either: `/docs`, `/docs/tutorial`, `/docs/how-to`, `/docs/reference`, or `/docs/explanation`. Sub-categories without a topic of their own will not be added as an additional directory.
+Each Discourse topic is downloaded to either: `/docs`, `/docs/tutorial`, `/docs/how-to`, `/docs/reference`, or `/docs/explanation` depending on their slug prefix. Sub-categories without a topic of their own will not be added as an additional directory.
+
+```
+# Example navtable:
+
+| Level |      Path      |          Navlink          |
+|-------|----------------|---------------------------|
+|   1   | t-landing      | [Tutorial](/t/123)        |
+|   2   | t-introduction | [Introduction](/t/124)    |
+|   1   | h-landing      | [How To]()                |
+|   2   | h-set-up       | [Set up](/t/125)          |
+|   3   | h-deploy-lxd   | [Deploy on LXD](/t/126)   |
+|   2   | h-monitoring   | [Monitoring]()            |
+|   3   | h-alert        | [Add alert rules](/t/127) |
+
+# Expected /docs output:
+
+/docs/overview.md
+/docs/tutorial/t-landing.md
+/docs/tutorial/t-introduction.md
+/docs/how-to/h-set-up.md
+/docs/how-to/h-deploy-lxd.md
+/docs/how-to/h-alert.md
+```
 
 ## Documentation requirements
 
