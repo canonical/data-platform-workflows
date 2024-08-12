@@ -477,6 +477,8 @@ jobs:
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: tee-log-for-all-models --log-command 'juju debug-log --color --replay --no-tail' --log-file-name juju-debug-log.txt
+        env:
+          LOGLEVEL: DEBUG
       - name: jhack tail
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
