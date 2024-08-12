@@ -77,7 +77,7 @@ class Topic:
         return cls(topic_id, path)
 
     def download_to_path(self):
-        # Download topic markdown to `topic.path`
+        """Download topic markdown to path"""
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(get_topic(self.id))
         logging.info(f"Downloaded {self=}")
