@@ -36,6 +36,7 @@ jobs:
           if [[ "$(git branch --remotes --list origin/sync-docs)" != "" ]]
           then
             git push origin --delete sync-docs
+          fi
           exit 0
         fi
         git config user.name "GitHub Actions"
