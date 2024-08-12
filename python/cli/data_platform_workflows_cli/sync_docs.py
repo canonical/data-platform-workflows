@@ -42,7 +42,7 @@ class Topic:
 
     @classmethod
     def from_csv_row(cls, row_: dict):
-        # Example `row_`: {'Level': '2', 'Path': 't-overview', 'Navlink': '[Overview](/t/9707)'}
+        # Example `row_`: {'Level': '2', 'Path': 't-introduction', 'Navlink': '[Introduction](/t/9707)'}
 
         # Extract Discourse topic ID from "Navlink"
         # Example `link`: "/t/9707"
@@ -62,16 +62,19 @@ class Topic:
         topic_id = match.group(1)
 
         # Determine local path to download Markdown file
-        # Example `topic_slug`: "t-overview"
+        # Example `topic_slug`: "t-introduction"
         topic_slug = row_["Path"]
-        diataxis_directory = {
-            "t-": "tutorial",
-            "h-": "how-to",
-            "r-": "reference",
-            "e-": "explanation",
-        }[topic_slug[:2]]
+        try:
+            diataxis_directory = {
+                "t-": "tutorial",
+                "h-": "how-to",
+                "r-": "reference",
+                "e-": "explanation",
+            }[topic_slug[:2]]
+        except KeyError:
+            diataxis_directory = ""
 
-        # Example `path`: "docs/tutorial/t-overview.md"
+        # Example `path`: "docs/tutorial/t-introduction.md"
         path = DOCS_LOCAL_PATH / diataxis_directory / f"{topic_slug}.md"
 
         return cls(topic_id, path)
@@ -86,9 +89,9 @@ def main():
     )["docs"]
     assert overview_topic_link.startswith("https://discourse.charmhub.io/")
 
-    # Example `topic_id`: "9710"
-    topic_id = overview_topic_link.split("/")[-1]
-    overview_topic_markdown = get_topic(topic_id)
+    # Example `overview_topic_id`: "9710"
+    overview_topic_id = overview_topic_link.split("/")[-1]
+    overview_topic_markdown = get_topic(overview_topic_id)
 
     # Extract navigation table from Markdown
     match = re.search(
@@ -103,7 +106,7 @@ def main():
     # | Level | Path | Navlink |
     # |--------|--------|-------------|
     # | 1 | tutorial | [Tutorial]() |
-    # | 2 | t-overview | [Overview](/t/9707) |
+    # | 2 | t-introduction | [Introduction](/t/9707) |
     # | 2 | t-set-up | [1. Set up the environment](/t/9709) |
     # | 2 | t-deploy | [2. Deploy PostgreSQL](/t/9697) |
     # | 1 | search | [Search](https://canonical.com/data/docs/postgresql/iaas) |
@@ -125,8 +128,11 @@ def main():
     except FileNotFoundError:
         pass
 
+    # Manually create and append a row for the overview topic, since its not part of the navtable
+    rows.append({'Level' : '1', 'Path' : 'overview', 'Navlink' : f"[Overview](/t/{overview_topic_id})"})
+
     for row in rows:
-        # Example `row`: {'Level': '2', 'Path': 't-overview', 'Navlink': '[Overview](/t/9707)'}
+        # Example `row`: {'Level': '2', 'Path': 't-introduction', 'Navlink': '[Introduction](/t/9707)'}
         try:
             topic = Topic.from_csv_row(row)
         except NoTopicToDownload:
