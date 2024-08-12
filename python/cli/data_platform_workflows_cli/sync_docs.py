@@ -64,15 +64,12 @@ class Topic:
         # Determine local path to download Markdown file
         # Example `topic_slug`: "t-introduction"
         topic_slug = row_["Path"]
-        try:
-            diataxis_directory = {
-                "t-": "tutorial",
-                "h-": "how-to",
-                "r-": "reference",
-                "e-": "explanation",
-            }[topic_slug[:2]]
-        except KeyError:
-            diataxis_directory = ""
+        diataxis_directory = {
+            "t-": "tutorial",
+            "h-": "how-to",
+            "r-": "reference",
+            "e-": "explanation",
+        }.get(topic_slug[:2], "")
 
         # Example `path`: "docs/tutorial/t-introduction.md"
         path = DOCS_LOCAL_PATH / diataxis_directory / f"{topic_slug}.md"
