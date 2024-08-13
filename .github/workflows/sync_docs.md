@@ -37,7 +37,7 @@ When the workflow is triggered, it downloads all Discourse topics in their lates
 * If the contents match, GitHub is up to date with Discourse. Nothing happens.
 * If the contents do not match, Discourse is ahead of GitHub. The workflow opens or updates a PR for the `sync-docs` branch with the diff between Discourse and GitHub.
 
-Each Discourse topic is downloaded to either: `/docs/`, `/docs/tutorial/`, `/docs/how-to/`, `/docs/reference/`, or `/docs/explanation/` depending on their slug prefix. Sub-categories without a topic of their own will not be added as an additional directory.
+Each Discourse topic is downloaded to either: `/docs/`, `/docs/tutorial/`, `/docs/how-to/`, `/docs/reference/`, or `/docs/explanation/` depending on their slug prefix. Sub-categories will not add an additional directory.
 
 ```
 # Example navtable:
