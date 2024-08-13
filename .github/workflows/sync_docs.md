@@ -26,7 +26,7 @@ jobs:
 
 ## Behavior
 
-Downloads all Discourse topics in the charm's Charmhub documentation to `/docs` directory in the charm's repository.
+Downloads all Discourse topics in the charm's Charmhub documentation to `/docs/` directory in the charm's repository.
 
 >[!NOTE]
 > Any content in the `/docs` folder that is not part of this workflow will get removed.
