@@ -29,7 +29,7 @@ jobs:
 Downloads all Discourse topics in the charm's Charmhub documentation to `/docs/` directory in the charm's repository.
 
 >[!NOTE]
-> Any content in the `/docs` directory that is not part of this workflow will get removed.
+> Any content in the `/docs/` directory that is not part of this workflow will get removed.
 
 The topics are determined by the navigation table in the charm's overview page - i.e. the page linked in the `metadata.yaml` `docs:` field. 
 
