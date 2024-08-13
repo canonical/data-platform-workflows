@@ -29,11 +29,11 @@ jobs:
 Downloads all Discourse topics in the charm's Charmhub documentation to `/docs/` directory in the charm's repository.
 
 >[!NOTE]
-> Any content in the `/docs` folder that is not part of this workflow will get removed.
+> Any content in the `/docs` directory that is not part of this workflow will get removed.
 
 The topics are determined by the navigation table in the charm's overview page - i.e. the page linked in the `metadata.yaml` `docs:` field. 
 
-When the workflow is triggered, it downloads all Discourse topics in their latest state and compares them to the `/docs` folder in the default branch (e.g. `main`).
+When the workflow is triggered, it downloads all Discourse topics in their latest state and compares them to the `/docs` directory in the default branch (e.g. `main`).
 * If the contents match, GitHub is up to date with Discourse. Nothing happens.
 * If the contents do not match, Discourse is ahead of GitHub. The workflow opens or updates a PR for the `sync-docs` branch with the diff between Discourse and GitHub.
 
