@@ -11,7 +11,6 @@
 | [release_rock.yaml](.github/workflows/release_rock.md)                     | Release rock to GitHub Container Registry                                  |
 | [release_charm.yaml](.github/workflows/release_charm.md)                   | Release charm to Charmhub                                                  |
 | [update_bundle.yaml](.github/workflows/update_bundle.md)                   | Update charm revisions in bundle                                           |
-| [sync_issue_to_jira.yaml](.github/workflows/sync_issue_to_jira.md)         | Sync GitHub issues to Jira issues                                          |
 | [sync_docs.yaml](.github/workflows/sync_docs.md)                           | Sync Discourse documentation to GitHub                                     |
 
 ### Version
