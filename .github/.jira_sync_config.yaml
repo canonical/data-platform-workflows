@@ -1,7 +1,7 @@
 # Sync GitHub issues to Jira issues
 
 # Configuration syntax:
-# https://github.com/canonical/gh-jira-sync-bot?tab=readme-ov-file#client-side-configuration
+# https://github.com/canonical/gh-jira-sync-bot/blob/main/README.md#client-side-configuration
 settings:
   # Repository specific settings
 
