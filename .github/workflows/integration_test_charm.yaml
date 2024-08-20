@@ -421,6 +421,7 @@ jobs:
         if: ${{ inputs.libjuju-version-constraint }}
         run: poetry add --lock --group integration juju@'${{ inputs.libjuju-version-constraint }}'
       - name: (artifact debug) start tcpdump capture
+        id: start-tcpdump1
         timeout-minutes: 1
         run: |
           touch mycapturefile1.pcap 
@@ -440,7 +441,7 @@ jobs:
           merge-multiple: true
       - name: (artifact debug) stop tcpdump capture
         timeout-minutes: 1
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.start-tcpdump1.outcome == 'success' }}
         run: |
           sudo pkill tcpdump
 
@@ -451,7 +452,7 @@ jobs:
         if: ${{ failure() && steps.download-charms.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
         with:
-          name: mycapturefile1.cap
+          name: tcpdump1-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
           path: mycapturefile1.cap
       - name: Select test stability level
         timeout-minutes: 1
@@ -489,6 +490,8 @@ jobs:
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
       - name: (artifact debug) start tcpdump capture
+        id: start-tcpdump2
+        if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
         timeout-minutes: 1
         run: |
           touch mycapturefile2.pcap 
@@ -510,7 +513,7 @@ jobs:
           if-no-files-found: error
       - name: (artifact debug) stop tcpdump capture
         timeout-minutes: 1
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.start-tcpdump2.outcome == 'success' }}
         run: |
           sudo pkill tcpdump
 
@@ -521,7 +524,7 @@ jobs:
         if: ${{ failure() && steps.upload-allure.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
         with:
-          name: mycapturefile2.cap
+          name: tcpdump2-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
           path: mycapturefile2.cap
       - name: juju status
         timeout-minutes: 1
@@ -536,6 +539,7 @@ jobs:
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: tee-log-for-all-models --log-command 'jhack tail --printer raw --replay --no-watch' --log-file-name jhack-tail.txt
       - name: (artifact debug) start tcpdump capture
+        id: start-tcpdump3
         timeout-minutes: 1
         run: |
           touch mycapturefile3.pcap 
@@ -557,7 +561,7 @@ jobs:
           if-no-files-found: error
       - name: (artifact debug) stop tcpdump capture
         timeout-minutes: 1
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.start-tcpdump3.outcome == 'success' }}
         run: |
           sudo pkill tcpdump
 
@@ -568,7 +572,7 @@ jobs:
         if: ${{ failure() && steps.upload-logs.outcome == 'failure' }}
         uses: actions/upload-artifact@v3
         with:
-          name: mycapturefile3.cap
+          name: tcpdump3-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
           path: mycapturefile3.cap
       - name: Disk usage
         timeout-minutes: 1
