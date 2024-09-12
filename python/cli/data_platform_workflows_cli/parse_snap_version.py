@@ -18,7 +18,7 @@ def main():
     elif args.channel:
         install_flag = f"'--channel={args.channel}'"
     elif args.channel_input_name == "charmcraft-snap-channel":
-        install_flag = "'--channel=2.x/stable'"
+        install_flag = "'--channel=3.x/stable'"
     else:
         install_flag = None
     github_actions.output["install_flag"] = install_flag
