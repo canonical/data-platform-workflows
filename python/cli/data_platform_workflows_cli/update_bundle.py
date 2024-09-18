@@ -12,6 +12,7 @@ import requests
 import yaml
 
 from . import github_actions
+from typing import Optional, Dict
 
 
 def get_ubuntu_version(series: str) -> str:
@@ -54,6 +55,20 @@ def fetch_latest_revision(charm, charm_channel, series=None) -> int:
     return max(revisions)
 
 
+def fetch_oci_image_from_channel(charm, charm_channel) -> Optional[Dict[str,str]]:
+    """Gets the OCI image source from metadata.yaml of latest revision released in channel."""
+    response = requests.get(
+        f"https://api.snapcraft.io/v2/charms/info/{charm}?fields=default-release&channel={charm_channel}"
+    )
+    response.raise_for_status()
+    default_release = response.json()["default-release"]
+    metadata = yaml.safe_load(default_release["revision"]["metadata-yaml"])
+    for resource_name, resource_data in metadata.get("resources", {}).items():
+        if resource_data.get("type") == "oci-image" and "upstream-source" in resource_data:
+            return {resource_name: resource_data["upstream_source"]}
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("file_path")
@@ -69,6 +84,8 @@ def main():
         app["revision"] = fetch_latest_revision(
             app["charm"], app["channel"], app.get("series", default_series)
         )
+        if oci_image := fetch_oci_image_from_channel(app["charm"], app["channel"]):
+            app["resources"] = oci_image
 
     with open(file_path, "w") as file:
         yaml.dump(file_data, file)
