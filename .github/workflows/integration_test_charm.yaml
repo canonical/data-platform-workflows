@@ -198,6 +198,13 @@ jobs:
     runs-on: ${{ matrix.groups.runner || fromJSON(inputs._default-runner) || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
     timeout-minutes: 309  # Sum of steps `timeout-minutes` + 5
     steps:
+      - name: (IS hosted) Networking workaround
+        # https://chat.canonical.com/canonical/pl/saky4y3b4pr4xfpbjhneizgsrw
+        timeout-minutes: 1
+        if: ${{ matrix.groups.is_hosted || fromJSON(inputs._default-runner) != '' }}
+        run: |
+          sudo sysctl net.core.default_qdisc=fq
+          sudo sysctl net.ipv4.tcp_congestion_control=bbr
       - name: (Data Platform hosted) Write job name to file
         timeout-minutes: 1
         # Data Platform hosted
