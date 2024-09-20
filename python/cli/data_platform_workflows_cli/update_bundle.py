@@ -65,7 +65,7 @@ def fetch_oci_image_from_channel(charm, charm_channel) -> Optional[Dict[str,str]
     metadata = yaml.safe_load(default_release["revision"]["metadata-yaml"])
     for resource_name, resource_data in metadata.get("resources", {}).items():
         if resource_data.get("type") == "oci-image" and "upstream-source" in resource_data:
-            return {resource_name: resource_data["upstream_source"]}
+            return {resource_name: resource_data["upstream-source"]}
     return None
 
 
