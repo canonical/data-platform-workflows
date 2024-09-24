@@ -128,7 +128,6 @@ jobs:
           sudo iptables -P FORWARD ACCEPT
 
           sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
-          pipx install tox
           pipx install poetry
           pipx inject poetry poetry-plugin-export
           # TODO: Remove after https://github.com/python-poetry/poetry/pull/5980 is closed
@@ -136,13 +135,19 @@ jobs:
 
           pipx install charmcraftcache
       - run: snap list
-      - name: Get pack command
-        id: pack-command
-        run: get-pack-command --cache='${{ inputs.cache }}' --charm-directory='${{ inputs.path-to-charm-directory }}' --bases-index='${{ matrix.base.id }}'
       - name: Pack charm
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
-        run: sg lxd -c "${{ steps.pack-command.outputs.command }}"
+        run: |
+          if '${{ inputs.cache }}'
+          then
+            sg lxd -c "charmcraftcache pack -v --bases-index='${{ matrix.base.id }}'"
+          else
+            # Workaround for https://github.com/canonical/charmcraft/issues/1389 on charmcraft 2
+            touch requirements.txt
+
+            sg lxd -c "charmcraft pack -v --bases-index='${{ matrix.base.id }}'"
+          fi
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
