@@ -135,7 +135,7 @@ jobs:
           poetry config warnings.export false
 
           # TODO DO NOT MERGE remove branch
-          pipx install charmcraftcache@remove-wrapper
+          pipx install git+https://github.com/canonical/charmcraftcache@remove-wrapper
       - run: snap list
       - name: Pack charm
         id: pack
