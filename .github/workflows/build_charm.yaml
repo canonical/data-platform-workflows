@@ -133,8 +133,7 @@ jobs:
           # TODO: Remove after https://github.com/python-poetry/poetry/pull/5980 is closed
           poetry config warnings.export false
 
-          # TODO DO NOT MERGE remove branch
-          pipx install git+https://github.com/canonical/charmcraftcache@remove-wrapper
+          pipx install charmcraftcache
       - run: snap list
       - name: Pack charm
         id: pack
