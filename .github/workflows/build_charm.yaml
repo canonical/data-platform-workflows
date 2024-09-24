@@ -134,15 +134,19 @@ jobs:
           # TODO: Remove after https://github.com/python-poetry/poetry/pull/5980 is closed
           poetry config warnings.export false
 
-          pipx install charmcraftcache
+          # TODO DO NOT MERGE remove branch
+          pipx install charmcraftcache@remove-wrapper
       - run: snap list
-      - name: Get pack command
-        id: pack-command
-        run: get-pack-command --cache='${{ inputs.cache }}' --charm-directory='${{ inputs.path-to-charm-directory }}' --bases-index='${{ matrix.base.id }}'
       - name: Pack charm
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
-        run: sg lxd -c "${{ steps.pack-command.outputs.command }}"
+        run: |
+          if '${{ inputs.cache }}'
+          then
+            sg lxd -c "charmcraftcache pack -v --bases-index='${{ matrix.base.id }}'"
+          else
+            sg lxd -c "charmcraft pack -v --bases-index='${{ matrix.base.id }}'"
+          fi
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
