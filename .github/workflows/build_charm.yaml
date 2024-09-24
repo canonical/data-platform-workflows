@@ -145,6 +145,9 @@ jobs:
           then
             sg lxd -c "charmcraftcache pack -v --bases-index='${{ matrix.base.id }}'"
           else
+            # Workaround for https://github.com/canonical/charmcraft/issues/1389 on charmcraft 2
+            touch requirements.txt
+
             sg lxd -c "charmcraft pack -v --bases-index='${{ matrix.base.id }}'"
           fi
         env:
