@@ -30,10 +30,7 @@ def fetch_charm_info_from_store(charm, charm_channel) -> Tuple[Dict, Dict]:
     response = requests.get(
         f"https://api.snapcraft.io/v2/charms/info/{charm}?fields=channel-map,default-release&channel={charm_channel}"
     )
-    response.raise_for_status()
-    channel_map = response.json()["channel-map"]
-    metadata = yaml.safe_load(response.json()["default-release"]["revision"]["metadata-yaml"])
-    return channel_map, metadata
+    return response.json()["channel-map"], response.json()["default-release"].get("resources", [])
 
 
 def fetch_latest_revision(channel_map, series=None) -> int:
@@ -56,12 +53,13 @@ def fetch_latest_revision(channel_map, series=None) -> int:
     return max(revisions)
 
 
-def fetch_oci_image_from_metadata(metadata) -> Optional[Dict[str,str]]:
-    """Gets the OCI image source from metadata.yaml."""
-    for resource_name, resource_data in metadata.get("resources", {}).items():
-        if resource_data.get("type") == "oci-image" and "upstream-source" in resource_data:
-            return {resource_name: resource_data["upstream-source"]}
-    return None
+def fetch_oci_image_metadata(download_url) -> Tuple[str, str]:
+    """Retrieves remote OCI image path and credentials for download."""
+    response = requests.get(download_url)
+    image_name = response.json()["ImageName"]
+    username = response.json()["Username"]
+    password = response.json()["Password"]
+    return f"docker://{image_name}", f"{username}:{password}"
 
 
 def main():
@@ -76,7 +74,7 @@ def main():
     # Full list of possible series config (unsupported) can be found under "Charm series" at https://juju.is/docs/olm/bundle
     default_series = file_data.get("series")
     for app in file_data["applications"].values():
-        channel_map, metadata = fetch_charm_info_from_store(app['charm'], app['channel'])
+        channel_map, resources = fetch_charm_info_from_store(app['charm'], app['channel'])
 
         if latest_revision := fetch_latest_revision(channel_map, app.get("series", default_series)):
             app["revision"] = latest_revision
@@ -84,9 +82,14 @@ def main():
             raise ValueError(
                 f"Revision not found for {app['charm']} on {app['channel']} for Ubuntu {app.get('series', default_series)}"
             )
-        if oci_image := fetch_oci_image_from_metadata(metadata):
-            app["resources"] = oci_image
-
+        for resource in resources:
+            if resource["type"] == "oci-image":
+                image_path, src_creds = fetch_oci_image_metadata(resource["download"]["url"])
+                app["resources"] = {
+                    resource["name"]: resource["revision"],
+                    "oci-image": image_path,
+                    "src-creds": src_creds,
+                }
     with open(file_path, "w") as file:
         yaml.dump(file_data, file)
 
