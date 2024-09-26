@@ -414,7 +414,7 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
       - name: Run integration tests
-        timeout-minutes: 120
+        timeout-minutes: 30
         id: tests
         run: sg '${{ steps.parse-cloud.outputs.group }}' -c "tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_id }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test ${{ steps.allure-option.outputs.option }}"
         env:
