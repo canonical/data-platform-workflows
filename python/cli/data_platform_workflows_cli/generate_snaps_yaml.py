@@ -31,7 +31,7 @@ def generate_snaps_yaml(snap_table, canonical_livepatch, snaps_file_path) -> boo
 
     packages.append({
         "name": "canonical-livepatch",
-        "revision": livepatch_revision,
+        "revision": int(livepatch_revision),
         "push_channel": livepatch_channel
     })
     new_data = {"packages": packages}
