@@ -37,8 +37,8 @@ on:
         required: true
 
 jobs:
-  test-deploy-bundle:
-    name: Test deploy bundle
+  update-bundle-snaps:
+    name: Update bundle snaps
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -47,7 +47,7 @@ jobs:
         uses: canonical/get-workflow-version-action@v1
         with:
           repository-name: canonical/data-platform-workflows
-          file-name: fetch_snaps.yaml
+          file-name: update_bundle_snaps.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli

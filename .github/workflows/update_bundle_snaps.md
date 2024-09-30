@@ -1,4 +1,4 @@
-Workflow file: [fetch_snaps.yaml](fetch_snaps.yaml)
+Workflow file: [update_bundle_snaps.yaml](update_bundle_snaps.yaml)
 
 ## Usage
 Add `.yaml` file to `.github/workflows/`
@@ -14,7 +14,7 @@ on:
 jobs:
   update-bundle-snaps:
     name: Update bundle snaps
-    uses: canonical/data-platform-workflows/.github/workflows/update_bundle.yaml@v0.0.0
+    uses: canonical/data-platform-workflows/.github/workflows/update_bundle_snaps.yaml@v0.0.0
     with:
       path-to-snaps-file: snaps.yaml
       path-to-bundle-file: bundle.yaml
