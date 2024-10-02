@@ -75,7 +75,7 @@ def fetch_oci_image_metadata(download_url) -> Tuple[str, str, str]:
 
 def fetch_grafana_snaps():
     """Fetch grafana-agent snaps information."""
-    response = requests.get("https://github.com/canonical/grafana-agent-operator/blob/main/src/snap_management.py")
+    response = requests.get("https://raw.githubusercontent.com/canonical/grafana-agent-operator/refs/heads/main/src/snap_management.py")
     content = response.text
 
     snap_name = fetch_var_from_py_file(content, "_grafana_agent_snap_name")
@@ -97,8 +97,8 @@ def fetch_grafana_snaps():
 
 def fetch_mysql_snaps():
     """Fetch mysql-operator snaps information."""
-    resp_revision = requests.get("https://github.com/canonical/mysql-operator/blob/main/snap_revisions.json")
-    resp_name = requests.get("https://github.com/canonical/mysql-operator/blob/main/src/constants.py")
+    resp_revision = requests.get("https://raw.githubusercontent.com/canonical/mysql-operator/refs/heads/main/snap_revisions.json")
+    resp_name = requests.get("https://raw.githubusercontent.com/canonical/mysql-operator/refs/heads/main/src/constants.py")
     
     snap_revision = resp_revision.json().get("x86_64")
     snap_name = fetch_var_from_py_file(resp_name.text, "CHARMED_MYSQL_SNAP_NAME")
@@ -116,7 +116,7 @@ def fetch_mysql_snaps():
 
 def fetch_mysql_router_snaps():
     """Fetch mysql-router snaps information."""
-    response = requests.get("https://github.com/canonical/mysql-router-operator/blob/main/src/snap.py")
+    response = requests.get("https://raw.githubusercontent.com/canonical/mysql-router-operator/refs/heads/main/src/snap.py")
 
     snap_name = fetch_var_from_py_file(response.text, "_SNAP_NAME")
     revisions = fetch_var_from_py_file(response.text, "REVISIONS")
@@ -134,7 +134,7 @@ def fetch_mysql_router_snaps():
 
 def fetch_postgresql_snaps():
     """Fetch postgresql-operator snaps information."""
-    response = requests.get("https://github.com/canonical/postgresql-operator/blob/main/src/constants.py")
+    response = requests.get("https://raw.githubusercontent.com/canonical/postgresql-operator/refs/heads/main/src/constants.py")
 
     snap_list = fetch_var_from_py_file(response.text, "SNAP_PACKAGES")
 
@@ -153,7 +153,7 @@ def fetch_postgresql_snaps():
 
 def fetch_pgbouncer_snaps():
     """Fetch pgbouncer-operator snaps information."""
-    response = requests.get("https://github.com/canonical/pgbouncer-operator/blob/main/src/constants.py")
+    response = requests.get("https://raw.githubusercontent.com/canonical/pgbouncer-operator/refs/heads/main/src/constants.py")
 
     snap_list = fetch_var_from_py_file(response.text, "SNAP_PACKAGES")
 
