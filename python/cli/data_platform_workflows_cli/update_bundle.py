@@ -25,8 +25,12 @@ def get_ubuntu_version(series: str) -> str:
     ).stdout.split(" ")[0]
 
 
-def fetch_var_from_py_file(text, variable):
+def fetch_var_from_py_file(text, variable, safe=True):
     """Parses .py file and returns the value assigned to a given variable inside it."""
+    if not safe:
+        namespace = {}
+        exec(text, namespace)
+        return namespace[variable]
     parsed = ast.parse(text)
     for node in ast.walk(parsed):
         if isinstance(node, ast.Assign):
@@ -155,7 +159,7 @@ def fetch_pgbouncer_snaps():
     """Fetch pgbouncer-operator snaps information."""
     response = requests.get("https://raw.githubusercontent.com/canonical/pgbouncer-operator/refs/heads/main/src/constants.py")
 
-    snap_list = fetch_var_from_py_file(response.text, "SNAP_PACKAGES")
+    snap_list = fetch_var_from_py_file(response.text, "SNAP_PACKAGES", False)
 
     if snap_list:
         result = []
