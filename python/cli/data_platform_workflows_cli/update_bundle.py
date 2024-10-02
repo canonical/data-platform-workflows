@@ -188,7 +188,7 @@ def main():
     parser.add_argument("bundle_file_path")
     parser.add_argument("snaps_file_path")
     bundle_file_path = pathlib.Path(parser.parse_args().bundle_file_path)
-    snaps_file_path = pathlib.Path(parser.parse_args().bundle_file_path)
+    snaps_file_path = pathlib.Path(parser.parse_args().snaps_file_path)
     updates_available = False
     old_bundle_data = {}
     old_snaps_data = {}
