@@ -140,7 +140,7 @@ def fetch_postgresql_snaps():
     """Fetch postgresql-operator snaps information."""
     response = requests.get("https://raw.githubusercontent.com/canonical/postgresql-operator/refs/heads/main/src/constants.py")
 
-    snap_list = fetch_var_from_py_file(response.text, "SNAP_PACKAGES")
+    snap_list = fetch_var_from_py_file(response.text, "SNAP_PACKAGES", False)
 
     if snap_list:
         result = []
