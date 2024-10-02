@@ -53,13 +53,13 @@ def fetch_latest_revision(channel_map, series=None) -> int:
     return max(revisions)
 
 
-def fetch_oci_image_metadata(download_url) -> Tuple[str, str]:
+def fetch_oci_image_metadata(download_url) -> Tuple[str, str, str]:
     """Retrieves remote OCI image path and credentials for download."""
     response = requests.get(download_url)
     image_name = response.json()["ImageName"]
-    username = response.json()["Username"]
-    password = response.json()["Password"]
-    return f"docker://{image_name}", f"{username}:{password}"
+    oci_username = response.json()["Username"]
+    oci_password = response.json()["Password"]
+    return f"docker://{image_name}", oci_username, oci_password
 
 
 def main():
@@ -84,11 +84,14 @@ def main():
             )
         for resource in resources:
             if resource["type"] == "oci-image":
-                image_path, src_creds = fetch_oci_image_metadata(resource["download"]["url"])
+                image_path, oci_username, oci_password = fetch_oci_image_metadata(resource["download"]["url"])
                 app["resources"] = {
-                    resource["name"]: resource["revision"],
-                    "oci-image": image_path,
-                    "src-creds": src_creds,
+                    resource["name"]: {
+                        "revision": resource["revision"],
+                        "oci-image": image_path,
+                        "oci-password": oci_username,
+                        "oci-username": oci_password,
+                    }
                 }
     with open(file_path, "w") as file:
         yaml.dump(file_data, file)
