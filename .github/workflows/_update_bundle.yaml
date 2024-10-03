@@ -63,7 +63,10 @@ jobs:
         if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
         run: |
           git checkout -b update-bundle
-          git add '${{ inputs.path-to-bundle-file }}'${{ inputs.path-to-snaps-file && ' ' + inputs.path-to-snaps-file || '' }}
+          git add '${{ inputs.path-to-bundle-file }}'
+          if [ -n "${{ inputs.path-to-snaps-file }}" ]; then
+            git add '${{ inputs.path-to-snaps-file }}'
+          fi
           git config user.name "GitHub Actions"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Update bundle"
