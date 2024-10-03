@@ -6,7 +6,7 @@ Workflow file: [_update_bundle.yaml](_update_bundle.yaml)
 ## Usage
 Add `.yaml` file to `.github/workflows/`
 ```yaml
-# Copyright 2023 Canonical Ltd.
+# Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 name: Update bundle
 
