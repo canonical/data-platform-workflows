@@ -12,6 +12,7 @@
 | [release_charm.yaml](.github/workflows/release_charm.md)                   | Release charm to Charmhub                                                  |
 | [update_bundle.yaml](.github/workflows/update_bundle.md)                   | Update charm revisions in bundle                                           |
 | [sync_docs.yaml](.github/workflows/sync_docs.md)                           | Sync Discourse documentation to GitHub                                     |
+| [_update_bundle.yaml](.github/workflows/_update_bundle.md)                 | **Experimental** Update charm revisions in bundle                          |
 
 ### Version
 Recommendation: pin the latest version (e.g. `v1.0.0`) and use [Renovate](https://docs.renovatebot.com/) to stay up-to-date.

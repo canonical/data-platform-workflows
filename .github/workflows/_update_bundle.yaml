@@ -1,7 +1,7 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Experimental!
+# Usage documentation: _update_bundle.md
 
 on:
   workflow_call:
