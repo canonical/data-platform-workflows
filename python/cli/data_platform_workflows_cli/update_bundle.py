@@ -12,7 +12,6 @@ import requests
 import yaml
 
 from . import github_actions
-from typing import Dict, Tuple
 
 
 def remove_snap_duplicates(snaps):
@@ -40,7 +39,7 @@ def get_ubuntu_version(series: str) -> str:
 def fetch_var_from_py_file(text, variable, safe=True):
     """Parses .py file and returns the value assigned to a given variable inside it."""
     # While `ast.literal_eval` is safer and prefered, some vars are defined in terms of
-    # expressions (ie f-strings), not literals. In such cases, `exec` is the only way.
+    # expressions (e.g. f-strings), not literals. In such cases, `exec` is the only way.
     if not safe:
         namespace = {}
         exec(text, namespace)
@@ -55,15 +54,17 @@ def fetch_var_from_py_file(text, variable, safe=True):
     return None
 
 
-def fetch_charm_info_from_store(charm, charm_channel) -> Tuple[Dict, Dict]:
+def fetch_charm_info_from_store(charm, charm_channel) -> tuple[list[dict], list[dict]]:
     """Returns, for a given channel, the necessary charm info from store endpoint."""
     response = requests.get(
         f"https://api.snapcraft.io/v2/charms/info/{charm}?fields=channel-map,default-release&channel={charm_channel}"
     )
-    return response.json()["channel-map"], response.json()["default-release"].get("resources", [])
+    response.raise_for_status()
+    content = response.json()
+    return content["channel-map"], content["default-release"].get("resources", [])
 
 
-def fetch_latest_charm_revision(channel_map, series=None) -> int:
+def fetch_latest_charm_revision(channel_map, series=None) -> int | None:
     """Gets the latest charm revision number in channel."""
     revisions = []
     for channel in channel_map:
@@ -83,18 +84,10 @@ def fetch_latest_charm_revision(channel_map, series=None) -> int:
     return max(revisions)
 
 
-def fetch_oci_image_metadata(download_url) -> Tuple[str, str, str]:
-    """Retrieves remote OCI image path and credentials for download."""
-    response = requests.get(download_url)
-    image_name = response.json()["ImageName"]
-    oci_username = response.json()["Username"]
-    oci_password = response.json()["Password"]
-    return f"docker://{image_name}", oci_username, oci_password
-
-
-def fetch_grafana_snaps():
+def fetch_grafana_snaps(charm_revision):
     """Fetch grafana-agent snaps information."""
-    response = requests.get("https://raw.githubusercontent.com/canonical/grafana-agent-operator/refs/heads/main/src/snap_management.py")
+    response = requests.get(f"https://raw.githubusercontent.com/canonical/grafana-agent-operator/refs/tags/rev{charm_revision}/src/snap_management.py")
+    response.raise_for_status()
     content = response.text
 
     snap_name = fetch_var_from_py_file(content, "_grafana_agent_snap_name")
@@ -114,10 +107,12 @@ def fetch_grafana_snaps():
         raise ValueError("Required grafana-agent snap variables not found in the file")
 
 
-def fetch_mysql_snaps():
+def fetch_mysql_snaps(charm_revision):
     """Fetch mysql-operator snaps information."""
-    resp_revision = requests.get("https://raw.githubusercontent.com/canonical/mysql-operator/refs/heads/main/snap_revisions.json")
-    resp_name = requests.get("https://raw.githubusercontent.com/canonical/mysql-operator/refs/heads/main/src/constants.py")
+    resp_revision = requests.get(f"https://raw.githubusercontent.com/canonical/mysql-operator/refs/tags/rev{charm_revision}/snap_revisions.json")
+    resp_revision.raise_for_status()
+    resp_name = requests.get(f"https://raw.githubusercontent.com/canonical/mysql-operator/refs/tags/rev{charm_revision}/src/constants.py")
+    resp_name.raise_for_status()
     
     snap_revision = resp_revision.json().get("x86_64")
     snap_name = fetch_var_from_py_file(resp_name.text, "CHARMED_MYSQL_SNAP_NAME")
@@ -133,9 +128,10 @@ def fetch_mysql_snaps():
         raise ValueError("Required mysql-operator snap variables not found in the file")
 
 
-def fetch_mysql_router_snaps():
+def fetch_mysql_router_snaps(charm_revision):
     """Fetch mysql-router snaps information."""
-    response = requests.get("https://raw.githubusercontent.com/canonical/mysql-router-operator/refs/heads/main/src/snap.py")
+    response = requests.get(f"https://raw.githubusercontent.com/canonical/mysql-router-operator/refs/tags/rev{charm_revision}/src/snap.py")
+    response.raise_for_status()
 
     snap_name = fetch_var_from_py_file(response.text, "_SNAP_NAME")
     revisions = fetch_var_from_py_file(response.text, "REVISIONS")
@@ -151,9 +147,10 @@ def fetch_mysql_router_snaps():
         raise ValueError("Required mysql-router snap variables not found in the file")
 
 
-def fetch_postgresql_snaps():
+def fetch_postgresql_snaps(charm_revision):
     """Fetch postgresql-operator snaps information."""
-    response = requests.get("https://raw.githubusercontent.com/canonical/postgresql-operator/refs/heads/main/src/constants.py")
+    response = requests.get(f"https://raw.githubusercontent.com/canonical/postgresql-operator/refs/tags/rev{charm_revision}/src/constants.py")
+    response.raise_for_status()
 
     snap_list = fetch_var_from_py_file(response.text, "SNAP_PACKAGES", False)
 
@@ -170,9 +167,10 @@ def fetch_postgresql_snaps():
         raise ValueError("Required postgresql-operator snap variables not found in the file")
 
 
-def fetch_pgbouncer_snaps():
+def fetch_pgbouncer_snaps(charm_revision):
     """Fetch pgbouncer-operator snaps information."""
-    response = requests.get("https://raw.githubusercontent.com/canonical/pgbouncer-operator/refs/heads/main/src/constants.py")
+    response = requests.get(f"https://raw.githubusercontent.com/canonical/pgbouncer-operator/refs/tags/rev{charm_revision}/src/constants.py")
+    response.raise_for_status()
 
     snap_list = fetch_var_from_py_file(response.text, "SNAP_PACKAGES", False)
 
@@ -192,6 +190,7 @@ def fetch_pgbouncer_snaps():
 def fetch_ubuntu_advantage_snaps():
     """Return canonical-livepatch latest revision in default channel (the way the charm deploys it)"""
     response = requests.get("https://api.snapcraft.io/v2/snaps/info/canonical-livepatch", headers = {'Snap-Device-Series': '16'})
+    response.raise_for_status()
     default_channel = response.json()["channel-map"][0]
     snap = [{
         "name": "canonical-livepatch",
@@ -209,28 +208,18 @@ SNAP_FETCHERS_BY_CHARM = {
     "mysql-router": fetch_mysql_router_snaps,
     "ubuntu-advantage": fetch_ubuntu_advantage_snaps,
 }
+SNAPS_YAML_PATH = "releases/latest/snaps.yaml"
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("bundle_file_path",  type=str)
-    parser.add_argument("snaps_file_path", type=str, nargs='?', default=None)
 
     bundle_file_path = pathlib.Path(parser.parse_args().bundle_file_path)
     old_bundle_data = yaml.safe_load(bundle_file_path.read_text())
     bundle_data = copy.deepcopy(old_bundle_data)
-
-    if parser.parse_args().snaps_file_path:
-        snaps_data = {"packages": []}
-        snaps_file_path = pathlib.Path(parser.parse_args().snaps_file_path)
-        try:
-            old_snaps_data = yaml.safe_load(snaps_file_path.read_text())
-        except FileNotFoundError:
-            old_snaps_data = {}
-    else:
-        snaps_data = None
-        snaps_file_path = None
-        old_snaps_data = None
+    snaps_data = {"packages": []}
+    updates_available = False
 
     # Charm series detection is only supported for top-level and application-level "series" keys
     # Other charm series config (e.g. machine-level key) is not supported
@@ -246,18 +235,24 @@ def main():
             )
         for resource in resources:
             if resource["type"] == "oci-image":
-                image_path, oci_username, oci_password = fetch_oci_image_metadata(resource["download"]["url"])
+                response = requests.get(resource["download"]["url"])
+                response.raise_for_status()
+                resource_data = response.json()
+
                 app["resources"] = {
                     resource["name"]: {
                         "revision": resource["revision"],
-                        "oci-image": image_path,
-                        "oci-password": oci_username,
-                        "oci-username": oci_password,
+                        "oci-image": f"docker://{resource_data['ImageName']}",
+                        "oci-username": resource_data["Username"],
+                        "oci-password": resource_data["Password"],
                     }
                 }
-        if snaps_file_path and app["charm"] in SNAP_FETCHERS_BY_CHARM:
+        if app["charm"] in SNAP_FETCHERS_BY_CHARM:
             fetcher_func = SNAP_FETCHERS_BY_CHARM[app["charm"]]
-            snaps_list = fetcher_func()
+            if app["charm"] == "ubuntu-advantage":
+                snaps_list = fetcher_func()
+            else:
+                snaps_list = fetcher_func(app["revision"])
             for snaps in snaps_list:
                 snaps_data['packages'].append({
                     "name": snaps["name"],
@@ -265,17 +260,21 @@ def main():
                     "push_channel": snaps["channel"],
                 })
 
-    with open(bundle_file_path, "w") as file:
-        yaml.dump(bundle_data, file)
-
-    if snaps_file_path:
-        snaps_data["packages"] = remove_snap_duplicates(snaps_data["packages"])
-        with open(snaps_file_path, "w") as file:
-            yaml.dump(snaps_data, file)
-
-    if old_bundle_data != bundle_data or (snaps_file_path and old_snaps_data != snaps_data):
+    if old_bundle_data != bundle_data:
         updates_available = True
-    else:
-        updates_available = False
+        with open(bundle_file_path, "w") as file:
+            yaml.dump(bundle_data, file)
+
+    if len(snaps_data["packages"]) > 0:
+        snaps_data["packages"] = remove_snap_duplicates(snaps_data["packages"])
+        try:
+            old_snaps_data = yaml.safe_load(pathlib.Path(SNAPS_YAML_PATH).read_text())
+        except FileNotFoundError:
+            old_snaps_data = {}
+
+        if old_snaps_data != snaps_data:
+            updates_available = True
+            with open(SNAPS_YAML_PATH, "w") as file:
+                yaml.dump(snaps_data, file)
 
     github_actions.output["updates_available"] = json.dumps(updates_available)

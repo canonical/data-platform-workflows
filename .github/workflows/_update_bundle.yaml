@@ -6,10 +6,6 @@
 on:
   workflow_call:
     inputs:
-      path-to-snaps-file:
-        description: Relative path to snaps yaml file from repository directory
-        required: false
-        type: string
       path-to-bundle-file:
         description: Relative path to bundle file from repository directory
         required: true
@@ -58,14 +54,14 @@ jobs:
           token: ${{ secrets.token }}
       - name: Update bundle file
         id: update-file
-        run: update-bundle '${{ inputs.path-to-bundle-file }}' '${{ inputs.path-to-snaps-file }}'
+        run: update-bundle '${{ inputs.path-to-bundle-file }}'
       - name: Push `update-bundle` branch
         if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
         run: |
           git checkout -b update-bundle
           git add '${{ inputs.path-to-bundle-file }}'
-          if [ -n "${{ inputs.path-to-snaps-file }}" ]; then
-            git add '${{ inputs.path-to-snaps-file }}'
+          if [ -f "./releases/latest/snaps.yaml" ]; then
+            git add ./releases/latest/snaps.yaml
           fi
           git config user.name "GitHub Actions"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
