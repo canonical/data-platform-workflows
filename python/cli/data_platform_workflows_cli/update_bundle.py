@@ -234,6 +234,7 @@ def main():
     # Full list of possible series config (unsupported) can be found under "Charm series" at https://juju.is/docs/olm/bundle
     default_series = bundle_data.get("series")
     for app in bundle_data["applications"].values():
+        print(bundle_data)
         channel_map, resources = fetch_charm_info_from_store(app['charm'], app['channel'])
         if latest_revision := fetch_latest_charm_revision(channel_map, app.get("series", default_series)):
             app["revision"] = latest_revision
@@ -264,6 +265,7 @@ def main():
 
     snaps_data["packages"] = remove_snap_duplicates(snaps_data["packages"])
     with open(bundle_file_path, "w") as file:
+        print(bundle_data)
         yaml.dump(bundle_data, file)
     with open(snaps_file_path, "w") as file:
         yaml.dump(snaps_data, file)
