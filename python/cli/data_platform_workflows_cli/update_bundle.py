@@ -262,7 +262,7 @@ def main():
                     "push_channel": snaps["channel"],
                 })
 
-    snaps_data = remove_snap_duplicates(snaps_data)
+    snaps_data["packages"] = remove_snap_duplicates(snaps_data["packages"])
     with open(bundle_file_path, "w") as file:
         yaml.dump(bundle_data, file)
     with open(snaps_file_path, "w") as file:
