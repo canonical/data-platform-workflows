@@ -15,6 +15,18 @@ from . import github_actions
 from typing import Dict, Tuple
 
 
+def remove_snap_duplicates(snaps):
+    """Utility to remove duplicates from snaps list"""
+    seen = set()
+    unique_snaps = []
+    for snap in snaps:
+        # Convert the dictionary items to frozenset for hashable comparison
+        frozenset_repr = frozenset(snap.items())
+        if frozenset_repr not in seen:
+            seen.add(frozenset_repr)
+            unique_snaps.append(snap)
+    return unique_snaps
+
 def get_ubuntu_version(series: str) -> str:
     """Gets Ubuntu version (e.g. "22.04") from series (e.g. "jammy")."""
     return subprocess.run(
@@ -27,10 +39,13 @@ def get_ubuntu_version(series: str) -> str:
 
 def fetch_var_from_py_file(text, variable, safe=True):
     """Parses .py file and returns the value assigned to a given variable inside it."""
+    # While `ast.literal_eval` is safer and prefered, some vars are defined in terms of
+    # expressions (ie f-strings), not literals. In such cases, `exec` is the only way.
     if not safe:
         namespace = {}
         exec(text, namespace)
         return namespace[variable]
+
     parsed = ast.parse(text)
     for node in ast.walk(parsed):
         if isinstance(node, ast.Assign):
@@ -91,7 +106,7 @@ def fetch_grafana_snaps():
             if arch == "amd64":
                 result.append({
                     "name": snap_name,
-                    "revision": revision,
+                    "revision": int(revision),
                     "channel": "latest/stable"
                 })
         return result
@@ -174,12 +189,25 @@ def fetch_pgbouncer_snaps():
         raise ValueError("Required pgbouncer-operator snap variables not found in the file")
 
 
+def fetch_ubuntu_advantage_snaps():
+    """Return canonical-livepatch latest revision in default channel (the way the charm deploys it)"""
+    response = requests.get("https://api.snapcraft.io/v2/snaps/info/canonical-livepatch", headers = {'Snap-Device-Series': '16'})
+    default_channel = response.json()["channel-map"][0]
+    snap = [{
+        "name": "canonical-livepatch",
+        "revision": int(default_channel['revision']),
+        "channel": f"{default_channel['channel']['track']}/{default_channel['channel']['risk']}",
+    }]
+    return snap
+
+
 SNAP_FETCHERS_BY_CHARM = {
     "grafana-agent": fetch_grafana_snaps,
     "pgbouncer": fetch_pgbouncer_snaps,
     "postgresql": fetch_postgresql_snaps,
     "mysql": fetch_mysql_snaps,
     "mysql-router": fetch_mysql_router_snaps,
+    "ubuntu-advantage": fetch_ubuntu_advantage_snaps,
 }
 
 
@@ -232,8 +260,9 @@ def main():
                     "name": snaps["name"],
                     "revision": snaps["revision"],
                     "push_channel": snaps["channel"],
-                })    
+                })
 
+    snaps_data = remove_snap_duplicates(snaps_data)
     with open(bundle_file_path, "w") as file:
         yaml.dump(bundle_data, file)
     with open(snaps_file_path, "w") as file:
