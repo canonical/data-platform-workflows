@@ -213,28 +213,30 @@ SNAP_FETCHERS_BY_CHARM = {
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("bundle_file_path")
-    parser.add_argument("snaps_file_path")
-    bundle_file_path = pathlib.Path(parser.parse_args().bundle_file_path)
-    snaps_file_path = pathlib.Path(parser.parse_args().snaps_file_path)
-    updates_available = False
-    old_bundle_data = {}
-    old_snaps_data = {}
+    parser.add_argument("bundle_file_path",  type=str)
+    parser.add_argument("snaps_file_path", type=str, nargs='?', default=None)
 
-    try:
-        old_bundle_data = yaml.safe_load(bundle_file_path.read_text())
-        old_snaps_data = yaml.safe_load(snaps_file_path.read_text())
-    except FileNotFoundError:
-        updates_available = True
+    bundle_file_path = pathlib.Path(parser.parse_args().bundle_file_path)
+    old_bundle_data = yaml.safe_load(bundle_file_path.read_text())
     bundle_data = copy.deepcopy(old_bundle_data)
-    snaps_data = {"packages": []}
+
+    if parser.parse_args().snaps_file_path:
+        snaps_data = {"packages": []}
+        snaps_file_path = pathlib.Path(parser.parse_args().snaps_file_path)
+        try:
+            old_snaps_data = yaml.safe_load(snaps_file_path.read_text())
+        except FileNotFoundError:
+            old_snaps_data = {}
+    else:
+        snaps_data = None
+        snaps_file_path = None
+        old_snaps_data = None
 
     # Charm series detection is only supported for top-level and application-level "series" keys
     # Other charm series config (e.g. machine-level key) is not supported
     # Full list of possible series config (unsupported) can be found under "Charm series" at https://juju.is/docs/olm/bundle
     default_series = bundle_data.get("series")
     for app in bundle_data["applications"].values():
-        print(bundle_data)
         channel_map, resources = fetch_charm_info_from_store(app['charm'], app['channel'])
         if latest_revision := fetch_latest_charm_revision(channel_map, app.get("series", default_series)):
             app["revision"] = latest_revision
@@ -253,7 +255,7 @@ def main():
                         "oci-username": oci_password,
                     }
                 }
-        if app["charm"] in SNAP_FETCHERS_BY_CHARM:
+        if snaps_file_path and app["charm"] in SNAP_FETCHERS_BY_CHARM:
             fetcher_func = SNAP_FETCHERS_BY_CHARM[app["charm"]]
             snaps_list = fetcher_func()
             for snaps in snaps_list:
@@ -263,14 +265,17 @@ def main():
                     "push_channel": snaps["channel"],
                 })
 
-    snaps_data["packages"] = remove_snap_duplicates(snaps_data["packages"])
     with open(bundle_file_path, "w") as file:
-        print(bundle_data)
         yaml.dump(bundle_data, file)
-    with open(snaps_file_path, "w") as file:
-        yaml.dump(snaps_data, file)
 
-    if not updates_available and (old_bundle_data != bundle_data or old_snaps_data != snaps_data):
+    if snaps_file_path:
+        snaps_data["packages"] = remove_snap_duplicates(snaps_data["packages"])
+        with open(snaps_file_path, "w") as file:
+            yaml.dump(snaps_data, file)
+
+    if old_bundle_data != bundle_data or (snaps_file_path and old_snaps_data != snaps_data):
         updates_available = True
+    else:
+        updates_available = False
 
     github_actions.output["updates_available"] = json.dumps(updates_available)

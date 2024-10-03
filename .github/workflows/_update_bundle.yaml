@@ -8,7 +8,7 @@ on:
     inputs:
       path-to-snaps-file:
         description: Relative path to snaps yaml file from repository directory
-        required: true
+        required: false
         type: string
       path-to-bundle-file:
         description: Relative path to bundle file from repository directory
