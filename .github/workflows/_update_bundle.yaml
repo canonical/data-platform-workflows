@@ -59,10 +59,7 @@ jobs:
         if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
         run: |
           git checkout -b update-bundle
-          git add '${{ inputs.path-to-bundle-file }}'
-          if [ -f "./releases/latest/snaps.yaml" ]; then
-            git add ./releases/latest/snaps.yaml
-          fi
+          git add .
           git config user.name "GitHub Actions"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Update bundle"

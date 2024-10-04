@@ -4,6 +4,7 @@
 import argparse
 import ast
 import copy
+import dataclasses
 import json
 import pathlib
 import subprocess
@@ -14,17 +15,12 @@ import yaml
 from . import github_actions
 
 
-def remove_snap_duplicates(snaps):
-    """Utility to remove duplicates from snaps list"""
-    seen = set()
-    unique_snaps = []
-    for snap in snaps:
-        # Convert the dictionary items to frozenset for hashable comparison
-        frozenset_repr = frozenset(snap.items())
-        if frozenset_repr not in seen:
-            seen.add(frozenset_repr)
-            unique_snaps.append(snap)
-    return unique_snaps
+@dataclasses.dataclass(frozen=True)
+class Snap:
+    name: str
+    revision: int
+    push_channel: str
+
 
 def get_ubuntu_version(series: str) -> str:
     """Gets Ubuntu version (e.g. "22.04") from series (e.g. "jammy")."""
@@ -84,7 +80,7 @@ def fetch_latest_charm_revision(channel_map, series=None) -> int | None:
     return max(revisions)
 
 
-def fetch_grafana_snaps(charm_revision):
+def fetch_grafana_snaps(charm_revision) -> list[Snap]:
     """Fetch grafana-agent snaps information."""
     response = requests.get(f"https://raw.githubusercontent.com/canonical/grafana-agent-operator/refs/tags/rev{charm_revision}/src/snap_management.py")
     response.raise_for_status()
@@ -97,17 +93,17 @@ def fetch_grafana_snaps(charm_revision):
         result = []
         for (confinement, arch), revision in snaps.items():
             if arch == "amd64":
-                result.append({
-                    "name": snap_name,
-                    "revision": int(revision),
-                    "channel": "latest/stable"
-                })
+                result.append(Snap(
+                    name=snap_name,
+                    revision=int(revision),
+                    push_channel= "latest/stable"
+                ))
         return result
     else:
         raise ValueError("Required grafana-agent snap variables not found in the file")
 
 
-def fetch_mysql_snaps(charm_revision):
+def fetch_mysql_snaps(charm_revision) -> list[Snap]:
     """Fetch mysql-operator snaps information."""
     resp_revision = requests.get(f"https://raw.githubusercontent.com/canonical/mysql-operator/refs/tags/rev{charm_revision}/snap_revisions.json")
     resp_revision.raise_for_status()
@@ -118,17 +114,17 @@ def fetch_mysql_snaps(charm_revision):
     snap_name = fetch_var_from_py_file(resp_name.text, "CHARMED_MYSQL_SNAP_NAME")
 
     if snap_name and snap_revision:
-        result = [{
-            "name": snap_name,
-            "revision": int(snap_revision),
-            "channel": "8.0/edge",
-        }]
+        result = [Snap(
+            name=snap_name,
+            revision=int(snap_revision),
+            push_channel="8.0/edge",
+        )]
         return result
     else:
         raise ValueError("Required mysql-operator snap variables not found in the file")
 
 
-def fetch_mysql_router_snaps(charm_revision):
+def fetch_mysql_router_snaps(charm_revision) -> list[Snap]:
     """Fetch mysql-router snaps information."""
     response = requests.get(f"https://raw.githubusercontent.com/canonical/mysql-router-operator/refs/tags/rev{charm_revision}/src/snap.py")
     response.raise_for_status()
@@ -137,17 +133,17 @@ def fetch_mysql_router_snaps(charm_revision):
     revisions = fetch_var_from_py_file(response.text, "REVISIONS")
 
     if snap_name and revisions:
-        result = [{
-            "name": snap_name,
-            "revision": int(revisions["x86_64"]),
-            "channel": "8.0/edge",
-        }]
+        result = [Snap(
+            name=snap_name,
+            revision=int(revisions["x86_64"]),
+            push_channel="8.0/edge",
+        )]
         return result
     else:
         raise ValueError("Required mysql-router snap variables not found in the file")
 
 
-def fetch_postgresql_snaps(charm_revision):
+def fetch_postgresql_snaps(charm_revision) -> list[Snap]:
     """Fetch postgresql-operator snaps information."""
     response = requests.get(f"https://raw.githubusercontent.com/canonical/postgresql-operator/refs/tags/rev{charm_revision}/src/constants.py")
     response.raise_for_status()
@@ -157,17 +153,17 @@ def fetch_postgresql_snaps(charm_revision):
     if snap_list:
         result = []
         for snap_name, snap_info in snap_list:
-            result.append({
-                "name": snap_name,
-                "revision": int(snap_info["revision"]["x86_64"]),
-                "channel": snap_info["channel"],
-            })
+            result.append(Snap(
+                name=snap_name,
+                revision=int(snap_info["revision"]["x86_64"]),
+                push_channel=snap_info["channel"],
+            ))
         return result
     else:
         raise ValueError("Required postgresql-operator snap variables not found in the file")
 
 
-def fetch_pgbouncer_snaps(charm_revision):
+def fetch_pgbouncer_snaps(charm_revision) -> list[Snap]:
     """Fetch pgbouncer-operator snaps information."""
     response = requests.get(f"https://raw.githubusercontent.com/canonical/pgbouncer-operator/refs/tags/rev{charm_revision}/src/constants.py")
     response.raise_for_status()
@@ -177,26 +173,26 @@ def fetch_pgbouncer_snaps(charm_revision):
     if snap_list:
         result = []
         for snap_name, snap_info in snap_list:
-            result.append({
-                "name": snap_name,
-                "revision": int(snap_info["revision"]["x86_64"]),
-                "channel": snap_info["channel"],
-            })
+            result.append(Snap(
+                name=snap_name,
+                revision=int(snap_info["revision"]["x86_64"]),
+                push_channel=snap_info["channel"],
+            ))
         return result
     else:
         raise ValueError("Required pgbouncer-operator snap variables not found in the file")
 
 
-def fetch_ubuntu_advantage_snaps():
+def fetch_ubuntu_advantage_snaps() -> list[Snap]:
     """Return canonical-livepatch latest revision in default channel (the way the charm deploys it)"""
     response = requests.get("https://api.snapcraft.io/v2/snaps/info/canonical-livepatch", headers = {'Snap-Device-Series': '16'})
     response.raise_for_status()
     default_channel = response.json()["channel-map"][0]
-    snap = [{
-        "name": "canonical-livepatch",
-        "revision": int(default_channel['revision']),
-        "channel": f"{default_channel['channel']['track']}/{default_channel['channel']['risk']}",
-    }]
+    snap = [Snap(
+        name="canonical-livepatch",
+        revision=int(default_channel['revision']),
+        push_channel=f"{default_channel['channel']['track']}/{default_channel['channel']['risk']}",
+    )]
     return snap
 
 
@@ -218,7 +214,7 @@ def main():
     bundle_file_path = pathlib.Path(parser.parse_args().bundle_file_path)
     old_bundle_data = yaml.safe_load(bundle_file_path.read_text())
     bundle_data = copy.deepcopy(old_bundle_data)
-    snaps_data = {"packages": []}
+    bundle_snaps = set()
     updates_available = False
 
     # Charm series detection is only supported for top-level and application-level "series" keys
@@ -250,23 +246,18 @@ def main():
         if app["charm"] in SNAP_FETCHERS_BY_CHARM:
             fetcher_func = SNAP_FETCHERS_BY_CHARM[app["charm"]]
             if app["charm"] == "ubuntu-advantage":
-                snaps_list = fetcher_func()
+                snaps = fetcher_func()
             else:
-                snaps_list = fetcher_func(app["revision"])
-            for snaps in snaps_list:
-                snaps_data['packages'].append({
-                    "name": snaps["name"],
-                    "revision": snaps["revision"],
-                    "push_channel": snaps["channel"],
-                })
+                snaps = fetcher_func(app["revision"])
+            bundle_snaps.update(snaps)
 
     if old_bundle_data != bundle_data:
         updates_available = True
         with open(bundle_file_path, "w") as file:
             yaml.dump(bundle_data, file)
 
-    if len(snaps_data["packages"]) > 0:
-        snaps_data["packages"] = remove_snap_duplicates(snaps_data["packages"])
+    if len(bundle_snaps) > 0:
+        snaps_data = {"packages": [dataclasses.asdict(snap) for snap in bundle_snaps]}
         try:
             old_snaps_data = yaml.safe_load(pathlib.Path(SNAPS_YAML_PATH).read_text())
         except FileNotFoundError:
