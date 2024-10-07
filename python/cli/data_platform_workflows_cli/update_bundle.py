@@ -257,13 +257,12 @@ def main():
     if old_bundle_data != bundle_data:
         updates_available = True
         with open(bundle_file_path, "w") as file:
-            yaml.dump(bundle_data, file)
             yaml_string = yaml.dump(bundle_data)
             for oci_resource_name, oci_resource_data in bundle_oci_resources.items():
                 comment = (
-                    f"    # oci-image: {oci_resource_data['oci-image']}\n"
-                    f"    # oci-password: {oci_resource_data['oci-password']}\n"
-                    f"    # oci-username: {oci_resource_data['oci-username']}"
+                    f"        # oci-image: {oci_resource_data['oci-image']}\n"
+                    f"        # oci-password: {oci_resource_data['oci-password']}\n"
+                    f"        # oci-username: {oci_resource_data['oci-username']}"
                 )
                 # Find where to insert the comment
                 insertion_point = f"{oci_resource_name}: {oci_resource_data['revision']}"
