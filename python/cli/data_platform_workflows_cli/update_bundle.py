@@ -257,7 +257,8 @@ def main():
     if old_bundle_data != bundle_data:
         updates_available = True
         with open(bundle_file_path, "w") as file:
-            yaml_string = yaml.dump(bundle_data, file)
+            yaml.dump(bundle_data, file)
+            yaml_string = yaml.dump(bundle_data)
             for oci_resource_name, oci_resource_data in bundle_oci_resources.items():
                 comment = (
                     f"    # oci-image: {oci_resource_data['oci-image']}\n"
