@@ -215,6 +215,7 @@ def main():
     old_bundle_data = yaml.safe_load(bundle_file_path.read_text())
     bundle_data = copy.deepcopy(old_bundle_data)
     bundle_snaps = set()
+    bundle_oci_resources = {}
     updates_available = False
 
     # Charm series detection is only supported for top-level and application-level "series" keys
@@ -235,13 +236,15 @@ def main():
                 response.raise_for_status()
                 resource_data = response.json()
 
-                app["resources"] = {
-                    resource["name"]: {
-                        "revision": resource["revision"],
-                        "oci-image": f"docker://{resource_data['ImageName']}",
-                        "oci-username": resource_data["Username"],
-                        "oci-password": resource_data["Password"],
-                    }
+                app.setdefault("resources", {})
+                app["resources"][resource["name"]] = int(resource["revision"])
+
+                # Will be added separately, as comments to yaml file
+                bundle_oci_resources[resource["name"]] = {
+                    "revision": int(resource["revision"]),
+                    "oci-image": f"docker://{resource_data['ImageName']}",
+                    "oci-username": resource_data["Username"],
+                    "oci-password": resource_data["Password"],
                 }
         if app["charm"] in SNAP_FETCHERS_BY_CHARM:
             fetcher_func = SNAP_FETCHERS_BY_CHARM[app["charm"]]
@@ -254,7 +257,17 @@ def main():
     if old_bundle_data != bundle_data:
         updates_available = True
         with open(bundle_file_path, "w") as file:
-            yaml.dump(bundle_data, file)
+            yaml_string = yaml.dump(bundle_data, file)
+            for oci_resource_name, oci_resource_data in bundle_oci_resources.items():
+                comment = (
+                    f"    # oci-image: {oci_resource_data['oci-image']}\n"
+                    f"    # oci-password: {oci_resource_data['oci-password']}\n"
+                    f"    # oci-username: {oci_resource_data['oci-username']}"
+                )
+                # Find where to insert the comment
+                insertion_point = f"{oci_resource_name}: {oci_resource_data['revision']}"
+                yaml_string = yaml_string.replace(insertion_point, f"{insertion_point}\n{comment}")
+            file.write(yaml_string)
 
     if len(bundle_snaps) > 0:
         snaps_data = {"packages": [dataclasses.asdict(snap) for snap in bundle_snaps]}
