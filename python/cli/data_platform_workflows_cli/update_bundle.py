@@ -7,6 +7,7 @@ import copy
 import dataclasses
 import json
 import pathlib
+import re
 import subprocess
 
 import requests
@@ -130,12 +131,13 @@ def fetch_mysql_router_snaps(charm_revision) -> list[Snap]:
     response.raise_for_status()
 
     snap_name = fetch_var_from_py_file(response.text, "_SNAP_NAME")
-    revisions = fetch_var_from_py_file(response.text, "REVISIONS", False)
+    amd64_rev_number = re.search(r'"x86_64":\s*"(\d+)"', response.text)
+    revision = amd64_rev_number.group(1) if amd64_rev_number else None
 
-    if snap_name and revisions:
+    if snap_name and revision:
         result = [Snap(
             name=snap_name,
-            revision=int(revisions["x86_64"]),
+            revision=int(revision),
             push_channel="8.0/edge",
         )]
         return result
