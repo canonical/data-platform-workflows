@@ -130,7 +130,7 @@ def fetch_mysql_router_snaps(charm_revision) -> list[Snap]:
     response.raise_for_status()
 
     snap_name = fetch_var_from_py_file(response.text, "_SNAP_NAME")
-    revisions = fetch_var_from_py_file(response.text, "REVISIONS")
+    revisions = fetch_var_from_py_file(response.text, "REVISIONS", False)
 
     if snap_name and revisions:
         result = [Snap(
