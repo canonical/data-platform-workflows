@@ -11,6 +11,7 @@
 | [release_rock.yaml](.github/workflows/release_rock.md)                     | Release rock to GitHub Container Registry                                  |
 | [release_charm.yaml](.github/workflows/release_charm.md)                   | Release charm to Charmhub                                                  |
 | [sync_docs.yaml](.github/workflows/sync_docs.md)                           | Sync Discourse documentation to GitHub                                     |
+| [_update_bundle.yaml](.github/workflows/_update_bundle.md)                 | **Experimental** Update charm revisions in bundle                          |
 
 ### Version
 Recommendation: pin the latest version (e.g. `v1.0.0`) and use [Renovate](https://docs.renovatebot.com/) to stay up-to-date.
