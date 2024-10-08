@@ -10,7 +10,6 @@
 | [release_snap.yaml](.github/workflows/release_snap.md)                     | Release snap to Snap Store                                                 |
 | [release_rock.yaml](.github/workflows/release_rock.md)                     | Release rock to GitHub Container Registry                                  |
 | [release_charm.yaml](.github/workflows/release_charm.md)                   | Release charm to Charmhub                                                  |
-| [update_bundle.yaml](.github/workflows/update_bundle.md)                   | Update charm revisions in bundle                                           |
 | [sync_docs.yaml](.github/workflows/sync_docs.md)                           | Sync Discourse documentation to GitHub                                     |
 | [_update_bundle.yaml](.github/workflows/_update_bundle.md)                 | **Experimental** Update charm revisions in bundle                          |
 
