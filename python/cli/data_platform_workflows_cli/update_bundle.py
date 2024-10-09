@@ -158,7 +158,7 @@ def fetch_postgresql_snaps(charm_revision) -> list[Snap]:
             result.append(Snap(
                 name=snap_name,
                 revision=int(snap_info["revision"]["x86_64"]),
-                push_channel="14/stable",
+                push_channel="14/edge",
             ))
         return result
     else:
@@ -178,7 +178,7 @@ def fetch_pgbouncer_snaps(charm_revision) -> list[Snap]:
             result.append(Snap(
                 name=snap_name,
                 revision=int(snap_info["revision"]["x86_64"]),
-                push_channel="1/stable",
+                push_channel="1/edge",
             ))
         return result
     else:
