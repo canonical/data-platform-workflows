@@ -42,7 +42,7 @@ on:
         description: |
           Whether to enable metallb
           required: false
-          type: boolean
+        type: boolean
       lxd-snap-channel:
         description: LXD snap channel
         default: latest/stable
