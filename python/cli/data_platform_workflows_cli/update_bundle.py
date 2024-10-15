@@ -272,17 +272,16 @@ def main():
             file.write(yaml_string)
 
     if len(bundle_snaps) > 0:
-        snaps_data = {"packages": [dataclasses.asdict(snap) for snap in bundle_snaps]}
+        packages = [dataclasses.asdict(snap) for snap in bundle_snaps]
+        snaps_data = {"packages": sorted(packages, key=lambda x: x['name'])}
         try:
             old_snaps_data = yaml.safe_load(pathlib.Path(SNAPS_YAML_PATH).read_text())
         except FileNotFoundError:
             old_snaps_data = {}
 
         if old_snaps_data != snaps_data:
-            print(old_snaps_data)
-            print(snaps_data)
             updates_available = True
             with open(SNAPS_YAML_PATH, "w") as file:
-                yaml.dump(snaps_data, file, sort_keys=True)
+                yaml.dump(snaps_data, file)
 
     github_actions.output["updates_available"] = json.dumps(updates_available)
