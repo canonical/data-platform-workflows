@@ -370,7 +370,7 @@ jobs:
           if [[ '${{ inputs.metallb-addon }}' = 'true' ]]
           then
             IPADDR=$(ip -4 -j route get 2.2.2.2 | jq -r '.[] | .prefsrc')
-            sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microks enable metallb:$IPADDR-$IPADDR"
+            sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microk8s enable metallb:$IPADDR-$IPADDR"
           fi
           mkdir ~/.kube/
           # Used by lightkube and kubernetes (Python package)
