@@ -279,8 +279,10 @@ def main():
             old_snaps_data = {}
 
         if old_snaps_data != snaps_data:
+            print(old_snaps_data)
+            print(snaps_data)
             updates_available = True
             with open(SNAPS_YAML_PATH, "w") as file:
-                yaml.dump(snaps_data, file)
+                yaml.dump(snaps_data, file, sort_keys=True)
 
     github_actions.output["updates_available"] = json.dumps(updates_available)
