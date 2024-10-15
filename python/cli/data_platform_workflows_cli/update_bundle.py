@@ -273,7 +273,7 @@ def main():
 
     if len(bundle_snaps) > 0:
         packages = [dataclasses.asdict(snap) for snap in bundle_snaps]
-        snaps_data = {"packages": sorted(packages, key=lambda x: x['name'])}
+        snaps_data = {"packages": sorted(packages, key=lambda x: (x['name'], x['revision']))}
         try:
             old_snaps_data = yaml.safe_load(pathlib.Path(SNAPS_YAML_PATH).read_text())
         except FileNotFoundError:
