@@ -369,6 +369,10 @@ jobs:
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/hostpath-provisioner"
           if [[ '${{ inputs.metallb-addon }}' = 'true' ]]
           then
+            if [[ '${{ inputs.architecture }}' == 'arm64' ]]
+            then
+              sudo snap install jq
+            fi
             IPADDR=$(ip -4 -j route get 2.2.2.2 | jq -r '.[] | .prefsrc')
             sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microk8s enable metallb:$IPADDR-$IPADDR"
           fi
