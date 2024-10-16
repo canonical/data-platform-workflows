@@ -16,7 +16,7 @@ import yaml
 from . import github_actions
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(order=True, frozen=True)
 class Snap:
     name: str
     revision: int
@@ -272,7 +272,7 @@ def main():
             file.write(yaml_string)
 
     if len(bundle_snaps) > 0:
-        snaps_data = {"packages": [dataclasses.asdict(snap) for snap in bundle_snaps]}
+        snaps_data = {"packages": [dataclasses.asdict(snap) for snap in sorted(bundle_snaps)]}
         try:
             old_snaps_data = yaml.safe_load(pathlib.Path(SNAPS_YAML_PATH).read_text())
         except FileNotFoundError:
