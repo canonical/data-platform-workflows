@@ -343,6 +343,10 @@ jobs:
         timeout-minutes: 5
         if: ${{ inputs.cloud == 'microk8s' && matrix.groups.is_hosted }}
         run: |
+          # Wait for microk8s to populate iptables
+          # https://chat.canonical.com/canonical/pl/jo5cg6wqjjrudqd5ybj6hhttee
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s status --wait-ready"
+
           sudo tee /var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml << EOF
           server = "$DOCKERHUB_MIRROR"
           [host."${DOCKERHUB_MIRROR#'https://'}"]
