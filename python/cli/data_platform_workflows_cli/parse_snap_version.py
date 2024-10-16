@@ -9,8 +9,11 @@ def main():
     parser.add_argument("--channel", required=True)
     parser.add_argument("--revision-input-name", required=True)
     parser.add_argument("--channel-input-name", required=True)
+    parser.add_argument("--experimental", required=True, type=bool, default=False)
     args = parser.parse_args()
-    if args.revision:
+    if args.experimental:
+        install_flag = f"'--channel=latest/edge'"
+    elif args.revision:
         assert (
             not args.channel
         ), f"`{args.channel_input_name}` input cannot be used if `{args.revision_input_name}` input is passed"

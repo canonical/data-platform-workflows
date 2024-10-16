@@ -25,6 +25,12 @@ on:
           Cannot be used if `rockcraft-snap-revision` input is passed
         required: false
         type: string
+      experimental-extensions:
+        description: |
+          Allow using experimental extensions to build the rock
+        required: false
+        type: boolean
+
     outputs:
       artifact-prefix:
         description: Rock packages are uploaded to GitHub artifacts beginning with this prefix
@@ -75,7 +81,7 @@ jobs:
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
       - name: Parse rockcraft version inputs
         id: rockcraft-snap-version
-        run: parse-snap-version --revision='${{ inputs.rockcraft-snap-revision }}' --channel='${{ inputs.rockcraft-snap-channel }}' --revision-input-name=rockcraft-snap-revision --channel-input-name=rockcraft-snap-channel
+        run: parse-snap-version --revision='${{ inputs.rockcraft-snap-revision }}' --channel='${{ inputs.rockcraft-snap-channel }}' --revision-input-name=rockcraft-snap-revision --channel-input-name=rockcraft-snap-channel --experimental='${{ inputs.experimental-extensions }}'
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up environment
@@ -94,6 +100,8 @@ jobs:
         id: pack
         working-directory: ${{ inputs.path-to-rock-directory }}
         run: sg lxd -c "rockcraft pack -v --platform='${{ matrix.base.id }}'"
+        env:
+          ROCKCRAFT_ENABLE_EXPERIMENTAL_EXTENSIONS: ${{ inputs.experimental-extensions }}
       - name: Upload rockcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
