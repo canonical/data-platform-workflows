@@ -90,7 +90,7 @@ jobs:
       - name: Install pipx
         run: |
           sudo python3 -m pip install --user pipx
-          sudo pipx ensurepath --global
+          sudo python3 -m pipx ensurepath --global
       - name: (GitHub-hosted ARM runner) Install libpq-dev
         if: ${{ matrix.base.runner == 'Ubuntu_ARM64_4C_16G_02' }}
         # Needed for `charmcraftcache` to resolve dependencies (for postgresql charms with psycopg2)
