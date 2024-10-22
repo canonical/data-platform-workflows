@@ -23,8 +23,8 @@ from . import craft
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 RUNNERS = {
-    craft.Architecture.X64: '["self-hosted", "linux", "X64", "large", "jammy"]',
-    craft.Architecture.ARM64: '["self-hosted", "linux", "ARM64", "large", "jammy"]',
+    craft.Architecture.X64: ["self-hosted", "linux", "X64", "large", "jammy"],
+    craft.Architecture.ARM64: ["self-hosted", "linux", "ARM64", "large", "jammy"],
 }
 
 
