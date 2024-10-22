@@ -87,6 +87,8 @@ jobs:
     runs-on: ${{ matrix.base.runner }}
     timeout-minutes: 120
     steps:
+      - name: Install pipx
+        run: sudo apt-get install pipx -y
       - name: (GitHub-hosted ARM runner) Install libpq-dev
         if: ${{ matrix.base.runner == 'Ubuntu_ARM64_4C_16G_02' }}
         # Needed for `charmcraftcache` to resolve dependencies (for postgresql charms with psycopg2)
