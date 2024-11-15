@@ -193,7 +193,7 @@ jobs:
     needs:
       - collect-integration-tests
     runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
-    timeout-minutes: 309  # Sum of steps `timeout-minutes` + 5
+    timeout-minutes: 290  # Sum of steps `timeout-minutes` + 5
     steps:
       - name: (Data Platform hosted) Write job name to file
         timeout-minutes: 1
@@ -252,6 +252,7 @@ jobs:
         env:
           SECRETS: ${{ secrets.integration-test }}
       - name: (Data Platform hosted) Add Data Platform team's SSH keys
+        timeout-minutes: 1
         # Data Platform hosted
         # `inputs.architecture == 'arm64' && matrix.groups.runner == null` means Data Platform hosted (default runner)
         if: ${{ matrix.groups.data_platform_hosted || (inputs.architecture == 'arm64' && matrix.groups.runner == null) }}
@@ -428,40 +429,12 @@ jobs:
         timeout-minutes: 3
         if: ${{ inputs.libjuju-version-constraint }}
         run: poetry add --lock --group integration juju@'${{ inputs.libjuju-version-constraint }}'
-      - name: (artifact debug) start tcpdump capture
-        id: start-tcpdump1
-        timeout-minutes: 1
-        run: |
-          touch mycapturefile1.pcap 
-          sudo sysctl net.ipv4.ip_local_port_range 
-          sudo sysctl net.ipv4.tcp_fin_timeout
-
-          sudo sysctl net.ipv4.ip_local_port_range="15000 65000"
-          sudo sysctl net.ipv4.tcp_fin_timeout=120
-
-          sudo tcpdump -nn -i any -w mycapturefile1.cap port 443 &
       - name: Download packed charm(s)
-        id: download-charms
         timeout-minutes: 5
         uses: actions/download-artifact@v4
         with:
           pattern: ${{ inputs.artifact-prefix }}-*
           merge-multiple: true
-      - name: (artifact debug) stop tcpdump capture
-        timeout-minutes: 1
-        if: ${{ !cancelled() && steps.start-tcpdump1.outcome == 'success' }}
-        run: |
-          sudo pkill tcpdump
-
-          sudo sysctl net.ipv4.ip_local_port_range
-          sudo sysctl net.ipv4.tcp_fin_timeout
-      - name: (artifact debug) upload tcpdump capture
-        timeout-minutes: 5
-        if: ${{ failure() && steps.download-charms.outcome == 'failure' }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: tcpdump1-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
-          path: mycapturefile1.cap
       - name: Select test stability level
         timeout-minutes: 1
         id: select-test-stability
@@ -497,21 +470,7 @@ jobs:
         run: sg '${{ steps.parse-cloud.outputs.group }}' -c "tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_id }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test ${{ steps.allure-option.outputs.option }}"
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
-      - name: (artifact debug) start tcpdump capture
-        id: start-tcpdump2
-        if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
-        timeout-minutes: 1
-        run: |
-          touch mycapturefile2.pcap 
-          sudo sysctl net.ipv4.ip_local_port_range 
-          sudo sysctl net.ipv4.tcp_fin_timeout
-
-          sudo sysctl net.ipv4.ip_local_port_range="15000 65000"
-          sudo sysctl net.ipv4.tcp_fin_timeout=120
-
-          sudo tcpdump -nn -i any -w mycapturefile2.cap port 443 &
       - name: (beta) Upload Allure results
-        id: upload-allure
         timeout-minutes: 3
         if: ${{ (success() || (failure() && steps.tests.outcome == 'failure')) && inputs._beta_allure_report && github.event_name == 'schedule' && github.run_attempt == '1' }}
         uses: actions/upload-artifact@v4
@@ -519,21 +478,6 @@ jobs:
           name: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
           path: allure-results/
           if-no-files-found: error
-      - name: (artifact debug) stop tcpdump capture
-        timeout-minutes: 1
-        if: ${{ !cancelled() && steps.start-tcpdump2.outcome == 'success' }}
-        run: |
-          sudo pkill tcpdump
-
-          sudo sysctl net.ipv4.ip_local_port_range
-          sudo sysctl net.ipv4.tcp_fin_timeout
-      - name: (artifact debug) upload tcpdump capture
-        timeout-minutes: 5
-        if: ${{ failure() && steps.upload-allure.outcome == 'failure' }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: tcpdump2-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
-          path: mycapturefile2.cap
       - name: juju status
         timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
@@ -546,20 +490,7 @@ jobs:
         timeout-minutes: 3
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         run: tee-log-for-all-models --log-command 'jhack tail --printer raw --replay --no-watch' --log-file-name jhack-tail.txt
-      - name: (artifact debug) start tcpdump capture
-        id: start-tcpdump3
-        timeout-minutes: 1
-        run: |
-          touch mycapturefile3.pcap 
-          sudo sysctl net.ipv4.ip_local_port_range 
-          sudo sysctl net.ipv4.tcp_fin_timeout
-
-          sudo sysctl net.ipv4.ip_local_port_range="15000 65000"
-          sudo sysctl net.ipv4.tcp_fin_timeout=120
-
-          sudo tcpdump -nn -i any -w mycapturefile3.cap port 443 &
       - name: Upload logs
-        id: upload-logs
         timeout-minutes: 5
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
         uses: actions/upload-artifact@v4
@@ -567,21 +498,6 @@ jobs:
           name: logs-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
           path: ~/logs/
           if-no-files-found: error
-      - name: (artifact debug) stop tcpdump capture
-        timeout-minutes: 1
-        if: ${{ !cancelled() && steps.start-tcpdump3.outcome == 'success' }}
-        run: |
-          sudo pkill tcpdump
-
-          sudo sysctl net.ipv4.ip_local_port_range
-          sudo sysctl net.ipv4.tcp_fin_timeout
-      - name: (artifact debug) upload tcpdump capture
-        timeout-minutes: 5
-        if: ${{ failure() && steps.upload-logs.outcome == 'failure' }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: tcpdump3-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || steps.parse-versions.outputs.snap_channel_for_artifact }}-${{ inputs.architecture }}-${{ matrix.groups.artifact_group_id }}
-          path: mycapturefile3.cap
       - name: Disk usage
         timeout-minutes: 1
         if: ${{ success() || (failure() && steps.tests.outcome == 'failure') }}
