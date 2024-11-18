@@ -122,8 +122,8 @@ jobs:
           import os
           
           DEFAULT_RUNNERS = {
-              "amd64": "ubuntu-latest",
-              "arm64": ["self-hosted", "data-platform", "ubuntu", "ARM64", "4cpu16ram"],
+              "amd64": ["self-hosted", "linux", "X64", "large", "jammy"],
+              "arm64": ["self-hosted", "linux", "ARM64", "large", "jammy"],
           }
           ARCHITECTURE = "${{ inputs.architecture }}"
           try:
