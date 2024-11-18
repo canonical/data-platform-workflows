@@ -215,7 +215,6 @@ jobs:
           printf '\nDisk usage before cleanup\n'
           df --human-readable
           # Based on https://github.com/actions/runner-images/issues/2840#issuecomment-790492173
-          rm -r /usr/share/dotnet
           rm -r /opt/hostedtoolcache/
           printf '\nDisk usage after cleanup\n'
           df --human-readable
