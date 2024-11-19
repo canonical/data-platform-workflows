@@ -54,41 +54,45 @@ on:
         value: ${{ jobs.collect-bases.outputs.artifact-prefix-with-inputs }}
 
 jobs:
-  collect-bases:
-    name: Collect bases for charm | ${{ inputs.path-to-charm-directory }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Get workflow version
-        id: workflow-version
-        uses: canonical/get-workflow-version-action@v1
-        with:
-          repository-name: canonical/data-platform-workflows
-          file-name: build_charm.yaml
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Collect charm bases to build from charmcraft.yaml
-        id: collect
-        run: collect-charm-bases --directory='${{ inputs.path-to-charm-directory }}' --cache='${{ inputs.cache }}'
-    outputs:
-      bases: ${{ steps.collect.outputs.bases }}
-      artifact-prefix-with-inputs: ${{ inputs.artifact-prefix || steps.collect.outputs.default_prefix }}
+  # collect-bases:
+  #   name: Collect bases for charm | ${{ inputs.path-to-charm-directory }}
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 5
+  #   steps:
+  #     - name: Get workflow version
+  #       id: workflow-version
+  #       uses: canonical/get-workflow-version-action@v1
+  #       with:
+  #         repository-name: canonical/data-platform-workflows
+  #         file-name: build_charm.yaml
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Install CLI
+  #       run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #     - name: Collect charm bases to build from charmcraft.yaml
+  #       id: collect
+  #       run: collect-charm-bases --directory='${{ inputs.path-to-charm-directory }}' --cache='${{ inputs.cache }}'
+  #   outputs:
+  #     bases: ${{ steps.collect.outputs.bases }}
+  #     artifact-prefix-with-inputs: ${{ inputs.artifact-prefix || steps.collect.outputs.default_prefix }}
 
   build:
     strategy:
       matrix:
-        base: ${{ fromJSON(needs.collect-bases.outputs.bases) }}
-    name: 'Build charm | base #${{ matrix.base.id }}'
-    needs:
-      - collect-bases
-    runs-on: ${{ matrix.base.runner }}
+        include:
+          - id: 0
+            runner: ubuntu-latest
+          - id: 1
+            runner: Ubuntu_ARM64_4C_16G_02
+    name: 'Build charm | base #${{ matrix.id }}'
+    # needs:
+    #   - collect-bases
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
     steps:
       - name: (GitHub-hosted ARM runner) Install libpq-dev
-        if: ${{ matrix.base.runner == 'Ubuntu_ARM64_4C_16G_02' }}
+        if: ${{ matrix.runner == 'Ubuntu_ARM64_4C_16G_02' }}
         # Needed for `charmcraftcache` to resolve dependencies (for postgresql charms with psycopg2)
         run: sudo apt-get install libpq-dev -y
       - name: Get workflow version
@@ -141,12 +145,12 @@ jobs:
         run: |
           if '${{ inputs.cache }}'
           then
-            sg lxd -c "charmcraftcache pack -v --bases-index='${{ matrix.base.id }}'"
+            sg lxd -c "charmcraftcache pack -v --bases-index='${{ matrix.id }}'"
           else
             # Workaround for https://github.com/canonical/charmcraft/issues/1389 on charmcraft 2
             touch requirements.txt
 
-            sg lxd -c "charmcraft pack -v --bases-index='${{ matrix.base.id }}'"
+            sg lxd -c "charmcraft pack -v --bases-index='${{ matrix.id }}'"
           fi
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
@@ -155,14 +159,14 @@ jobs:
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-charmcraft-build-${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.base.id }}
+          name: logs-charmcraft-build-${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.id }}
           path: ~/.local/state/charmcraft/log/
           if-no-files-found: error
       - run: touch .empty
       - name: Upload charm package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.base.id }}
+          name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.id }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
