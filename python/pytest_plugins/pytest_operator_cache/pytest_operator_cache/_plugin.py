@@ -47,7 +47,7 @@ async def build_charm(
         ), f"Architecture for {bases_index=} ({architectures[0]}) does not match host architecture ({architecture})"
         packed_charms = list(charm_path.glob(f"*{version}-{architecture}.charm"))
     else:
-        packed_charms = list(charm_path.glob(f"*-{architecture}.charm"))
+        packed_charms = list(charm_path.glob(f"*{architecture}.charm"))
     if len(packed_charms) == 1:
         # python-libjuju's model.deploy(), juju deploy, and juju bundle files expect local charms
         # to begin with `./` or `/` to distinguish them from Charmhub charms.
