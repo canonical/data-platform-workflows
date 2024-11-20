@@ -51,7 +51,7 @@ on:
     outputs:
       artifact-prefix:
         description: Charm packages are uploaded to GitHub artifacts beginning with this prefix
-        value: ${{ jobs.collect-bases.outputs.artifact-prefix-with-inputs }}
+        value: packed-charm-cache-false-.
 
 jobs:
   # collect-bases:
@@ -159,14 +159,14 @@ jobs:
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-charmcraft-build-${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.id }}
+          name: logs-charmcraft-build-packed-charm-cache-false-.-base-${{ matrix.id }}
           path: ~/.local/state/charmcraft/log/
           if-no-files-found: error
       - run: touch .empty
       - name: Upload charm package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.id }}
+          name: packed-charm-cache-false-.-base-${{ matrix.id }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
