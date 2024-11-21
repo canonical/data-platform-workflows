@@ -61,9 +61,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - id: 0
+          - id: amd64
             runner: ubuntu-latest
-          - id: 1
+          - id: arm64
             runner: Ubuntu_ARM64_4C_16G_02
     name: 'Build snap | ${{ matrix.id }}'
     # needs:
