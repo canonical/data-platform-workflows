@@ -38,6 +38,12 @@ on:
           Required if `cloud` input is "microk8s"
         required: false
         type: string
+      metallb-addon:
+        description: |
+          Whether to enable metallb
+          required: false
+        type: boolean
+        default: false
       lxd-snap-channel:
         description: LXD snap channel
         default: latest/stable
@@ -367,6 +373,11 @@ jobs:
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/coredns"
           sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microk8s enable hostpath-storage"
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/hostpath-provisioner"
+          if [[ '${{ inputs.metallb-addon }}' = 'true' ]]
+          then
+            IPADDR=$(ip -4 -j route get 2.2.2.2 | sed -n -e 's/^.*prefsrc\":"\([^ "]*\).*/\1/p')
+            sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microk8s enable metallb:$IPADDR-$IPADDR"
+          fi
           mkdir ~/.kube/
           # Used by lightkube and kubernetes (Python package)
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s config > ~/.kube/config"
