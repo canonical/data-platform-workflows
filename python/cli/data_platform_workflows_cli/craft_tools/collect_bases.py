@@ -28,7 +28,7 @@ RUNNERS = {
 }
 
 
-def get_bases(*, craft_: craft.Craft, yaml_data):
+def get_bases(*, craft_: craft.Craft, yaml_data: dict):
     """Get architecture for each base
 
     For charms, multiple bases can have the same architecture
