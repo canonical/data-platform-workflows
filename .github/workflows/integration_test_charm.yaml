@@ -113,9 +113,6 @@ jobs:
     # (In the UI, when this workflow is called with a matrix, GitHub will separate each matrix
     # combination and preserve job ordering within a matrix combination.)
     name: ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | ${{ inputs.architecture }} | Collect integration test groups
-    # Only run juju 3.6 tests on `schedule`
-    # Temporary while juju 3.6 is unstable (to avoid blocking PRs but collect data on nightly CI)
-    if: ${{ !startsWith(inputs.juju-snap-channel, '3.6/') || github.event_name == 'schedule'}}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
