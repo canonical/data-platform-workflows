@@ -1,8 +1,13 @@
 # Copyright 2022 Canonical Ltd.
 # See LICENSE file for licensing details.
-"""Collect ST124 shorthand notation platforms to build from charmcraft.yaml
+"""Collect platforms to build
 
-TODO add ST124 support for snaps & rocks
+charmcraft: Only ST124 shorthand notation `platforms` are supported
+snapcraft: (ST124 not supported) core22 `architectures` and core24 shorthand `platforms` supported
+rockcraft: (ST124 not supported) shorthand `platforms` supported
+
+snaps & rocks are usually built on multiple architectures but only one Ubuntu version/base
+charms (subordinate) can be built on multiple Ubuntu versions
 """
 
 import argparse
@@ -34,9 +39,8 @@ def collect(craft_: craft.Craft):
     if craft_ is craft.Craft.SNAP:
         craft_file = craft_file.parent / "snap" / craft_file.name
     yaml_data = yaml.safe_load(craft_file.read_text())
+    platforms = []
     if craft_ is craft.Craft.CHARM:
-        # todo: run ccst124 validate
-        platforms = []
         for platform in yaml_data["platforms"]:
             # Example `platform`: "ubuntu@22.04:amd64"
             architecture = craft.Architecture(platform.split(":")[-1])
@@ -47,9 +51,37 @@ def collect(craft_: craft.Craft):
                     "name_in_artifact": platform.replace(":", "-"),
                 }
             )
-        github_actions.output["platforms"] = json.dumps(platforms)
+    elif craft_ is craft.Craft.ROCK:
+        for platform in yaml_data["platforms"]:
+            # Example `platform`: "amd64"
+            architecture = craft.Architecture(platform)
+            platforms.append({"name": platform, "runner": RUNNERS[architecture]})
+    elif craft_ is craft.Craft.SNAP:
+        if yaml_data["base"] == "core24":
+            platforms_ = yaml_data["platforms"]
+            if not isinstance(platforms_, dict):
+                raise TypeError("Expected type 'dict' for snapcraft.yaml 'platforms'")
+            for value in platforms_.values():
+                if value is not None:
+                    raise ValueError(
+                        "Only shorthand notation supported in snapcraft.yaml 'platforms'. "
+                        "'build-on' and 'build-for' not supported"
+                    )
+            for platform in platforms_:
+                # Example `platform`: "amd64"
+                architecture = craft.Architecture(platform)
+                platforms.append({"name": platform, "runner": RUNNERS[architecture]})
+        elif yaml_data["base"] == "core22":
+            for entry in yaml_data["architectures"]:
+                # Example: "amd64"
+                platform = entry["build-on"]
+                architecture = craft.Architecture(platform)
+                platforms.append({"name": platform, "runner": RUNNERS[architecture]})
+        else:
+            raise ValueError(f'Unsupported snapcraft.yaml base: {repr(yaml_data["base"])}')
     else:
-        raise ValueError("ST124 syntax not yet supported for snaps or rocks")
+        raise ValueError
+    github_actions.output["platforms"] = json.dumps(platforms)
     default_prefix = f'packed-{craft_.value}-{args.directory.replace("/", "-")}'
     if craft_ is craft.Craft.CHARM:
         default_prefix = f'packed-{craft_.value}-cache-{args.cache}-{args.directory.replace("/", "-")}'
