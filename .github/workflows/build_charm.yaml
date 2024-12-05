@@ -51,11 +51,11 @@ on:
     outputs:
       artifact-prefix:
         description: Charm packages are uploaded to GitHub artifacts beginning with this prefix
-        value: ${{ jobs.collect-bases.outputs.artifact-prefix-with-inputs }}
+        value: ${{ jobs.collect-platforms.outputs.artifact-prefix-with-inputs }}
 
 jobs:
-  collect-bases:
-    name: Collect bases for charm | ${{ inputs.path-to-charm-directory }}
+  collect-platforms:
+    name: Collect platforms for charm | ${{ inputs.path-to-charm-directory }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -68,27 +68,32 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+      - name: Install charmcraftst124
+        run: pipx install charmcraftst124
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Collect charm bases to build from charmcraft.yaml
+      - name: Check if supported ST124 shorthand notation syntax is used in charmcraft.yaml
+        working-directory: ${{ inputs.path-to-charm-directory }}
+        run: charmcraftst124 check-charmcraft-yaml -v
+      - name: Collect charm platforms to build from charmcraft.yaml
         id: collect
-        run: collect-charm-bases --directory='${{ inputs.path-to-charm-directory }}' --cache='${{ inputs.cache }}'
+        run: collect-charm-platforms --directory='${{ inputs.path-to-charm-directory }}' --cache='${{ inputs.cache }}'
     outputs:
-      bases: ${{ steps.collect.outputs.bases }}
+      platforms: ${{ steps.collect.outputs.platforms }}
       artifact-prefix-with-inputs: ${{ inputs.artifact-prefix || steps.collect.outputs.default_prefix }}
 
   build:
     strategy:
       matrix:
-        base: ${{ fromJSON(needs.collect-bases.outputs.bases) }}
-    name: 'Build charm | base #${{ matrix.base.id }}'
+        platform: ${{ fromJSON(needs.collect-platforms.outputs.platforms) }}
+    name: 'Build charm | ${{ matrix.platform.name }}'
     needs:
-      - collect-bases
-    runs-on: ${{ matrix.base.runner }}
+      - collect-platforms
+    runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 120
     steps:
       - name: (GitHub-hosted ARM runner) Install libpq-dev
-        if: ${{ matrix.base.runner == 'Ubuntu_ARM64_4C_16G_02' }}
+        if: ${{ matrix.platform.runner == 'Ubuntu_ARM64_4C_16G_02' }}
         # Needed for `charmcraftcache` to resolve dependencies (for postgresql charms with psycopg2)
         run: |
           sudo apt-get update
@@ -136,6 +141,7 @@ jobs:
           poetry config warnings.export false
 
           pipx install charmcraftcache
+          pipx install charmcraftst124
       - run: snap list
       - name: Pack charm
         id: pack
@@ -143,12 +149,10 @@ jobs:
         run: |
           if '${{ inputs.cache }}'
           then
-            sg lxd -c "charmcraftcache pack -v --bases-index='${{ matrix.base.id }}'"
+            echo 'Cache not yet supported with ST124 syntax'
+            exit 1
           else
-            # Workaround for https://github.com/canonical/charmcraft/issues/1389 on charmcraft 2
-            touch requirements.txt
-
-            sg lxd -c "charmcraft pack -v --bases-index='${{ matrix.base.id }}'"
+            sg lxd -c "charmcraftst124 pack -v --platform='${{ matrix.platform.name }}'"
           fi
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
@@ -157,14 +161,14 @@ jobs:
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-charmcraft-build-${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.base.id }}
+          name: logs-charmcraft-build-${{ needs.collect-platforms.outputs.artifact-prefix-with-inputs }}-platform-${{ matrix.platform.name_in_artifact }}
           path: ~/.local/state/charmcraft/log/
           if-no-files-found: error
       - run: touch .empty
       - name: Upload charm package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-base-${{ matrix.base.id }}
+          name: ${{ needs.collect-platforms.outputs.artifact-prefix-with-inputs }}-platform-${{ matrix.platform.name_in_artifact }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |
