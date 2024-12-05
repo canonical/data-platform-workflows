@@ -9,9 +9,9 @@ readme = "README.md"
 
 [tool.poetry.scripts]
 redact-secrets = "data_platform_workflows_cli.redact_secrets:main"
-collect-snap-bases = "data_platform_workflows_cli.craft_tools.collect_bases:snap"
-collect-rock-bases = "data_platform_workflows_cli.craft_tools.collect_bases:rock"
-collect-charm-bases = "data_platform_workflows_cli.craft_tools.collect_bases:charm"
+collect-snap-bases = "data_platform_workflows_cli.craft_tools.collect_platforms:snap"
+collect-rock-bases = "data_platform_workflows_cli.craft_tools.collect_platforms:rock"
+collect-charm-platforms = "data_platform_workflows_cli.craft_tools.collect_platforms:charm"
 release-snap = "data_platform_workflows_cli.craft_tools.release:snap"
 release-rock = "data_platform_workflows_cli.craft_tools.release:rock"
 release-charm = "data_platform_workflows_cli.craft_tools.release:charm"
