@@ -28,7 +28,7 @@ RUNNERS = {
 }
 
 
-def get_bases(*, craft_: craft.Craft, yaml_data):
+def get_bases(*, craft_: craft.Craft, yaml_data: dict):
     """Get architecture for each base
 
     For charms, multiple bases can have the same architecture
@@ -36,7 +36,7 @@ def get_bases(*, craft_: craft.Craft, yaml_data):
 
     For snaps & rocks, the Ubuntu version is the same for all architectures.
     """
-    if craft_ is craft.Craft.ROCK:
+    if craft_ is craft.Craft.ROCK or "platforms" in yaml_data:
         # https://canonical-rockcraft.readthedocs-hosted.com/en/latest/reference/rockcraft.yaml/#platforms
         return [craft.Architecture(arch) for arch in yaml_data["platforms"]]
     if craft_ is craft.Craft.SNAP:
