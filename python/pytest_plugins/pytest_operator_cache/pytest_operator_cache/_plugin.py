@@ -2,9 +2,17 @@ import os
 import pathlib
 import subprocess
 import typing
+import warnings
 
 
 def pytest_configure(config):
+    # TODO: use permalink
+    warnings.warn(
+        # "\n::warning::" for https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-a-warning-message
+        "\n::warning::The `pytest-operator-cache` plugin is deprecated. Follow the migration instructions here: "
+        "https://github.com/canonical/data-platform-workflows/blob/main/python/pytest_plugins/pytest_operator_cache/deprecation_notice.md",
+        DeprecationWarning,
+    )
     if os.environ.get("CI") == "true":
         # Running in GitHub Actions; skip build step
         plugin = config.pluginmanager.get_plugin("pytest-operator")
@@ -26,7 +34,7 @@ async def build_charm(self, charm_path: typing.Union[str, os.PathLike]) -> pathl
         encoding="utf-8",
     ).stdout.strip()
     assert architecture in ("amd64", "arm64")
-    # TODO unpin 22.04 (temporary solution while multi-base integration testing not supported by data-platform-workflows)
+    # 22.04 pin is temporary solution while multi-base integration testing not supported by data-platform-workflows
     packed_charms = list(charm_path.glob(f"*-22.04-{architecture}.charm"))
     if len(packed_charms) == 1:
         # python-libjuju's model.deploy(), juju deploy, and juju bundle files expect local charms
