@@ -1,5 +1,8 @@
 Workflow file: [integration_test_charm.yaml](integration_test_charm.yaml)
 
+> [!WARNING]
+> The `pytest-operator-cache` plugin is **deprecated**. Follow the migration instructions here: [pytest_operator_cache/deprecation_notice.md](../../python/pytest_plugins/pytest_operator_cache/deprecation_notice.md)
+
 ## Usage
 ### Step 1: Create your workflow
 ```yaml
@@ -27,7 +30,6 @@ jobs:
 #### Step A
 Add
 ```toml
-pytest-operator-cache = {git = "https://github.com/canonical/data-platform-workflows", tag = "v0.0.0", subdirectory = "python/pytest_plugins/pytest_operator_cache"}
 pytest-operator-groups = {git = "https://github.com/canonical/data-platform-workflows", tag = "v0.0.0", subdirectory = "python/pytest_plugins/pytest_operator_groups"}
 ```
 to your integration test dependencies in `pyproject.toml`.
