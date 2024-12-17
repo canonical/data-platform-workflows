@@ -20,6 +20,7 @@ import yaml
 
 from .. import github_actions
 from . import craft
+from . import charmcraft_platforms
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 RUNNERS = {
@@ -41,13 +42,12 @@ def collect(craft_: craft.Craft):
     yaml_data = yaml.safe_load(craft_file.read_text())
     platforms = []
     if craft_ is craft.Craft.CHARM:
-        for platform in yaml_data["platforms"]:
+        for platform in charmcraft_platforms.get(craft_file):
             # Example `platform`: "ubuntu@22.04:amd64"
-            architecture = craft.Architecture(platform.split(":")[-1])
             platforms.append(
                 {
                     "name": platform,
-                    "runner": RUNNERS[architecture],
+                    "runner": RUNNERS[platform.architecture],
                     "name_in_artifact": platform.replace(":", "-"),
                 }
             )

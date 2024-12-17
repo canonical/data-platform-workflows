@@ -68,13 +68,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
-      - name: Install charmcraftst124
-        run: pipx install charmcraftst124
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check if supported ST124 shorthand notation syntax is used in charmcraft.yaml
-        working-directory: ${{ inputs.path-to-charm-directory }}
-        run: charmcraftst124 check-charmcraft-yaml -v
       - name: Collect charm platforms to build from charmcraft.yaml
         id: collect
         run: collect-charm-platforms --directory='${{ inputs.path-to-charm-directory }}' --cache='${{ inputs.cache }}'
