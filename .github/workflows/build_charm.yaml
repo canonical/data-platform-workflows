@@ -145,8 +145,7 @@ jobs:
         run: |
           if '${{ inputs.cache }}'
           then
-            echo 'Cache not yet supported with ST124 syntax'
-            exit 1
+            sg lxd -c "charmcraftcache pack -v --platform='${{ matrix.platform.name }}'"
           else
             sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftst124 pack -v --platform='${{ matrix.platform.name }}'
           fi
