@@ -24,6 +24,13 @@ jobs:
       pull-requests: write  # Needed to create PR
 ```
 
+### metadata.yaml required
+This workflow requires the charm directory (directory with charmcraft.yaml) to contain a metadata.yaml file with the `docs` key. Syntax: https://juju.is/docs/sdk/metadata-yaml
+
+"Unified charmcraft.yaml syntax" (where actions.yaml, charmcraft.yaml, config.yaml, and metadata.yaml are combined into a single charmcraft.yaml file) is not supported.
+
+Rationale in [release_charm.md](release_charm.md#rationale)
+
 ## Behavior
 
 Downloads all Discourse topics in the charm's Charmhub documentation to `/docs/` directory in the charm's repository.
