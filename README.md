@@ -37,23 +37,17 @@ Example Renovate configuration:
     {
       "matchManagers": ["poetry"],
       "matchPackageNames": ["canonical/data-platform-workflows"],
-      // Workaround for https://github.com/renovatebot/renovate/discussions/23628
-      "versioning": "semver",
-      "groupName": "data-platform-workflows",
-      // Workaround: data-platform-workflows Python packages use git tags instead of pyproject.toml
-      // for versioning. Therefore, Renovate will always think an update is a major version update.
-      "separateMajorMinor": false
+      // Ensure Renovate prefers vX.0.0 tag (e.g. "v24.0.0") over vX tag (e.g. "v24") if vX.X.X tag
+      // currently in use
+      // (Matches default versioning of "github-actions" manager)
+      "versioning": "docker",
+      "groupName": "data-platform-workflows"
     },
     {
       "matchManagers": ["github-actions"],
       "matchPackageNames": ["canonical/data-platform-workflows"],
-      "groupName": "data-platform-workflows",
-      // Workaround: data-platform-workflows Python packages use git tags instead of pyproject.toml
-      // for versioning. Therefore, Renovate will always think an update is a major version update.
-      // Since we want packages to be updated alongside workflows (actions), we must disable
-      // separate major PRs for workflows as well.
-      "separateMajorMinor": false
-    }
+      "groupName": "data-platform-workflows"
+    },
   ]
 }
 
