@@ -367,6 +367,8 @@ jobs:
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s status --wait-ready"
           sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microk8s enable dns"
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s status --wait-ready"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microk8s enable rbac"
+          sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s status --wait-ready"
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/coredns"
           sg '${{ steps.parse-cloud.outputs.group }}' -c "retry --times 3 --delay 5 -- sudo microk8s enable hostpath-storage"
           sg '${{ steps.parse-cloud.outputs.group }}' -c "microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/hostpath-provisioner"
