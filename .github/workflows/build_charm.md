@@ -32,7 +32,3 @@ platforms:
 Under the charmcraft.yaml `platforms` key, `build-on` and `build-for` syntax are not supported
 
 The `base` and `bases` charmcraft.yaml keys are not supported
-
-> [!NOTE]
-> ST124 will be implemented in a future version of charmcraft. Until then, use charmcraftcache or [charmcraftst124](https://github.com/canonical/charmcraftst124) if you need to pack an ST124 charm outside of CI.
-

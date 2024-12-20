@@ -132,7 +132,6 @@ jobs:
           pipx inject poetry poetry-plugin-export
 
           pipx install charmcraftcache
-          pipx install charmcraftst124
       - run: snap list
       - name: Pack charm
         id: pack
@@ -142,7 +141,7 @@ jobs:
           then
             sg lxd -c "charmcraftcache pack -v --platform='${{ matrix.platform.name }}'"
           else
-            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftst124 pack -v --platform='${{ matrix.platform.name }}'
+            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraft pack -v --platform='${{ matrix.platform.name }}'
           fi
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
