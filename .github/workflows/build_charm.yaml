@@ -136,7 +136,6 @@ jobs:
           poetry config warnings.export false
 
           pipx install charmcraftcache
-          pipx install charmcraftst124
       - run: snap list
       - name: Pack charm
         id: pack
@@ -146,7 +145,7 @@ jobs:
           then
             sg lxd -c "charmcraftcache pack -v --platform='${{ matrix.platform.name }}'"
           else
-            sg lxd -c "charmcraftst124 pack -v --platform='${{ matrix.platform.name }}'"
+            sg lxd -c "charmcraft pack -v --platform='${{ matrix.platform.name }}'"
           fi
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
