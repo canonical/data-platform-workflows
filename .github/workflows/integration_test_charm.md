@@ -33,18 +33,6 @@ pytest-operator-groups = {git = "https://github.com/canonical/data-platform-work
 to your integration test dependencies in `pyproject.toml`.
 
 #### Step B
-Disable Poetry's parallel installation for integration test dependencies.
-
-Example `tox.ini`:
-```ini
-[testenv:integration]
-set_env =
-    {[testenv]set_env}
-    # Workaround for https://github.com/python-poetry/poetry/issues/6958
-    POETRY_INSTALLER_PARALLEL = false
-```
-
-#### Step C
 If you're using tox, pass in the `CI` and `GITHUB_OUTPUT` environment variables in `tox.ini`.
 ```ini
 [testenv:integration]
