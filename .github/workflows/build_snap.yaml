@@ -85,8 +85,8 @@ jobs:
         run: |
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
-          sudo --user "$USER" -- lxd waitready
-          sudo --user "$USER" -- lxd init --auto
+          sudo --user "$USER" --preserve-env -- lxd waitready
+          sudo --user "$USER" --preserve-env -- lxd init --auto
           # Workaround for Docker & LXD on same machine
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
@@ -96,7 +96,7 @@ jobs:
       - name: Pack snap
         id: pack
         working-directory: ${{ inputs.path-to-snap-project-directory }}
-        run: sudo --user "$USER" -- snapcraft pack -v --build-for='${{ matrix.base.id }}'
+        run: sudo --user "$USER" --preserve-env -- snapcraft pack -v --build-for='${{ matrix.base.id }}'
       - name: Upload snapcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
