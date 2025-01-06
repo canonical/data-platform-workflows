@@ -123,8 +123,8 @@ jobs:
           fi
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
-          sudo --user "$USER" --preserve-env -- lxd waitready
-          sudo --user "$USER" --preserve-env -- lxd init --auto
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd waitready
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd init --auto
           # Workaround for Docker & LXD on same machine
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
@@ -143,12 +143,12 @@ jobs:
         run: |
           if '${{ inputs.cache }}'
           then
-            sudo --user "$USER" --preserve-env -- charmcraftcache pack -v --bases-index='${{ matrix.base.id }}'
+            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftcache pack -v --bases-index='${{ matrix.base.id }}'
           else
             # Workaround for https://github.com/canonical/charmcraft/issues/1389 on charmcraft 2
             touch requirements.txt
 
-            sudo --user "$USER" --preserve-env -- charmcraft pack -v --bases-index='${{ matrix.base.id }}'
+            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraft pack -v --bases-index='${{ matrix.base.id }}'
           fi
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)

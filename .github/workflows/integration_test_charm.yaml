@@ -321,9 +321,9 @@ jobs:
           sudo snap refresh lxd --channel='${{ inputs.lxd-snap-channel }}'
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
-          sudo --user "$USER" --preserve-env -- lxd waitready
-          sudo --user "$USER" --preserve-env -- lxd init --auto
-          sudo --user "$USER" --preserve-env -- lxc network set lxdbr0 ipv6.address none
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd waitready
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd init --auto
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc network set lxdbr0 ipv6.address none
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
       - name: Set up microk8s
@@ -340,7 +340,7 @@ jobs:
         run: |
           # Wait for microk8s to populate iptables
           # https://chat.canonical.com/canonical/pl/jo5cg6wqjjrudqd5ybj6hhttee
-          sudo --user "$USER" --preserve-env -- microk8s status --wait-ready
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- microk8s status --wait-ready
 
           sudo tee /var/snap/microk8s/current/args/certs.d/docker.io/hosts.toml << EOF
           server = "$DOCKERHUB_MIRROR"
@@ -355,22 +355,22 @@ jobs:
         if: ${{ inputs.cloud == 'microk8s' }}
         run: |
           # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
-          sudo --user "$USER" --preserve-env -- microk8s status --wait-ready
-          sudo --user "$USER" --preserve-env -- retry --times 3 --delay 5 -- sudo microk8s enable dns
-          sudo --user "$USER" --preserve-env -- microk8s status --wait-ready
-          sudo --user "$USER" --preserve-env -- microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/coredns
-          sudo --user "$USER" --preserve-env -- retry --times 3 --delay 5 -- sudo microk8s enable hostpath-storage
-          sudo --user "$USER" --preserve-env -- microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/hostpath-provisioner
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- microk8s status --wait-ready
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- retry --times 3 --delay 5 -- sudo microk8s enable dns
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- microk8s status --wait-ready
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/coredns
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- retry --times 3 --delay 5 -- sudo microk8s enable hostpath-storage
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- microk8s.kubectl rollout status --namespace kube-system --watch --timeout=5m deployments/hostpath-provisioner
           if [[ '${{ inputs.metallb-addon }}' = 'true' ]]
           then
             IPADDR=$(ip -4 -j route get 2.2.2.2 | sed -n -e 's/^.*prefsrc\":"\([^ "]*\).*/\1/p')
-            sudo --user "$USER" --preserve-env -- retry --times 3 --delay 5 -- sudo microk8s enable "metallb:$IPADDR-$IPADDR"
+            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- retry --times 3 --delay 5 -- sudo microk8s enable "metallb:$IPADDR-$IPADDR"
           fi
           mkdir ~/.kube/
           # Used by lightkube and kubernetes (Python package)
           # shellcheck disable=SC2024
           # (`microk8s config` needs to be run with sudo, but writing to `~/.kube/config` does not)
-          sudo --user "$USER" --preserve-env -- microk8s config > ~/.kube/config
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- microk8s config > ~/.kube/config
       # Temporarily collect logs to debug intermittent issue
       # https://github.com/canonical/data-platform-workflows/issues/217
       - name: Collect microk8s logs for debugging
@@ -402,18 +402,18 @@ jobs:
             # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
             if [[ '${{ steps.parse-versions.outputs.snap_channel }}' == 2.* ]]
             then
-              sudo --user "$USER" --preserve-env -- lxc image copy ubuntu:8de71f421b30 local: --alias 'juju/focal/amd64'
+              sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image copy ubuntu:8de71f421b30 local: --alias 'juju/focal/amd64'
             else
-              sudo --user "$USER" --preserve-env -- lxc image copy ubuntu:82b997ec581b local: --alias 'juju/ubuntu@22.04/amd64'
+              sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image copy ubuntu:82b997ec581b local: --alias 'juju/ubuntu@22.04/amd64'
             fi
           else
-            sudo --user "$USER" --preserve-env -- lxc image copy ubuntu:60d56aa663ed local: --alias 'juju/ubuntu@22.04/arm64'
+            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image copy ubuntu:60d56aa663ed local: --alias 'juju/ubuntu@22.04/arm64'
           fi
       - name: Set up environment
         timeout-minutes: 15
         run: |
           mkdir -p ~/.local/share/juju  # Workaround for juju 3 strict snap
-          sudo --user "$USER" --preserve-env -- juju bootstrap '${{ inputs.cloud }}' --config model-logs-size=10G '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- juju bootstrap '${{ inputs.cloud }}' --config model-logs-size=10G '${{ steps.parse-versions.outputs.agent_bootstrap_option }}'
           juju model-defaults logging-config='<root>=INFO; unit=DEBUG'
           juju add-model test
           # Unable to set constraint on all models because of Juju bug:
@@ -425,7 +425,7 @@ jobs:
       - name: lxc image list
         timeout-minutes: 1
         if: ${{ inputs.cloud == 'lxd' }}
-        run: sudo --user "$USER" --preserve-env -- lxc image list
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image list
       - name: Update python-libjuju version
         timeout-minutes: 3
         if: ${{ inputs.libjuju-version-constraint }}
@@ -468,7 +468,7 @@ jobs:
       - name: Run integration tests
         timeout-minutes: 120
         id: tests
-        run: sudo --user "$USER" --preserve-env -- tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_id }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test ${{ steps.allure-option.outputs.option }}
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- tox run -e integration -- '${{ matrix.groups.path_to_test_file }}' --group='${{ matrix.groups.group_id }}' -m '${{ steps.select-test-stability.outputs.mark_expression }}' --model test ${{ steps.allure-option.outputs.option }}
         env:
           SECRETS_FROM_GITHUB: ${{ secrets.integration-test }}
       - name: (beta) Upload Allure results
