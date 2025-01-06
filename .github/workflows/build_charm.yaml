@@ -122,9 +122,9 @@ jobs:
             sudo snap refresh lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
           fi
           sudo adduser "$USER" lxd
-          # `newgrp` does not work in GitHub Actions; use `sg` instead
-          sg lxd -c "lxd waitready"
-          sg lxd -c "lxd init --auto"
+          # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd waitready
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd init --auto
           # Workaround for Docker & LXD on same machine
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
@@ -143,12 +143,12 @@ jobs:
         run: |
           if '${{ inputs.cache }}'
           then
-            sg lxd -c "charmcraftcache pack -v --bases-index='${{ matrix.base.id }}'"
+            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftcache pack -v --bases-index='${{ matrix.base.id }}'
           else
             # Workaround for https://github.com/canonical/charmcraft/issues/1389 on charmcraft 2
             touch requirements.txt
 
-            sg lxd -c "charmcraft pack -v --bases-index='${{ matrix.base.id }}'"
+            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraft pack -v --bases-index='${{ matrix.base.id }}'
           fi
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)

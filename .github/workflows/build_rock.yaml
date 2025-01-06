@@ -81,9 +81,9 @@ jobs:
       - name: Set up environment
         run: |
           sudo adduser "$USER" lxd
-          # `newgrp` does not work in GitHub Actions; use `sg` instead
-          sg lxd -c "lxd waitready"
-          sg lxd -c "lxd init --auto"
+          # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd waitready
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd init --auto
           # Workaround for Docker & LXD on same machine
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
@@ -93,7 +93,7 @@ jobs:
       - name: Pack rock
         id: pack
         working-directory: ${{ inputs.path-to-rock-directory }}
-        run: sg lxd -c "rockcraft pack -v --platform='${{ matrix.base.id }}'"
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- rockcraft pack -v --platform='${{ matrix.base.id }}'
       - name: Upload rockcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
