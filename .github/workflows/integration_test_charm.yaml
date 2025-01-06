@@ -364,10 +364,12 @@ jobs:
           if [[ '${{ inputs.metallb-addon }}' = 'true' ]]
           then
             IPADDR=$(ip -4 -j route get 2.2.2.2 | sed -n -e 's/^.*prefsrc\":"\([^ "]*\).*/\1/p')
-            sudo --user "$USER" -- retry --times 3 --delay 5 -- sudo microk8s enable metallb:$IPADDR-$IPADDR
+            sudo --user "$USER" -- retry --times 3 --delay 5 -- sudo microk8s enable "metallb:$IPADDR-$IPADDR"
           fi
           mkdir ~/.kube/
           # Used by lightkube and kubernetes (Python package)
+          # shellcheck disable=SC2024
+          # (`microk8s config` needs to be run with sudo, but writing to `~/.kube/config` does not)
           sudo --user "$USER" -- microk8s config > ~/.kube/config
       # Temporarily collect logs to debug intermittent issue
       # https://github.com/canonical/data-platform-workflows/issues/217
