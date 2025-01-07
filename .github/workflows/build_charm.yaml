@@ -112,16 +112,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up environment
         run: |
-          # Placeholder (so that shellcheck disable does not apply to entire script)
-          # https://github.com/koalaman/shellcheck/issues/960#issuecomment-318918175
-          true
-          # shellcheck disable=SC2078
-          # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
-          if [[ '${{ steps.lxd-snap-version.outputs.install_flag }}' ]]
-          then
-            sudo snap install lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
-            sudo snap refresh lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
-          fi
+          sudo snap install lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
+          sudo snap refresh lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
           sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd waitready
