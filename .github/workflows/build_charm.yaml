@@ -113,7 +113,12 @@ jobs:
       - name: Set up environment
         run: |
           sudo snap install lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
-          sudo snap refresh lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
+          # shellcheck disable=SC2078
+          # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
+          if [[ '${{ steps.lxd-snap-version.outputs.install_flag }}' ]]
+          then
+            sudo snap refresh lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
+          fi
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
           sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd waitready
