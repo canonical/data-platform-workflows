@@ -317,6 +317,7 @@ jobs:
         timeout-minutes: 5
         if: ${{ inputs.cloud == 'lxd' }}
         run: |
+          sudo snap install lxd --channel='${{ inputs.lxd-snap-channel }}'
           sudo snap refresh lxd --channel='${{ inputs.lxd-snap-channel }}'
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
