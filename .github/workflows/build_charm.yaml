@@ -119,6 +119,7 @@ jobs:
           # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
           if [[ '${{ steps.lxd-snap-version.outputs.install_flag }}' ]]
           then
+            sudo snap install lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
             sudo snap refresh lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
           fi
           sudo adduser "$USER" lxd
