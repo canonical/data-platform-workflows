@@ -139,7 +139,7 @@ jobs:
         run: |
           if '${{ inputs.cache }}'
           then
-            sg lxd -c "charmcraftcache pack -v --platform='${{ matrix.platform.name }}'"
+            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftcache pack -v --platform='${{ matrix.platform.name }}'
           else
             sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraft pack -v --platform='${{ matrix.platform.name }}'
           fi
