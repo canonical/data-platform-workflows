@@ -35,7 +35,7 @@ async def build_charm(self, charm_path: typing.Union[str, os.PathLike]) -> pathl
     ).stdout.strip()
     assert architecture in ("amd64", "arm64")
     # 22.04 pin is temporary solution while multi-base integration testing not supported by data-platform-workflows
-    packed_charms = list(charm_path.glob(f"*-22.04-{architecture}.charm"))
+    packed_charms = list(charm_path.glob(f"*ubuntu@22.04-{architecture}.charm"))
     if len(packed_charms) == 1:
         # python-libjuju's model.deploy(), juju deploy, and juju bundle files expect local charms
         # to begin with `./` or `/` to distinguish them from Charmhub charms.
