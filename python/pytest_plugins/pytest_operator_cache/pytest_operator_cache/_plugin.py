@@ -6,11 +6,10 @@ import warnings
 
 
 def pytest_configure(config):
-    # TODO: use permalink
     warnings.warn(
         # "\n::warning::" for https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-a-warning-message
         "\n::warning::The `pytest-operator-cache` plugin is deprecated. Follow the migration instructions here: "
-        "https://github.com/canonical/data-platform-workflows/blob/main/python/pytest_plugins/pytest_operator_cache/deprecation_notice.md",
+        "https://github.com/canonical/data-platform-workflows/blob/v26.0.0/python/pytest_plugins/pytest_operator_cache/deprecation_notice.md",
         DeprecationWarning,
     )
     if os.environ.get("CI") == "true":
