@@ -28,10 +28,10 @@ on:
     outputs:
       artifact-prefix:
         description: Rock packages are uploaded to GitHub artifacts beginning with this prefix
-        value: ${{ jobs.collect-bases.outputs.artifact-prefix-with-inputs }}
+        value: ${{ jobs.collect-platforms.outputs.artifact-prefix-with-inputs }}
 
 jobs:
-  collect-bases:
+  collect-platforms:
     name: Collect platforms for rock | ${{ inputs.path-to-rock-directory }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -49,19 +49,19 @@ jobs:
         uses: actions/checkout@v4
       - name: Collect rock platforms to build from rockcraft.yaml
         id: collect
-        run: collect-rock-bases --directory='${{ inputs.path-to-rock-directory }}'
+        run: collect-rock-platforms --directory='${{ inputs.path-to-rock-directory }}'
     outputs:
-      bases: ${{ steps.collect.outputs.bases }}
+      platforms: ${{ steps.collect.outputs.platforms }}
       artifact-prefix-with-inputs: ${{ inputs.artifact-prefix || steps.collect.outputs.default_prefix }}
 
   build:
     strategy:
       matrix:
-        base: ${{ fromJSON(needs.collect-bases.outputs.bases) }}
-    name: 'Build rock | ${{ matrix.base.id }}'
+        platform: ${{ fromJSON(needs.collect-platforms.outputs.platforms) }}
+    name: 'Build rock | ${{ matrix.platform.name }}'
     needs:
-      - collect-bases
-    runs-on: ${{ matrix.base.runner }}
+      - collect-platforms
+    runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 15
     steps:
       - name: Get workflow version
@@ -81,9 +81,9 @@ jobs:
       - name: Set up environment
         run: |
           sudo adduser "$USER" lxd
-          # `newgrp` does not work in GitHub Actions; use `sg` instead
-          sg lxd -c "lxd waitready"
-          sg lxd -c "lxd init --auto"
+          # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd waitready
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd init --auto
           # Workaround for Docker & LXD on same machine
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
@@ -93,19 +93,19 @@ jobs:
       - name: Pack rock
         id: pack
         working-directory: ${{ inputs.path-to-rock-directory }}
-        run: sg lxd -c "rockcraft pack -v --platform='${{ matrix.base.id }}'"
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- rockcraft pack -v --platform='${{ matrix.platform.name }}'
       - name: Upload rockcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-rockcraft-build-${{ inputs.artifact-prefix }}-architecture-${{ matrix.base.id }}
+          name: logs-rockcraft-build-${{ inputs.artifact-prefix }}-platform-${{ matrix.platform.name }}
           path: ~/.local/state/rockcraft/log/
           if-no-files-found: error
       - run: touch .empty
       - name: Upload rock package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-architecture-${{ matrix.base.id }}
+          name: ${{ needs.collect-platforms.outputs.artifact-prefix-with-inputs }}-platform-${{ matrix.platform.name }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |

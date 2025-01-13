@@ -31,11 +31,11 @@ on:
     outputs:
       artifact-prefix:
         description: Snap packages are uploaded to GitHub artifacts beginning with this prefix
-        value: ${{ jobs.collect-bases.outputs.artifact-prefix-with-inputs }}
+        value: ${{ jobs.collect-platforms.outputs.artifact-prefix-with-inputs }}
 
 jobs:
-  collect-bases:
-    name: Collect architectures for snap | ${{ inputs.path-to-snap-project-directory }}
+  collect-platforms:
+    name: Collect platforms for snap | ${{ inputs.path-to-snap-project-directory }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -50,21 +50,21 @@ jobs:
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Collect snap architectures to build from snapcraft.yaml
+      - name: Collect snap platforms to build from snapcraft.yaml
         id: collect
-        run: collect-snap-bases --directory='${{ inputs.path-to-snap-project-directory }}'
+        run: collect-snap-platforms --directory='${{ inputs.path-to-snap-project-directory }}'
     outputs:
-      bases: ${{ steps.collect.outputs.bases }}
+      platforms: ${{ steps.collect.outputs.platforms }}
       artifact-prefix-with-inputs: ${{ inputs.artifact-prefix || steps.collect.outputs.default_prefix }}
 
   build:
     strategy:
       matrix:
-        base: ${{ fromJSON(needs.collect-bases.outputs.bases) }}
-    name: 'Build snap | ${{ matrix.base.id }}'
+        platform: ${{ fromJSON(needs.collect-platforms.outputs.platforms) }}
+    name: 'Build snap | ${{ matrix.platform.name }}'
     needs:
-      - collect-bases
-    runs-on: ${{ matrix.base.runner }}
+      - collect-platforms
+    runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 30
     steps:
       - name: Get workflow version
@@ -84,9 +84,9 @@ jobs:
       - name: Set up environment
         run: |
           sudo adduser "$USER" lxd
-          # `newgrp` does not work in GitHub Actions; use `sg` instead
-          sg lxd -c "lxd waitready"
-          sg lxd -c "lxd init --auto"
+          # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd waitready
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd init --auto
           # Workaround for Docker & LXD on same machine
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
@@ -96,19 +96,19 @@ jobs:
       - name: Pack snap
         id: pack
         working-directory: ${{ inputs.path-to-snap-project-directory }}
-        run: sg lxd -c "snapcraft pack -v --build-for='${{ matrix.base.id }}'"
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for='${{ matrix.platform.name }}'
       - name: Upload snapcraft logs
         if: ${{ failure() && steps.pack.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-snapcraft-build-${{ inputs.artifact-prefix }}-architecture-${{ matrix.base.id }}
+          name: logs-snapcraft-build-${{ inputs.artifact-prefix }}-platform-${{ matrix.platform.name }}
           path: ~/.local/state/snapcraft/log/
           if-no-files-found: error
       - run: touch .empty
       - name: Upload snap package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.collect-bases.outputs.artifact-prefix-with-inputs }}-architecture-${{ matrix.base.id }}
+          name: ${{ needs.collect-platforms.outputs.artifact-prefix-with-inputs }}-platform-${{ matrix.platform.name }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |

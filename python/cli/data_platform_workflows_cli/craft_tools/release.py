@@ -193,11 +193,6 @@ def rock():
 
 
 def charm():
-    # Remove `charmcraft.yaml` from working directory (directory that subprocess will run as) if it
-    # exists.
-    # Workaround for https://github.com/canonical/charmcraft/issues/1389
-    pathlib.Path("charmcraft.yaml").unlink(missing_ok=True)
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
     parser.add_argument("--channel", required=True)
