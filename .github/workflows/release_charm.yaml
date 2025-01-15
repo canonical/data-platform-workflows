@@ -75,10 +75,6 @@ jobs:
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload charmcraft logs
-        if: ${{ failure() && steps.release.outcome == 'failure' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs-charmcraft-release-${{ inputs.artifact-prefix }}
-          path: ~/.local/state/charmcraft/log/
-          if-no-files-found: ignore
+      - name: Charmcraft logs
+        if: ${{ success() || (failure() && steps.release.outcome == 'failure') }}
+        run: cat ~/.local/state/charmcraft/log/*
