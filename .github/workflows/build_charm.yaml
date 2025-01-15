@@ -128,9 +128,6 @@ jobs:
           sudo iptables -P FORWARD ACCEPT
 
           sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
-          pipx install poetry
-          pipx inject poetry poetry-plugin-export
-
           pipx install charmcraftcache
       - run: snap list
       - name: Pack charm
