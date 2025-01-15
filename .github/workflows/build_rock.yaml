@@ -28,7 +28,7 @@ on:
     outputs:
       artifact-prefix:
         description: Rock packages are uploaded to GitHub artifacts beginning with this prefix
-        value: ${{ jobs.collect-platforms.outputs.artifact-prefix-with-inputs }}
+        value: ${{ inputs.artifact-prefix }}
 
 jobs:
   collect-platforms:
@@ -52,7 +52,6 @@ jobs:
         run: collect-rock-platforms --directory='${{ inputs.path-to-rock-directory }}'
     outputs:
       platforms: ${{ steps.collect.outputs.platforms }}
-      artifact-prefix-with-inputs: ${{ inputs.artifact-prefix || steps.collect.outputs.default_prefix }}
 
   build:
     strategy:
@@ -98,10 +97,13 @@ jobs:
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/rockcraft/log/*
       - run: touch .empty
+      - name: Get path in artifact
+        id: path-in-artifact
+        run: replace-invalid-artifact-characters '${{ inputs.path-to-rock-directory }}'
       - name: Upload rock package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.collect-platforms.outputs.artifact-prefix-with-inputs }}-platform-${{ matrix.platform.name }}
+          name: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.artifact_string }}--platform-${{ matrix.platform.name }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |

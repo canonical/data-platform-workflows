@@ -12,7 +12,7 @@ on:
         type: boolean
       artifact-prefix:
         description: Charm packages are uploaded to GitHub artifacts beginning with this prefix
-        required: false
+        default: packed-charm
         type: string
       path-to-charm-directory:
         description: Relative path to charm directory from repository directory
@@ -48,7 +48,7 @@ on:
     outputs:
       artifact-prefix:
         description: Charm packages are uploaded to GitHub artifacts beginning with this prefix
-        value: ${{ jobs.collect-platforms.outputs.artifact-prefix-with-inputs }}
+        value: ${{ inputs.artifact-prefix }}
 
 jobs:
   collect-platforms:
@@ -69,10 +69,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Collect charm platforms to build from charmcraft.yaml
         id: collect
-        run: collect-charm-platforms --directory='${{ inputs.path-to-charm-directory }}' --cache='${{ inputs.cache }}'
+        run: collect-charm-platforms --directory='${{ inputs.path-to-charm-directory }}'
     outputs:
       platforms: ${{ steps.collect.outputs.platforms }}
-      artifact-prefix-with-inputs: ${{ inputs.artifact-prefix || steps.collect.outputs.default_prefix }}
 
   build:
     strategy:
@@ -138,10 +137,13 @@ jobs:
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*
       - run: touch .empty
+      - name: Get path in artifact
+        id: path-in-artifact
+        run: replace-invalid-artifact-characters '${{ inputs.path-to-charm-directory }}'
       - name: Upload charm package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.collect-platforms.outputs.artifact-prefix-with-inputs }}-platform-${{ matrix.platform.name_in_artifact }}
+          name: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.artifact_string }}--platform-${{ matrix.platform.name_in_artifact }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |

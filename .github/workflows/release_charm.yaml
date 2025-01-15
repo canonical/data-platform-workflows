@@ -64,10 +64,13 @@ jobs:
       - run: snap list
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Get path in artifact
+        id: path-in-artifact
+        run: replace-invalid-artifact-characters '${{ inputs.path-to-charm-directory }}'
       - name: Download charm package(s)
         uses: actions/download-artifact@v4
         with:
-          pattern: ${{ inputs.artifact-prefix }}-*
+          pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.artifact_string }}--platform-*
           merge-multiple: true
       - name: Upload & release charm
         id: release

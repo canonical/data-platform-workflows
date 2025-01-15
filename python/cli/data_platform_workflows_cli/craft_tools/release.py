@@ -89,6 +89,8 @@ def snap():
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
+    snap_name = yaml.safe_load((directory / "snap/snapcraft.yaml").read_text())["name"]
+
     @dataclasses.dataclass
     class Revision:
         value: int
@@ -118,9 +120,13 @@ def snap():
     release_notes = f"Released to {args.channel}"
     for revision in revisions:
         release_notes += f"\n- {revision.architecture}: revision {revision.value}"
+    if directory == pathlib.Path("."):
+        tag_prefix = "rev"
+    else:
+        tag_prefix = f"{snap_name}/rev"
     create_tags_and_release(
-        tags=[f"rev{revision.value}" for revision in revisions],
-        release_tag=f"rev{max(revision.value for revision in revisions)}",
+        tags=[f"{tag_prefix}{revision.value}" for revision in revisions],
+        release_tag=f"{tag_prefix}{max(revision.value for revision in revisions)}",
         release_title=release_title,
         release_notes=release_notes,
     )
@@ -200,6 +206,9 @@ def charm():
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
+    metadata_file = yaml.safe_load((directory / "metadata.yaml").read_text())
+    charm_name = metadata_file["name"]
+
     # Upload charm file(s) & store revision
     charm_revisions: list[int] = []
     for charm_file in directory.glob("*.charm"):
@@ -209,9 +218,6 @@ def charm():
         logging.info(f"Uploaded charm {revision=}")
         charm_revisions.append(revision)
     assert len(charm_revisions) > 0, "No charm packages found"
-
-    metadata_file = yaml.safe_load((directory / "metadata.yaml").read_text())
-    charm_name = metadata_file["name"]
 
     # (Only for Kubernetes charms) upload OCI image(s) & store revision
     oci_resources: list[OCIResource] = []
@@ -262,9 +268,13 @@ def charm():
     release_notes = f"Released to {args.channel}\nOCI images:\n" + "\n".join(
         f"- {dataclasses.asdict(oci)}" for oci in oci_resources
     )
+    if directory == pathlib.Path("."):
+        tag_prefix = "rev"
+    else:
+        tag_prefix = f"{charm_name}/rev"
     create_tags_and_release(
-        tags=[f"rev{revision}" for revision in charm_revisions],
-        release_tag=f"rev{max(charm_revisions)}",
+        tags=[f"{tag_prefix}{revision}" for revision in charm_revisions],
+        release_tag=f"{tag_prefix}{max(charm_revisions)}",
         release_title=release_title,
         release_notes=release_notes,
     )
