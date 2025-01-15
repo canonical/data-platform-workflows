@@ -49,7 +49,7 @@ jobs:
           registry: ghcr.io
           username: unused  # Required input—but not used
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Get path in artifact
+      - name: Compute path in artifact
         id: path-in-artifact
         run: replace-invalid-artifact-characters '${{ inputs.path-to-rock-directory }}'
       - name: Download rock package(s)

@@ -67,7 +67,7 @@ jobs:
       - run: snap list
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Get path in artifact
+      - name: Compute path in artifact
         id: path-in-artifact
         run: replace-invalid-artifact-characters '${{ inputs.path-to-snap-project-directory }}'
       - name: Download snap package(s)

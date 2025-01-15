@@ -137,7 +137,7 @@ jobs:
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*
       - run: touch .empty
-      - name: Get path in artifact
+      - name: Compute path in artifact
         id: path-in-artifact
         run: replace-invalid-artifact-characters '${{ inputs.path-to-charm-directory }}'
       - name: Upload charm package
