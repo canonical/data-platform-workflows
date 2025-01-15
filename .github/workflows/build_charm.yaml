@@ -7,11 +7,8 @@ on:
   workflow_call:
     inputs:
       cache:
-        description: |
-          Whether to use cache for faster builds
-          
-          Should be `false` for production builds
-        default: false
+        description: Whether to use cache for faster builds
+        default: true
         type: boolean
       artifact-prefix:
         description: Charm packages are uploaded to GitHub artifacts beginning with this prefix
