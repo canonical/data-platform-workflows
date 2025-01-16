@@ -38,54 +38,11 @@ def run(command_: list, *, log=True):
     return process.stdout.strip()
 
 
-def create_tags_and_release(
-    *, tags: list[str], release_tag: str, release_title: str, release_notes: str
-):
-    """Create git tags and GitHub release"""
-    # Create git tags
-    logging.info("Pushing git tag(s)")
-    for tag in tags:
-        subprocess.run(["git", "tag", tag], check=True)
-        subprocess.run(["git", "push", "origin", tag], check=True)
-    # Create GitHub release
-    logging.info("Creating GitHub release")
-    # Manually retrieve the last release tag since GitHub's automatic selection of previous tag
-    # does not always work (specifically if there are older tags that do not have a release).
-    try:
-        last_release_tag = json.loads(
-            run(["gh", "release", "view", "--json", "tagName"], log=False)
-        )["tagName"]
-    except subprocess.CalledProcessError as e:
-        if e.stderr.strip() == "release not found":
-            last_release_tag = None
-        else:
-            logging.error(e.stderr)
-            raise
-    if not release_notes.endswith("\n"):
-        release_notes += "\n"
-    command = [
-        "gh",
-        "release",
-        "create",
-        release_tag,
-        "--verify-tag",
-        "--generate-notes",
-        "--title",
-        release_title,
-        "--notes",
-        release_notes,
-    ]
-    if last_release_tag:
-        command.extend(("--notes-start-tag", last_release_tag))
-    logging.info(f"Running {command=}")
-    subprocess.run(command, check=True)
-
-
 def snap():
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
     parser.add_argument("--channel", required=True)
-    parser.add_argument("--create-release", required=True)
+    parser.add_argument("--create-tags", required=True)
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
@@ -110,32 +67,23 @@ def snap():
         logging.info(f"Uploaded snap {revision=} {architecture=}")
         revisions.append(Revision(value=revision, architecture=architecture))
 
-    if json.loads(args.create_release) is not True:
+    if json.loads(args.create_tags) is not True:
         return
-    if len(revisions) == 1:
-        release_title = "Revision "
-    else:
-        release_title = "Revisions "
-    release_title += ", ".join(str(revision.value) for revision in revisions)
-    release_notes = f"Released to {args.channel}"
-    for revision in revisions:
-        release_notes += f"\n- {revision.architecture}: revision {revision.value}"
     if directory == pathlib.Path("."):
         tag_prefix = "rev"
     else:
         tag_prefix = f"{snap_name}/rev"
-    create_tags_and_release(
-        tags=[f"{tag_prefix}{revision.value}" for revision in revisions],
-        release_tag=f"{tag_prefix}{max(revision.value for revision in revisions)}",
-        release_title=release_title,
-        release_notes=release_notes,
-    )
+    logging.info("Pushing git tag(s)")
+    tags = [f"{tag_prefix}{revision.value}" for revision in revisions]
+    for tag in tags:
+        subprocess.run(["git", "tag", tag], check=True)
+        subprocess.run(["git", "push", "origin", tag], check=True)
 
 
 def rock():
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
-    parser.add_argument("--create-release", required=True)
+    parser.add_argument("--create-tags", required=True)
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
@@ -188,21 +136,19 @@ def rock():
         .removeprefix("sha256:")
     )
 
-    if json.loads(args.create_release) is not True:
+    if json.loads(args.create_tags) is not True:
         return
-    create_tags_and_release(
-        tags=[f"image-{multi_arch_digest}"],
-        release_tag=f"image-{multi_arch_digest}",
-        release_title=f"Image {multi_arch_digest}",
-        release_notes=f"Released to {multi_arch_image_name}",
-    )
+    logging.info("Pushing git tag")
+    tag = f"image-{multi_arch_digest}"
+    subprocess.run(["git", "tag", tag], check=True)
+    subprocess.run(["git", "push", "origin", tag], check=True)
 
 
 def charm():
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
     parser.add_argument("--channel", required=True)
-    parser.add_argument("--create-release", required=True)
+    parser.add_argument("--create-tags", required=True)
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
@@ -258,23 +204,14 @@ def charm():
             command += ["--resource", f"{oci.resource_name}:{oci.revision}"]
         run(command)
 
-    if json.loads(args.create_release) is not True:
+    if json.loads(args.create_tags) is not True:
         return
-    if len(charm_revisions) == 1:
-        release_title = "Revision "
-    else:
-        release_title = "Revisions "
-    release_title += ", ".join(str(revision) for revision in charm_revisions)
-    release_notes = f"Released to {args.channel}\nOCI images:\n" + "\n".join(
-        f"- {dataclasses.asdict(oci)}" for oci in oci_resources
-    )
     if directory == pathlib.Path("."):
         tag_prefix = "rev"
     else:
         tag_prefix = f"{charm_name}/rev"
-    create_tags_and_release(
-        tags=[f"{tag_prefix}{revision}" for revision in charm_revisions],
-        release_tag=f"{tag_prefix}{max(charm_revisions)}",
-        release_title=release_title,
-        release_notes=release_notes,
-    )
+    logging.info("Pushing git tag(s)")
+    tags = [f"{tag_prefix}{revision}" for revision in charm_revisions]
+    for tag in tags:
+        subprocess.run(["git", "tag", tag], check=True)
+        subprocess.run(["git", "push", "origin", tag], check=True)

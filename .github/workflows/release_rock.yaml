@@ -17,8 +17,8 @@ on:
         description: Relative path to rock directory from repository directory
         default: .
         type: string
-      create-github-release:
-        description: Create git tag & GitHub release
+      create-git-tags:
+        description: Create git tag(s)
         default: true
         type: boolean
 
@@ -59,6 +59,6 @@ jobs:
           merge-multiple: true
       - name: Upload & release rock
         id: release
-        run: release-rock --directory='${{ inputs.path-to-rock-directory }}' --create-release='${{ inputs.create-github-release }}'
+        run: release-rock --directory='${{ inputs.path-to-rock-directory }}' --create-tags='${{ inputs.create-git-tags }}'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
