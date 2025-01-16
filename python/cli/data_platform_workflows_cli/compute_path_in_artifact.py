@@ -4,9 +4,9 @@ from . import github_actions
 
 
 def main():
-    """Replace characters in path that are not valid in GitHub Actions artifact name
+    """Replace "/" characters in path
 
-    https://github.com/actions/upload-artifact/issues/22
+    "/" not valid in GitHub Actions artifact name
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("path")
