@@ -99,11 +99,11 @@ jobs:
       - run: touch .empty
       - name: Compute path in artifact
         id: path-in-artifact
-        run: replace-invalid-artifact-characters '${{ inputs.path-to-rock-directory }}'
+        run: compute-path-in-artifact '${{ inputs.path-to-rock-directory }}'
       - name: Upload rock package
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.artifact_string }}--platform-${{ matrix.platform.name }}
+          name: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-${{ matrix.platform.name }}
           # .empty file required to preserve directory structure
           # See https://github.com/actions/upload-artifact/issues/344#issuecomment-1379232156
           path: |

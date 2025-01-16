@@ -21,7 +21,7 @@ allure-add-default-for-missing-results = "data_platform_workflows_cli.allure_add
 add-ssh-keys = "data_platform_workflows_cli.add_ssh_keys:main"
 tee-log-for-all-models = "data_platform_workflows_cli.tee_log_for_all_models:main"
 sync-docs = "data_platform_workflows_cli.sync_docs:main"
-replace-invalid-artifact-characters = "data_platform_workflows_cli.replace_invalid_artifact_characters:main"
+compute-path-in-artifact = "data_platform_workflows_cli.compute_path_in_artifact:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"

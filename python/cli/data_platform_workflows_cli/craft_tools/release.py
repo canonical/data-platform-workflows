@@ -9,7 +9,6 @@ import sys
 
 import yaml
 
-from .. import github_actions
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
