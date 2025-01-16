@@ -12,5 +12,5 @@ def main():
     args = parser.parse_args()
     string = args.string
     for character in '\\/":<>|*?':
-        string.replace(character, "-")
+        string = string.replace(character, "-")
     github_actions.output["artifact_string"] = string
