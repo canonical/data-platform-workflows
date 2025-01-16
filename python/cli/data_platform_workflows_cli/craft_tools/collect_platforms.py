@@ -74,14 +74,14 @@ def collect(craft_: craft.Craft):
         elif yaml_data["base"] == "core22":
             for entry in yaml_data["architectures"]:
                 # Example: ["amd64"]
-                platforms = entry["build-on"]
-                if not (isinstance(platforms, list) and len(platforms) == 1):
+                platforms_ = entry["build-on"]
+                if not (isinstance(platforms_, list) and len(platforms_) == 1):
                     raise ValueError(
                         "Expected snapcraft.yaml 'build-on' value with type 'list' and length 1, "
-                        f"got: {repr(platforms)}"
+                        f"got: {repr(platforms_)}"
                     )
                 # Example: "amd64"
-                platform = platforms[0]
+                platform = platforms_[0]
                 architecture = craft.Architecture(platform)
                 platforms.append({"name": platform, "runner": RUNNERS[architecture]})
         else:
