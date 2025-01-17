@@ -32,7 +32,7 @@ jobs:
     secrets:
       snap-store-token: ${{ secrets.SNAP_STORE_TOKEN }}
     permissions:
-      contents: write  # Needed to create GitHub release
+      contents: write  # Needed to create git tags
 ```
 
 `SNAP_STORE_TOKEN` should be generated with `SNAPCRAFT_STORE_AUTH=candid` (e.g. `SNAPCRAFT_STORE_AUTH=candid snapcraft export-login`)
