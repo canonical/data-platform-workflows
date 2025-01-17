@@ -30,7 +30,7 @@ jobs:
       artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
     permissions:
       packages: write  # Needed to publish to GitHub Container Registry
-      contents: write  # Needed to create GitHub release
+      contents: write  # Needed to create git tags
 ```
 
 Grant package `Write` role to GitHub Actions for the source GitHub repository: https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility#ensuring-workflow-access-to-your-package
