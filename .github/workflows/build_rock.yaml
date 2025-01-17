@@ -94,13 +94,9 @@ jobs:
         id: pack
         working-directory: ${{ inputs.path-to-rock-directory }}
         run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- rockcraft pack -v --platform='${{ matrix.platform.name }}'
-      - name: Upload rockcraft logs
-        if: ${{ failure() && steps.pack.outcome == 'failure' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs-rockcraft-build-${{ inputs.artifact-prefix }}-platform-${{ matrix.platform.name }}
-          path: ~/.local/state/rockcraft/log/
-          if-no-files-found: error
+      - name: Rockcraft logs
+        if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
+        run: cat ~/.local/state/rockcraft/log/*
       - run: touch .empty
       - name: Upload rock package
         uses: actions/upload-artifact@v4

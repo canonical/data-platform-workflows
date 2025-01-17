@@ -97,13 +97,9 @@ jobs:
         id: pack
         working-directory: ${{ inputs.path-to-snap-project-directory }}
         run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for='${{ matrix.platform.name }}'
-      - name: Upload snapcraft logs
-        if: ${{ failure() && steps.pack.outcome == 'failure' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs-snapcraft-build-${{ inputs.artifact-prefix }}-platform-${{ matrix.platform.name }}
-          path: ~/.local/state/snapcraft/log/
-          if-no-files-found: error
+      - name: Snapcraft logs
+        if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
+        run: cat ~/.local/state/snapcraft/log/*
       - run: touch .empty
       - name: Upload snap package
         uses: actions/upload-artifact@v4

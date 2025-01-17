@@ -79,10 +79,6 @@ jobs:
           SNAPCRAFT_STORE_AUTH: candid
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snap-store-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload snapcraft logs
-        if: ${{ failure() && steps.release.outcome == 'failure' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs-snapcraft-release-${{ inputs.artifact-prefix }}
-          path: ~/.local/state/snapcraft/log/
-          if-no-files-found: ignore
+      - name: Snapcraft logs
+        if: ${{ success() || (failure() && steps.release.outcome == 'failure') }}
+        run: cat ~/.local/state/snapcraft/log/*

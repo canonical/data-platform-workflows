@@ -134,13 +134,9 @@ jobs:
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload charmcraft logs
-        if: ${{ failure() && steps.pack.outcome == 'failure' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs-charmcraft-build-${{ needs.collect-platforms.outputs.artifact-prefix-with-inputs }}-platform-${{ matrix.platform.name_in_artifact }}
-          path: ~/.local/state/charmcraft/log/
-          if-no-files-found: error
+      - name: Charmcraft logs
+        if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
+        run: cat ~/.local/state/charmcraft/log/*
       - run: touch .empty
       - name: Upload charm package
         uses: actions/upload-artifact@v4
