@@ -33,8 +33,6 @@ def collect(craft_: craft.Craft):
     """Collect platforms to build from *craft.yaml"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
-    if craft_ is craft.Craft.CHARM:
-        parser.add_argument("--cache", required=True)
     args = parser.parse_args()
     craft_file = pathlib.Path(args.directory, f"{craft_.value}craft.yaml")
     if craft_ is craft.Craft.SNAP:
@@ -89,10 +87,6 @@ def collect(craft_: craft.Craft):
     else:
         raise ValueError
     github_actions.output["platforms"] = json.dumps(platforms)
-    default_prefix = f'packed-{craft_.value}-{args.directory.replace("/", "-")}'
-    if craft_ is craft.Craft.CHARM:
-        default_prefix = f'packed-{craft_.value}-cache-{args.cache}-{args.directory.replace("/", "-")}'
-    github_actions.output["default_prefix"] = default_prefix
 
 
 def snap():

@@ -24,8 +24,8 @@ on:
           The "snap project directory" is the directory that contains the `snap` directory, not the `snap` directory itself.
         default: .
         type: string
-      create-github-release:
-        description: Create git tag(s) & GitHub release
+      create-git-tags:
+        description: Create git tag(s)
         default: true
         type: boolean
       snapcraft-snap-revision:
@@ -67,14 +67,17 @@ jobs:
       - run: snap list
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Compute path in artifact
+        id: path-in-artifact
+        run: compute-path-in-artifact '${{ inputs.path-to-snap-project-directory }}'
       - name: Download snap package(s)
         uses: actions/download-artifact@v4
         with:
-          pattern: ${{ inputs.artifact-prefix }}-*
+          pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
           merge-multiple: true
       - name: Upload & release snap
         id: release
-        run: release-snap --directory='${{ inputs.path-to-snap-project-directory }}' --channel='${{ inputs.channel }}' --create-release='${{ inputs.create-github-release }}'
+        run: release-snap --directory='${{ inputs.path-to-snap-project-directory }}' --channel='${{ inputs.channel }}' --create-tags='${{ inputs.create-git-tags }}'
         env:
           SNAPCRAFT_STORE_AUTH: candid
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snap-store-token }}

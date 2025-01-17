@@ -17,8 +17,8 @@ on:
         description: Relative path to rock directory from repository directory
         default: .
         type: string
-      create-github-release:
-        description: Create git tag & GitHub release
+      create-git-tags:
+        description: Create git tag(s)
         default: true
         type: boolean
 
@@ -49,13 +49,16 @@ jobs:
           registry: ghcr.io
           username: unused  # Required input—but not used
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compute path in artifact
+        id: path-in-artifact
+        run: compute-path-in-artifact '${{ inputs.path-to-rock-directory }}'
       - name: Download rock package(s)
         uses: actions/download-artifact@v4
         with:
-          pattern: ${{ inputs.artifact-prefix }}-*
+          pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
           merge-multiple: true
       - name: Upload & release rock
         id: release
-        run: release-rock --directory='${{ inputs.path-to-rock-directory }}' --create-release='${{ inputs.create-github-release }}'
+        run: release-rock --directory='${{ inputs.path-to-rock-directory }}' --create-tags='${{ inputs.create-git-tags }}'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

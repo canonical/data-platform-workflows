@@ -21,8 +21,8 @@ on:
         description: Relative path to charm directory from repository directory
         default: .
         type: string
-      create-github-release:
-        description: Create git tag(s) & GitHub release
+      create-git-tags:
+        description: Create git tag(s)
         default: true
         type: boolean
       charmcraft-snap-revision:
@@ -64,14 +64,17 @@ jobs:
       - run: snap list
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Compute path in artifact
+        id: path-in-artifact
+        run: compute-path-in-artifact '${{ inputs.path-to-charm-directory }}'
       - name: Download charm package(s)
         uses: actions/download-artifact@v4
         with:
-          pattern: ${{ inputs.artifact-prefix }}-*
+          pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
           merge-multiple: true
       - name: Upload & release charm
         id: release
-        run: release-charm --directory='${{ inputs.path-to-charm-directory }}' --channel='${{ inputs.channel }}' --create-release='${{ inputs.create-github-release }}'
+        run: release-charm --directory='${{ inputs.path-to-charm-directory }}' --channel='${{ inputs.channel }}' --create-tags='${{ inputs.create-git-tags }}'
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
