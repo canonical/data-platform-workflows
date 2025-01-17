@@ -10,12 +10,7 @@ jobs:
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v0.0.0
 ```
 
-If you use
-```yaml
-with:
-  cache: true
-```
-remember to add your charm's branch(es) to charmcraftcache by running `ccc add` or by [opening an issue](https://github.com/canonical/charmcraftcache-hub/issues/new?assignees=&labels=add-charm&projects=&template=add_charm_branch.yaml&title=Add+charm+branch).
+Unless you disable caching (with `cache: false`), remember to add your charm's branch(es) to charmcraftcache: https://github.com/canonical/charmcraftcache?tab=readme-ov-file#usage
 
 ### Required charmcraft.yaml syntax
 Only [ST124 - Multi-base platforms in craft tools](https://docs.google.com/document/d/1QVHxZumruKVZ3yJ2C74qWhvs-ye5I9S6avMBDHs2YcQ/edit) "shorthand notation" syntax is supported
