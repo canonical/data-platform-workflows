@@ -13,9 +13,8 @@ classifiers = [
 operator_groups = "pytest_operator_groups._plugin"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8"
 pytest = "*"
-
 
 [build-system]
 requires = ["poetry-core"]

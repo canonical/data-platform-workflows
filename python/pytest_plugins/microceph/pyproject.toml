@@ -13,10 +13,9 @@ classifiers = [
 microceph = "pytest_microceph._plugin"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8"
 pytest = "*"
 boto3 = "*"
-
 
 [build-system]
 requires = ["poetry-core"]
