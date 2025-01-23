@@ -13,9 +13,8 @@ classifiers = [
 operator_cache = "pytest_operator_cache._plugin"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8"
 pyyaml = "*"
-
 
 [build-system]
 requires = ["poetry-core"]

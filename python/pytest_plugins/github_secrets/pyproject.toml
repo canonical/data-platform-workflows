@@ -13,8 +13,7 @@ classifiers = [
 github_secrets = "pytest_github_secrets._plugin"
 
 [tool.poetry.dependencies]
-python = "^3.8"
-
+python = ">=3.8"
 
 [build-system]
 requires = ["poetry-core"]
