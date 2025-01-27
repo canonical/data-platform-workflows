@@ -13,7 +13,7 @@ jobs:
 Unless you disable caching (with `cache: false`), remember to add your charm's branch(es) to charmcraftcache: https://github.com/canonical/charmcraftcache?tab=readme-ov-file#usage
 
 ### Required charmcraft.yaml syntax
-Only [ST124 - Multi-base platforms in craft tools](https://docs.google.com/document/d/1QVHxZumruKVZ3yJ2C74qWhvs-ye5I9S6avMBDHs2YcQ/edit) "shorthand notation" syntax is supported
+Only ["multi-base shorthand notation" syntax](https://canonical-charmcraft.readthedocs-hosted.com/en/stable/reference/platforms/#multi-base-shorthand-notation) is supported
 
 #### Example
 ```yaml
