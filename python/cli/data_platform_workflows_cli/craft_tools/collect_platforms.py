@@ -25,7 +25,7 @@ from . import charmcraft_platforms
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 RUNNERS = {
     craft.Architecture.X64: "ubuntu-latest",
-    craft.Architecture.ARM64: "Ubuntu_ARM64_4C_16G_02",
+    craft.Architecture.ARM64: "ubuntu-24.04-arm",
 }
 
 
