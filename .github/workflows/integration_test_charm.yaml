@@ -118,6 +118,7 @@ jobs:
     steps:
       - name: Deprecation notice
         run: |
+          # shellcheck disable=SC2016
           echo '::warning::The `integration_test_charm.yaml` workflow is deprecated. Follow the migration instructions here: https://github.com/canonical/data-platform-workflows/blob/v29.1.0/.github/workflows/integration_test_charm_deprecation_notice.md'
       - name: Parse architecture input
         id: parse-architecture
@@ -204,6 +205,7 @@ jobs:
       - name: Deprecation notice
         timeout-minutes: 1
         run: |
+          # shellcheck disable=SC2016
           echo '::warning::The `integration_test_charm.yaml` workflow is deprecated. Follow the migration instructions here: https://github.com/canonical/data-platform-workflows/blob/v29.1.0/.github/workflows/integration_test_charm_deprecation_notice.md'
       - name: (Data Platform hosted) Write job name to file
         timeout-minutes: 1
