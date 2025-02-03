@@ -1,7 +1,7 @@
 Workflow file: [release_snap.yaml](release_snap.yaml)
 
 ## Usage
-Add `.yaml` file to `.github/workflows/`
+Add `release.yaml` file to `.github/workflows/`
 ```yaml
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.

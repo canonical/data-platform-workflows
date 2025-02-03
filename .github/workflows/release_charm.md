@@ -1,7 +1,7 @@
 Workflow file: [release_charm.yaml](release_charm.yaml)
 
 ## Usage
-Add `.yaml` file to `.github/workflows/`
+Add `release.yaml` file to `.github/workflows/`
 ```yaml
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.

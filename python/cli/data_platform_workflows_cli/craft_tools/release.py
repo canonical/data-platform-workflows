@@ -21,18 +21,17 @@ class OCIResource:
     revision: int
 
 
-def run(command_: list, *, log=True):
+def run(command_: list):
     """Run subprocess command & log stderr
 
     Returns:
         stdout
     """
-    process = subprocess.run(command_, capture_output=True, encoding="utf-8")
+    process = subprocess.run(command_, capture_output=True, text=True)
     try:
         process.check_returncode()
     except subprocess.CalledProcessError as e:
-        if log:
-            logging.error(e.stderr)
+        logging.error(e.stderr)
         raise
     return process.stdout.strip()
 
