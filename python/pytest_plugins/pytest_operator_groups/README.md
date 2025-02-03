@@ -1,3 +1,6 @@
+> [!WARNING]
+> `pytest-operator-groups` is **deprecated**. Migration instructions: [integration_test_charm_deprecation_notice.md](../../../.github/workflows/integration_test_charm_deprecation_notice.md)
+
 Run integration tests on parallel GitHub runners
 
 Usage: [integration_test_charm.md](../../../.github/workflows/integration_test_charm.md)

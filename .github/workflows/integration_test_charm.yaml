@@ -112,10 +112,13 @@ jobs:
     # So, we add the Juju version & architecture to one of the first jobs in this workflow.
     # (In the UI, when this workflow is called with a matrix, GitHub will separate each matrix
     # combination and preserve job ordering within a matrix combination.)
-    name: ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | ${{ inputs.architecture }} | Collect integration test groups
+    name: (deprecated) ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | ${{ inputs.architecture }} | Collect integration test groups
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Deprecation notice
+        run: |
+          echo '::warning::The `integration_test_charm.yaml` workflow is deprecated. Follow the migration instructions here: https://github.com/canonical/data-platform-workflows/blob/v29.1.0/.github/workflows/integration_test_charm_deprecation_notice.md'
       - name: Parse architecture input
         id: parse-architecture
         shell: python
@@ -196,8 +199,12 @@ jobs:
     needs:
       - collect-integration-tests
     runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
-    timeout-minutes: 296  # Sum of steps `timeout-minutes` + 5
+    timeout-minutes: 297  # Sum of steps `timeout-minutes` + 5
     steps:
+      - name: Deprecation notice
+        timeout-minutes: 1
+        run: |
+          echo '::warning::The `integration_test_charm.yaml` workflow is deprecated. Follow the migration instructions here: https://github.com/canonical/data-platform-workflows/blob/v29.1.0/.github/workflows/integration_test_charm_deprecation_notice.md'
       - name: (Data Platform hosted) Write job name to file
         timeout-minutes: 1
         # Data Platform hosted

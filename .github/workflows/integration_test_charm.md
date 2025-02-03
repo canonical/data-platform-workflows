@@ -1,7 +1,7 @@
 Workflow file: [integration_test_charm.yaml](integration_test_charm.yaml)
 
 > [!WARNING]
-> The `pytest-operator-cache` plugin is **deprecated**. Follow the migration instructions here: [pytest_operator_cache/deprecation_notice.md](../../python/pytest_plugins/pytest_operator_cache/deprecation_notice.md)
+> This workflow is **deprecated** & will be removed in a future release. Follow the migration instructions here: [integration_test_charm_deprecation_notice.md](integration_test_charm_deprecation_notice.md)
 
 ## Usage
 ### Step 1: Create your workflow
