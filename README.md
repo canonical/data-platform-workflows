@@ -10,6 +10,8 @@
 | [release_snap.yaml](.github/workflows/release_snap.md)                     | Release snap to Snap Store                                                 |
 | [release_rock.yaml](.github/workflows/release_rock.md)                     | Release rock to GitHub Container Registry                                  |
 | [release_charm.yaml](.github/workflows/release_charm.md)                   | Release charm to Charmhub                                                  |
+| [promote_charm.yaml](.github/workflows/promote_charm.md)                   | `charmcraft promote`, update git tags, & generate release notes            |
+| [check_charm_pr.yaml](.github/workflows/check_charm_pr.md)                 | Check charm pull request has required labels for release notes             |
 | [sync_docs.yaml](.github/workflows/sync_docs.md)                           | Sync Discourse documentation to GitHub                                     |
 | [_update_bundle.yaml](.github/workflows/_update_bundle.md)                 | **Experimental** Update charm revisions in bundle                          |
 

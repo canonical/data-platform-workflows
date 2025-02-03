@@ -7,7 +7,7 @@ authors = [
     {name = "Carl Csaposs", email = "carl.csaposs@canonical.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10"  # TODO: bump to >=3.12 when arm runners move to 24.04. enum.StrEnum requires >=3.11
 dependencies = [
     "pyyaml>=6.0.2",
     "requests>=2.32.3",
@@ -28,7 +28,14 @@ add-ssh-keys = "data_platform_workflows_cli.add_ssh_keys:main"
 tee-log-for-all-models = "data_platform_workflows_cli.tee_log_for_all_models:main"
 sync-docs = "data_platform_workflows_cli.sync_docs:main"
 compute-path-in-artifact = "data_platform_workflows_cli.compute_path_in_artifact:main"
+promote-charm = "data_platform_workflows_cli.craft_tools.promote:charm"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+extend-select = ["I", "UP"]

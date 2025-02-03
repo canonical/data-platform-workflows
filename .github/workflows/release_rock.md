@@ -1,7 +1,7 @@
 Workflow file: [release_rock.yaml](release_rock.yaml)
 
 ## Usage
-Add `.yaml` file to `.github/workflows/`
+Add `release.yaml` file to `.github/workflows/`
 ```yaml
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.

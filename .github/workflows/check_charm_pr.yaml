@@ -1,0 +1,34 @@
+on:
+  workflow_call:
+
+jobs:
+  check-pr:
+    name: Check pull request
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check pull request
+        shell: python
+        run: |
+          import json
+          import os
+
+          RELEASE_NOTES_LABELS = ["bug", "enhancement", "not bug or enhancement"]
+
+          LABELS_MESSAGE = f"{', '.join(repr(label) for label in RELEASE_NOTES_LABELS[:-1])}, or {repr(RELEASE_NOTES_LABELS[-1])}"
+
+          pr_labels = json.loads(os.environ["LABELS"])
+          pr_release_notes_labels = set(pr_labels).intersection(RELEASE_NOTES_LABELS)
+          if len(pr_release_notes_labels) == 0:
+              raise ValueError(
+                  f"Pull request must have {LABELS_MESSAGE} label in order to generate release notes"
+              )
+          if len(pr_release_notes_labels) > 1:
+              raise ValueError(
+                  f"Pull request can only have 1 of the {LABELS_MESSAGE} labels in order to generate "
+                  f"release notes. Got {len(pr_release_notes_labels)} labels: "
+                  f"{repr(pr_release_notes_labels)}"
+              )
+        # Use env variable to avoid script injection & accept multi-line strings
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
