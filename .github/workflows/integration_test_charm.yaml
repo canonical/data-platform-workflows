@@ -44,6 +44,12 @@ on:
           required: false
         type: boolean
         default: false
+      minio-addon:
+        description: |
+          Whether to enable minio
+          required: false
+        type: boolean
+        default: false
       lxd-snap-channel:
         description: LXD snap channel
         default: latest/stable
@@ -379,6 +385,10 @@ jobs:
           then
             IPADDR=$(ip -4 -j route get 2.2.2.2 | sed -n -e 's/^.*prefsrc\":"\([^ "]*\).*/\1/p')
             sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- retry --times 3 --delay 5 -- sudo microk8s enable "metallb:$IPADDR-$IPADDR"
+          fi
+          if [[ '${{ inputs.minio-addon }}' = 'true' ]]
+          then
+            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- retry --times 3 --delay 5 -- sudo microk8s enable minio
           fi
           mkdir ~/.kube/
           # Used by lightkube and kubernetes (Python package)
