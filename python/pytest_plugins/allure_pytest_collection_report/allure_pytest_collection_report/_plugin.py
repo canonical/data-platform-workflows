@@ -1,6 +1,8 @@
 # Upstream feature request to replace this plugin:
 # https://github.com/allure-framework/allure-python/issues/821
 
+import warnings
+
 import allure_commons.logger
 import allure_commons.model2
 import allure_commons.types
@@ -17,6 +19,12 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    warnings.warn(
+        # "\n::warning::" for https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-a-warning-message
+        "\n::warning::The `allure-pytest-collection-report` plugin is deprecated. Follow the migration instructions here: "
+        "https://github.com/canonical/data-platform-workflows/blob/v29.1.0/.github/workflows/integration_test_charm_deprecation_notice.md",
+        DeprecationWarning,
+    )
     if config.option.allure_collection_dir:
         config.option.collectonly = True
 

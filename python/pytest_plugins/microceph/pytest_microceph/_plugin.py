@@ -4,6 +4,7 @@ import logging
 import os
 import subprocess
 import time
+import warnings
 
 import boto3
 import botocore.exceptions
@@ -19,6 +20,12 @@ class ConnectionInformation:
 
 @pytest.fixture(scope="session")
 def microceph():
+    warnings.warn(
+        # "\n::warning::" for https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-a-warning-message
+        "\n::warning::The `pytest-microceph` plugin is deprecated. Follow the migration instructions here: "
+        "https://github.com/canonical/data-platform-workflows/blob/v29.1.0/.github/workflows/integration_test_charm_deprecation_notice.md",
+        DeprecationWarning,
+    )
     if not os.environ.get("CI") == "true":
         raise Exception("Not running on CI. Skipping microceph installation")
     logger.info("Setting up microceph")

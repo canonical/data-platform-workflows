@@ -1,5 +1,8 @@
 [Allure Report](https://allurereport.org/) for [integration_test_charm.yaml](integration_test_charm.md)
 
+> [!WARNING]
+> `integration_test_charm.yaml` is **deprecated** & will be removed in a future release. Follow the migration instructions here: [integration_test_charm_deprecation_notice.md](integration_test_charm_deprecation_notice.md)
+
 ## Usage
 > [!WARNING]
 > This feature is in beta and **not part of the public interface**. It is subject to breaking changes or removal on a patch version bump.
