@@ -166,7 +166,7 @@ def charm():
             to_channel,
             "--yes",
         ],
-        check=True,
+        check=False,  # TODO change to True when https://github.com/canonical/craft-store/issues/264 fixed
     )
 
     logging.info("Getting git commit of revisions that were promoted")
