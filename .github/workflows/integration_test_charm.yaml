@@ -201,7 +201,7 @@ jobs:
     name: ${{ matrix.groups.job_name }}
     needs:
       - collect-integration-tests
-    runs-on: ${{ matrix.groups.runner || fromJSON(needs.collect-integration-tests.outputs.default_runner) }}
+    runs-on: ubuntu-latest
     timeout-minutes: 296  # Sum of steps `timeout-minutes` + 5
     steps:
       - name: (Data Platform hosted) Write job name to file
@@ -489,8 +489,8 @@ jobs:
 
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
-      - name: Setup tmate session
-        uses: canonical/action-tmate@main
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
       - name: Run integration tests
         timeout-minutes: 120
         id: tests
