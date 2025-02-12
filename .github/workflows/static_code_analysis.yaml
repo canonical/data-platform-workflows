@@ -12,6 +12,11 @@ on:
         description: Project name on TICS
         required: true
         type: string
+    secrets:
+      tics-token:
+        description: TICS Auth token
+        required: true
+
 
 jobs:
   static-code-analysis:
@@ -51,6 +56,6 @@ jobs:
           project: ${{ inputs.project }}
           branchdir: .
           viewerUrl: https://canonical.tiobe.com/tiobeweb/TICS/api/cfg?name=default
-          ticsAuthToken: ${{ secrets.TICSAUTHTOKEN }}
+          ticsAuthToken: ${{ secrets.tics-token }}
           installTics: true
 
