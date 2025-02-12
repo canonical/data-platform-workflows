@@ -6,7 +6,7 @@
 name: TICS run self-hosted test (github-action)
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       project:
         description: Project name on TICS
