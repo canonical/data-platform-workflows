@@ -4,3 +4,7 @@ self-hosted-runner:
     - xlarge
     - two-xlarge
     - jammy
+    - self-hosted
+    - linux
+    - amd64
+    - tiobe
