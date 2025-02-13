@@ -53,6 +53,6 @@ jobs:
           echo Open pull request already exists
           exit 0
         fi
-        gh pr create --head sync-docs --title "Sync docs from Discourse" --body "Sync charm docs from https://discourse.charmhub.io" --reviewer '${{ inputs.reviewers }}'
+        gh pr create --head sync-docs --title "Sync docs from Discourse" --body "Sync charm docs from https://discourse.charmhub.io" --label 'not bug or enhancement' --reviewer '${{ inputs.reviewers }}'
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
