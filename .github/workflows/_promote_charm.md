@@ -43,6 +43,8 @@ jobs:
       to-risk: ${{ inputs.to-risk }}
     secrets:
       charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
+    permissions:
+      contents: write  # Needed to edit GitHub releases
 ```
 ### Step 2: Add `check_pr.yaml` file to `.github/workflows/`
 ```yaml
