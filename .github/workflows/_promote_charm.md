@@ -79,15 +79,7 @@ changelog:
         - bug
 ```
 
-### Step 4: Add environments
-Go to Settings > Environments (e.g. https://github.com/canonical/mysql-router-k8s-operator/settings/environments) and add these environments:
-- `stable`
-- `candidate`
-- `beta`
-
-Do not edit the environment settings after the environment has been created & do not add secrets to the environment
-
-### Step 5: Ensure metadata.yaml file is present
+### Step 4: Ensure metadata.yaml file is present
 This workflow requires the charm directory (directory with charmcraft.yaml) to contain a metadata.yaml file with the `name` and `display-name` keys. Syntax: https://juju.is/docs/sdk/metadata-yaml
 
 "Unified charmcraft.yaml syntax" (where actions.yaml, charmcraft.yaml, config.yaml, and metadata.yaml are combined into a single charmcraft.yaml file) is not supported.
