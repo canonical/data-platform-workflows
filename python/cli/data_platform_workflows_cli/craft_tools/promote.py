@@ -188,10 +188,6 @@ def charm():
         channel=to_channel, charm_name=charm_name, tag_prefix=tag_prefix
     )
 
-    logging.info(f"Updating git tag {repr(to_channel)}")
-    subprocess.run(["git", "tag", to_channel, promoted_commit_sha, "--force"], check=True)
-    subprocess.run(["git", "push", "origin", to_channel, "--force"], check=True)
-
     possible_release_tags = [f"{tag_prefix}{revision}" for revision in charm_revisions]
     # Pick alphabetically first tag because of
     # https://github.com/orgs/community/discussions/149281#discussioncomment-12071170
