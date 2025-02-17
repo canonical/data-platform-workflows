@@ -21,7 +21,7 @@ class OCIResource:
     revision: int
 
 
-def run(command_: list):
+def run(command_: list, *, log_error=True):
     """Run subprocess command & log stderr
 
     Returns:
@@ -31,7 +31,8 @@ def run(command_: list):
     try:
         process.check_returncode()
     except subprocess.CalledProcessError as e:
-        logging.error(e.stderr)
+        if log_error:
+            logging.error(e.stderr)
         raise
     return process.stdout.strip()
 
@@ -157,9 +158,34 @@ def charm():
     charm_revisions: list[int] = []
     for charm_file in directory.glob("*.charm"):
         logging.info(f"Uploading {charm_file=}")
-        output = run(["charmcraft", "upload", "--format", "json", charm_file])
-        revision: int = json.loads(output)["revision"]
-        logging.info(f"Uploaded charm {revision=}")
+        try:
+            output = run(["charmcraft", "upload", "--format", "json", charm_file], log_error=False)
+        except subprocess.CalledProcessError as e:
+            try:
+                errors = json.loads(e.stdout)["errors"]
+            except (json.JSONDecodeError, KeyError):
+                logging.error(e.stderr)
+                raise
+            else:
+                if len(errors) != 1:
+                    logging.error(e.stderr)
+                    raise
+                error = errors[0]
+                if error.get("code") != "review-error":
+                    logging.error(e.stderr)
+                    raise
+                match = re.fullmatch(
+                    r".*?Revision of the existing package is: (?P<revision>[0-9]+)",
+                    error.get("message", ""),
+                )
+                if not match:
+                    logging.error(e.stderr)
+                    raise
+                revision = int(match.group("revision"))
+                logging.warning(f"{charm_file=} already uploaded. Using existing {revision=}")
+        else:
+            revision: int = json.loads(output)["revision"]
+            logging.info(f"Uploaded charm {revision=}")
         charm_revisions.append(revision)
     assert len(charm_revisions) > 0, "No charm packages found"
 
