@@ -47,6 +47,12 @@ jobs:
     name: Promote charm from ${{ inputs.track }}/${{ inputs.from-risk }} to ${{ inputs.track }}/${{ inputs.to-risk }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # Use environment to track deployment history
+    # (https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/viewing-deployment-history)
+    # TODO future improvement: when https://bugs.launchpad.net/snapstore-server/+bug/2097446 is
+    # fixed, use isolated per-environment secrets for different risks & require manual approval to
+    # access stable secret in order to improve security posture & avoid mistakes
+    environment: ${{ inputs.to-risk }}
     steps:
       - name: Get workflow version
         id: workflow-version
