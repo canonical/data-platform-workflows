@@ -109,6 +109,18 @@ def charm():
     metadata_file = yaml.safe_load((directory / "metadata.yaml").read_text())
     charm_name = metadata_file["name"]
     charm_display_name = metadata_file["display-name"]
+    # (Only for Kubernetes charms) get OCI resources
+    oci_resources = {}
+    for resource_name, resource in metadata_file.get("resources", {}).items():
+        if resource["type"] != "oci-image":
+            continue
+        oci_hash = resource["upstream-source"]
+        if "@sha256:" not in oci_hash:
+            raise ValueError(
+                "Unable to promote charm that does not pin all of its `oci-image` resources to a "
+                f"sha256 digest in metadata.yaml: {repr(resource['upstream-source'])}"
+            )
+        oci_resources[resource_name] = oci_hash
 
     track = args.track
     if "/" in track:
@@ -128,7 +140,8 @@ def charm():
 
     if not args.ref.startswith("refs/heads/"):
         raise ValueError(
-            f"This workflow must be run on `workflow_dispatch` from the branch that contains track {repr(track)}"
+            "This workflow must be run on `workflow_dispatch` from the branch that contains track "
+            f"{repr(track)}"
         )
     target_branch = args.ref.removeprefix("refs/heads/")
 
@@ -223,6 +236,13 @@ def charm():
             title = f"Revisions {', '.join(str(revision) for revision in sorted(charm_revisions))}"
         else:
             title = f"Revision {charm_revisions[0]}"
+        # Say "/stable" in release notes so that it's correct when the release is published
+        prepended_notes = f"""A new revision of {charm_display_name} has been published in the {track}/{Risk.STABLE.value} channel on [Charmhub](https://charmhub.io/{charm_name}).
+"""
+        if oci_resources:
+            prepended_notes += "\nOCI image resources:\n"
+            for resource_name, source in oci_resources.items():
+                prepended_notes += f"- `{resource_name}={source}`\n"
         command = [
             "gh",
             "release",
@@ -240,8 +260,7 @@ def charm():
             "--title",
             title,
             "--notes",
-            # Say "/stable" in release notes so that it's correct when the release is published
-            f"""A new revision of {charm_display_name} has been published in the {track}/{Risk.STABLE.value} channel on [Charmhub](https://charmhub.io/{charm_name}).""",
+            prepended_notes,
         ]
         if previous_github_release_tag is not None:
             command.extend(("--notes-start-tag", previous_github_release_tag))
