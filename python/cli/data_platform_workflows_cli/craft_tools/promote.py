@@ -237,11 +237,12 @@ def charm():
         else:
             title = f"Revision {charm_revisions[0]}"
         # Say "/stable" in release notes so that it's correct when the release is published
-        prepended_notes = f"""A new revision of {charm_display_name} has been published in the {track}/{Risk.STABLE.value} channel on [Charmhub](https://charmhub.io/{charm_name})."""
+        prepended_notes = f"""A new revision of {charm_display_name} has been published in the {track}/{Risk.STABLE.value} channel on [Charmhub](https://charmhub.io/{charm_name}).
+"""
         if oci_resources:
-            prepended_notes += "\nOCI resources:"
+            prepended_notes += "\nOCI image resources:\n"
             for resource_name, source in oci_resources.items():
-                prepended_notes += f"\n- `{resource_name}={source}`"
+                prepended_notes += f"- `{resource_name}={source}`\n"
         command = [
             "gh",
             "release",
