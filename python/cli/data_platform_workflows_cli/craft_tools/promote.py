@@ -154,7 +154,6 @@ def charm():
             "This workflow must be run on `workflow_dispatch` from the branch that contains track "
             f"{repr(track)}"
         )
-    target_branch = args.ref.removeprefix("refs/heads/")
 
     if not pathlib.Path(".github/release.yaml").exists():
         raise FileNotFoundError(
@@ -295,8 +294,6 @@ def charm():
             # If `--draft` is passed, `--latest` appears to have no affect on release editing
             # in GitHub's UI (the UI will set latest by default regardless)
             "--latest=false",
-            "--target",
-            target_branch,
             "--title",
             title,
             "--notes",
