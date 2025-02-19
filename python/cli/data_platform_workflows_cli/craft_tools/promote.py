@@ -1,4 +1,5 @@
 import argparse
+import dataclasses
 import enum
 import logging
 import pathlib
@@ -97,6 +98,32 @@ def get_commit_sha_and_revisions(
     return commit_sha, revisions
 
 
+@dataclasses.dataclass(kw_only=True)
+class Metadata:
+    name: str
+    display_name: str
+    oci_resources: dict[str, str]
+
+    @classmethod
+    def from_file(cls, *, directory: pathlib.Path):
+        file = yaml.safe_load((directory / "metadata.yaml").read_text())
+        # (Only for Kubernetes charms) get OCI resources
+        oci_resources = {}
+        for resource_name, resource in file.get("resources", {}).items():
+            if resource["type"] != "oci-image":
+                continue
+            oci_hash = resource["upstream-source"]
+            if "@sha256:" not in oci_hash:
+                raise ValueError(
+                    "Unable to promote charm that does not pin all of its `oci-image` resources "
+                    f"to a sha256 digest in metadata.yaml: {repr(resource['upstream-source'])}"
+                )
+            oci_resources[resource_name] = oci_hash
+        return cls(
+            name=file["name"], display_name=file["display-name"], oci_resources=oci_resources
+        )
+
+
 def charm():
     parser = argparse.ArgumentParser()
     parser.add_argument("--track", required=True)
@@ -105,22 +132,6 @@ def charm():
     parser.add_argument("--ref", required=True)
     args = parser.parse_args()
     directory = pathlib.Path(".")
-
-    metadata_file = yaml.safe_load((directory / "metadata.yaml").read_text())
-    charm_name = metadata_file["name"]
-    charm_display_name = metadata_file["display-name"]
-    # (Only for Kubernetes charms) get OCI resources
-    oci_resources = {}
-    for resource_name, resource in metadata_file.get("resources", {}).items():
-        if resource["type"] != "oci-image":
-            continue
-        oci_hash = resource["upstream-source"]
-        if "@sha256:" not in oci_hash:
-            raise ValueError(
-                "Unable to promote charm that does not pin all of its `oci-image` resources to a "
-                f"sha256 digest in metadata.yaml: {repr(resource['upstream-source'])}"
-            )
-        oci_resources[resource_name] = oci_hash
 
     track = args.track
     if "/" in track:
@@ -155,6 +166,7 @@ def charm():
     from_channel = f"{track}/{from_risk}"
     to_channel = f"{track}/{to_risk}"
 
+    charm_name = yaml.safe_load((directory / "metadata.yaml").read_text())["name"]
     # `tag_prefix` format from release_charm.yaml
     if directory == pathlib.Path("."):
         tag_prefix = "rev"
@@ -164,9 +176,9 @@ def charm():
     logging.info("Checking that revisions that will be promoted are from the same git commit")
     # Check before promoting so that we fail early if `from_channel` revisions were built from
     # different git commits.
-    # But don't store return value to avoid race condition if `from_channel` changes before
-    # `charmcraft promote` is run. Instead, get commit sha again from `to_channel` after promoting
-    get_commit_sha_and_revisions(channel=from_channel, charm_name=charm_name, tag_prefix=tag_prefix)
+    from_commit_sha, _ = get_commit_sha_and_revisions(
+        channel=from_channel, charm_name=charm_name, tag_prefix=tag_prefix
+    )
     if to_risk is Risk.CANDIDATE:
         # We will need to get commit for most recent stable release
         stable_channel = f"{track}/{Risk.STABLE.value}"
@@ -177,6 +189,25 @@ def charm():
             tag_prefix=tag_prefix,
             channel_missing_ok=True,  # In case no previous stable release
         )
+
+    subprocess.run(["git", "checkout", from_commit_sha], check=True)
+    # Don't reuse commit sha to avoid race condition if `from_channel` changes before
+    # `charmcraft promote` is run. Instead, get commit sha again from `to_channel` after promoting
+    del from_commit_sha
+
+    # Check that OCI images are pinned to sha256 digest
+    metadata_on_from_commit = Metadata.from_file(directory=directory)
+
+    if metadata_on_from_commit.name != charm_name:
+        raise ValueError(
+            "Charm name in metadata.yaml changed between latest commit on branch "
+            f"({repr(charm_name)}) and commit on {repr(from_channel)} "
+            f"({repr(metadata_on_from_commit.name)}). Unable to promote charm"
+        )
+    # Don't reuse OCI image digests to avoid race condition if `from_channel` changes before
+    # `charmcraft promote` is run. Instead, get OCI image digests again from `to_channel` after
+    # promoting
+    del metadata_on_from_commit
 
     logging.info(
         f"Promoting {repr(charm_name)} charm from {repr(from_channel)} to {repr(to_channel)}"
@@ -200,6 +231,15 @@ def charm():
     promoted_commit_sha, charm_revisions = get_commit_sha_and_revisions(
         channel=to_channel, charm_name=charm_name, tag_prefix=tag_prefix
     )
+
+    subprocess.run(["git", "checkout", promoted_commit_sha], check=True)
+
+    metadata = Metadata.from_file(directory=directory)
+    if metadata.name != charm_name:
+        raise ValueError(
+            "Charm name in metadata.yaml changed while charm was promoted. Invalid charm "
+            f"promoted. Expected charm name {repr(charm_name)}, got {repr(metadata.name)} instead"
+        )
 
     possible_release_tags = [f"{tag_prefix}{revision}" for revision in charm_revisions]
     # Pick alphabetically first tag because of
@@ -237,11 +277,11 @@ def charm():
         else:
             title = f"Revision {charm_revisions[0]}"
         # Say "/stable" in release notes so that it's correct when the release is published
-        prepended_notes = f"""A new revision of {charm_display_name} has been published in the {track}/{Risk.STABLE.value} channel on [Charmhub](https://charmhub.io/{charm_name}).
+        prepended_notes = f"""A new revision of {metadata.display_name} has been published in the {track}/{Risk.STABLE.value} channel on [Charmhub](https://charmhub.io/{charm_name}).
 """
-        if oci_resources:
+        if metadata.oci_resources:
             prepended_notes += "\nOCI image resources:\n"
-            for resource_name, source in oci_resources.items():
+            for resource_name, source in metadata.oci_resources.items():
                 prepended_notes += f"- `{resource_name}={source}`\n"
         command = [
             "gh",
