@@ -1,0 +1,14 @@
+on:
+  workflow_call:
+
+jobs:
+  approve-pr:
+    name: Approve Renovate pull request
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: ${{ github.event.pull_request.user.id == 29139614 && github.event.pull_request.user.login == 'renovate[bot]' }}
+    steps:
+      - name: Approve pull request
+        run: gh pr --repo '${{ github.repository }}' review '${{ github.event.pull_request.number }}' --approve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
