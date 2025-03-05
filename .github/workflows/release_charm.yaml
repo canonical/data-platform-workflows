@@ -61,6 +61,8 @@ jobs:
         run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
       - name: Install charmcraft
         run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+      - name: Install noctua
+        run: pipx install git+https://github.com/lucabello/noctua
       - run: snap list
       - name: Checkout
         uses: actions/checkout@v4
