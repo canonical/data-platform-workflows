@@ -21,7 +21,7 @@ class OCIResource:
     revision: int
 
 
-def run(command_: list, *, log_error=True):
+def run(command_: list):
     """Run subprocess command & log stderr
 
     Returns:
@@ -31,8 +31,7 @@ def run(command_: list, *, log_error=True):
     try:
         process.check_returncode()
     except subprocess.CalledProcessError as e:
-        if log_error:
-            logging.error(e.stderr)
+        logging.error(e.stderr)
         raise
     return process.stdout.strip()
 
@@ -154,79 +153,27 @@ def charm():
     metadata_file = yaml.safe_load((directory / "metadata.yaml").read_text())
     charm_name = metadata_file["name"]
 
-    # Upload charm file(s) & store revision
+    # Release charm file(s) & store revision
     charm_revisions: list[int] = []
     for charm_file in directory.glob("*.charm"):
-        logging.info(f"Uploading {charm_file=}")
-        try:
-            output = run(["charmcraft", "upload", "--format", "json", charm_file], log_error=False)
-        except subprocess.CalledProcessError as e:
-            try:
-                errors = json.loads(e.stdout)["errors"]
-            except (json.JSONDecodeError, KeyError):
-                logging.error(e.stderr)
-                raise
-            else:
-                if len(errors) != 1:
-                    logging.error(e.stderr)
-                    raise
-                error = errors[0]
-                if error.get("code") != "review-error":
-                    logging.error(e.stderr)
-                    raise
-                match = re.fullmatch(
-                    r".*?Revision of the existing package is: (?P<revision>[0-9]+)",
-                    error.get("message", ""),
-                )
-                if not match:
-                    logging.error(e.stderr)
-                    raise
-                revision = int(match.group("revision"))
-                logging.warning(f"{charm_file=} already uploaded. Using existing {revision=}")
-        else:
-            revision: int = json.loads(output)["revision"]
-            logging.info(f"Uploaded charm {revision=}")
-        charm_revisions.append(revision)
-    assert len(charm_revisions) > 0, "No charm packages found"
-
-    # (Only for Kubernetes charms) upload OCI image(s) & store revision
-    oci_resources: list[OCIResource] = []
-    resources = metadata_file.get("resources", {})
-    for resource_name, resource in resources.items():
-        if resource["type"] != "oci-image":
-            continue
-        logging.info(f"Uploading charm resource: {resource_name}")
+        logging.info(f"Releasing {charm_file=}")
         output = run(
             [
-                "charmcraft",
-                "upload-resource",
-                "--format",
-                "json",
+                "noctua",
+                "charm",
+                "release",
                 charm_name,
-                resource_name,
-                "--image",
-                f'docker://{resource["upstream-source"]}',
+                "--json",
+                "--path",
+                charm_file,
+                "--channel",
+                args.channel,
             ]
         )
         revision: int = json.loads(output)["revision"]
-        logging.info(f"Uploaded charm resource {revision=}")
-        oci_resources.append(OCIResource(resource_name, revision))
-
-    # Release charm file(s)
-    for charm_revision in charm_revisions:
-        logging.info(f"Releasing {charm_revision=}")
-        command = [
-            "charmcraft",
-            "release",
-            charm_name,
-            "--revision",
-            str(charm_revision),
-            "--channel",
-            args.channel,
-        ]
-        for oci in oci_resources:
-            command += ["--resource", f"{oci.resource_name}:{oci.revision}"]
-        run(command)
+        logging.info(f"Released charm {revision=}")
+        charm_revisions.append(revision)
+    assert len(charm_revisions) > 0, "No charm packages found"
 
     if json.loads(args.create_tags) is not True:
         return
