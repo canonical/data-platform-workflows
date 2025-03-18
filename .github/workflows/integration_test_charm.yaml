@@ -130,7 +130,7 @@ jobs:
           
           DEFAULT_RUNNERS = {
               "amd64": "ubuntu-latest",
-              "arm64": ["self-hosted", "data-platform", "ubuntu", "ARM64", "4cpu16ram"],
+              "arm64": "ubuntu-24.04-arm",
           }
           ARCHITECTURE = "${{ inputs.architecture }}"
           try:
