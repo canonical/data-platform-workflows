@@ -148,8 +148,12 @@ def charm():
     parser.add_argument("--directory", required=True)
     parser.add_argument("--channel", required=True)
     parser.add_argument("--create-tags", required=True)
+    parser.add_argument("--file-resource", required=False, default="None")
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
+    file_resource = (
+        None if args.file_resource == "None" else pathlib.Path(args.file_resource)
+    )
 
     metadata_file = yaml.safe_load((directory / "metadata.yaml").read_text())
     charm_name = metadata_file["name"]
@@ -164,13 +168,18 @@ def charm():
         charm_revisions.append(revision)
     assert len(charm_revisions) > 0, "No charm packages found"
 
-    # (Only for Kubernetes charms) upload OCI image(s) & store revision
     oci_resources: list[OCIResource] = []
     resources = metadata_file.get("resources", {})
     for resource_name, resource in resources.items():
-        if resource["type"] != "oci-image":
+        is_oci_image = resource["type"] == "oci-image"
+        if not is_oci_image and file_resource is None:
             continue
         logging.info(f"Uploading charm resource: {resource_name}")
+        resource_args = (
+            ["--image", f'docker://{resource["upstream-source"]}']
+            if is_oci_image
+            else ["--filepath", f"{file_resource}"]
+        )
         output = run(
             [
                 "charmcraft",
@@ -179,8 +188,7 @@ def charm():
                 "json",
                 charm_name,
                 resource_name,
-                "--image",
-                f'docker://{resource["upstream-source"]}',
+                *resource_args,
             ]
         )
         revision: int = json.loads(output)["revision"]
