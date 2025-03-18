@@ -78,7 +78,7 @@ jobs:
           merge-multiple: true
       - name: Upload & release charm
         id: release
-        run: release-charm --directory='${{ inputs.path-to-charm-directory }}' --channel='${{ inputs.channel }}' --create-tags='${{ inputs.create-git-tags }}' --file-resource --create-tags='${{ inputs.path-to-file-resource }}'
+        run: release-charm --directory='${{ inputs.path-to-charm-directory }}' --channel='${{ inputs.channel }}' --create-tags='${{ inputs.create-git-tags }}' --file-resource='${{ inputs.path-to-file-resource }}'
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
