@@ -130,7 +130,7 @@ jobs:
           
           DEFAULT_RUNNERS = {
               "amd64": "ubuntu-latest",
-              "arm64": ["self-hosted", "data-platform", "ubuntu", "ARM64", "4cpu16ram"],
+              "arm64": "ubuntu-24.04-arm",
           }
           ARCHITECTURE = "${{ inputs.architecture }}"
           try:
@@ -207,22 +207,9 @@ jobs:
         run: |
           # shellcheck disable=SC2016
           echo '::warning::The `integration_test_charm.yaml` workflow is deprecated. Follow the migration instructions here: https://github.com/canonical/data-platform-workflows/blob/v29.1.0/.github/workflows/integration_test_charm_deprecation_notice.md'
-      - name: (Data Platform hosted) Write job name to file
-        timeout-minutes: 1
-        # Data Platform hosted
-        # `inputs.architecture == 'arm64' && matrix.groups.runner == null` means Data Platform hosted (default runner)
-        if: ${{ matrix.groups.data_platform_hosted || (inputs.architecture == 'arm64' && matrix.groups.runner == null) }}
-        # Used to show job name in GitHub Actions annotation
-        # (https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-a-notice-message)
-        # if spot instance evicted by Azure
-        run: |
-          mkdir ~/dpw/
-          echo 'Integration | ${{ inputs.juju-agent-version || inputs.juju-snap-channel }} | ${{ inputs.architecture }} / ${{ matrix.groups.job_name }}' > ~/dpw/job_name
       - name: (GitHub hosted) Free up disk space
         timeout-minutes: 1
-        # If not (IS hosted or Data Platform hosted)
-        # `inputs.architecture == 'arm64' && matrix.groups.runner == null` means Data Platform hosted (default runner)
-        if: ${{ !(matrix.groups.is_hosted || matrix.groups.data_platform_hosted || (inputs.architecture == 'arm64' && matrix.groups.runner == null)) }}
+        if: ${{ !matrix.groups.is_hosted }}
         run: |
           printf '\nDisk usage before cleanup\n'
           df --human-readable
@@ -230,11 +217,9 @@ jobs:
           rm -r /opt/hostedtoolcache/
           printf '\nDisk usage after cleanup\n'
           df --human-readable
-      - name: (self hosted) Disk usage
+      - name: (IS hosted) Disk usage
         timeout-minutes: 1
-        # If IS hosted or Data Platform hosted
-        # `inputs.architecture == 'arm64' && matrix.groups.runner == null` means Data Platform hosted (default runner)
-        if: ${{ matrix.groups.is_hosted || matrix.groups.data_platform_hosted || (inputs.architecture == 'arm64' && matrix.groups.runner == null) }}
+        if: ${{ matrix.groups.is_hosted }}
         run: df --human-readable
       - name: (IS hosted) Install pipx
         timeout-minutes: 3
@@ -262,14 +247,6 @@ jobs:
         run: redact-secrets
         env:
           SECRETS: ${{ secrets.integration-test }}
-      - name: (Data Platform hosted) Add Data Platform team's SSH keys
-        timeout-minutes: 1
-        # Data Platform hosted
-        # `inputs.architecture == 'arm64' && matrix.groups.runner == null` means Data Platform hosted (default runner)
-        if: ${{ matrix.groups.data_platform_hosted || (inputs.architecture == 'arm64' && matrix.groups.runner == null) }}
-        run: add-ssh-keys
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Validate cloud input
         timeout-minutes: 1
         shell: python

@@ -114,22 +114,17 @@ def _collect_groups(items):
     class GroupWithRunner(Group):
         runner: typing.Optional[_Runner]
         is_hosted: bool
-        data_platform_hosted: bool
 
         @classmethod
         def from_group(cls, group: Group, *, runner: typing.Optional[_Runner]):
-            data_platform_hosted = False
-            is_hosted = False
-            if isinstance(runner, tuple):
-                if "data-platform" in runner:
-                    data_platform_hosted = True
-                elif "self-hosted" in runner:
-                    is_hosted = True
+            if isinstance(runner, tuple) and "self-hosted" in runner:
+                is_hosted = True
+            else:
+                is_hosted = False
             return cls(
                 **dataclasses.asdict(group),
                 runner=runner,
                 is_hosted=is_hosted,
-                data_platform_hosted=data_platform_hosted,
             )
 
     group_to_runners: dict[Group, set[_Runner]] = {}
