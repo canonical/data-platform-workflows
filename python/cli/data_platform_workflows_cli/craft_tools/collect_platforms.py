@@ -26,6 +26,8 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 RUNNERS = {
     craft.Architecture.X64: "ubuntu-latest",
     craft.Architecture.ARM64: "ubuntu-24.04-arm",
+    # No sizes (e.g. "large") currently available for s390x IS-hosted runners
+    craft.Architecture.S390X: ["self-hosted", "s390x", "noble"],
 }
 
 
