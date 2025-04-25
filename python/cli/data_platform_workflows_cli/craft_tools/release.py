@@ -74,6 +74,16 @@ def snap():
     logging.info("Pushing git tag(s)")
     tags = [f"{tag_prefix}{revision.value}" for revision in revisions]
     for tag in tags:
+        subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "config",
+                "user.email",
+                "41898282+github-actions[bot]@users.noreply.github.com",
+            ],
+            check=True,
+        )
         subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
         subprocess.run(["git", "push", "origin", tag], check=True)
 
@@ -103,18 +113,18 @@ def rock():
                 "skopeo",
                 "copy",
                 f"oci-archive:{rock_file.name}",
-                f'docker://ghcr.io/canonical/{yaml_data["name"]}@{digest}',
+                f"docker://ghcr.io/canonical/{yaml_data['name']}@{digest}",
             ]
         )
         logging.info(f"Uploaded rock {digest=}")
         digests.append(digest)
     logging.info("Creating multi-architecture image")
     # Example: "14.10-22.04_edge"
-    tag = f'{yaml_data["version"]}-{yaml_data["base"].split("@")[-1]}_edge'
-    multi_arch_image_name = f'ghcr.io/canonical/{yaml_data["name"]}:{tag}'
+    tag = f"{yaml_data['version']}-{yaml_data['base'].split('@')[-1]}_edge"
+    multi_arch_image_name = f"ghcr.io/canonical/{yaml_data['name']}:{tag}"
     command = ["docker", "manifest", "create", multi_arch_image_name]
     for digest in digests:
-        command.extend(("--amend", f'ghcr.io/canonical/{yaml_data["name"]}@{digest}'))
+        command.extend(("--amend", f"ghcr.io/canonical/{yaml_data['name']}@{digest}"))
     run(command)
     logging.info("Created multi-architecture image. Uploading")
     run(["docker", "manifest", "push", multi_arch_image_name])
@@ -138,6 +148,16 @@ def rock():
         return
     logging.info("Pushing git tag")
     tag = f"image-{multi_arch_digest}"
+    subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
+    subprocess.run(
+        [
+            "git",
+            "config",
+            "user.email",
+            "41898282+github-actions[bot]@users.noreply.github.com",
+        ],
+        check=True,
+    )
     subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
     subprocess.run(["git", "push", "origin", tag], check=True)
 
@@ -184,5 +204,15 @@ def charm():
     logging.info("Pushing git tag(s)")
     tags = [f"{tag_prefix}{revision}" for revision in charm_revisions]
     for tag in tags:
+        subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
+        subprocess.run(
+            [
+                "git",
+                "config",
+                "user.email",
+                "41898282+github-actions[bot]@users.noreply.github.com",
+            ],
+            check=True,
+        )
         subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
         subprocess.run(["git", "push", "origin", tag], check=True)
