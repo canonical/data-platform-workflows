@@ -1,20 +1,22 @@
 ## Usage
 ### Workflows
-| Name                                                                       | Description                                                                               |
-|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| [lint.yaml](.github/workflows/lint.md)                                     | Lint GitHub Actions workflows (`.github/workflows/`) and `tox run -e lint`                |
-| [build_snap.yaml](.github/workflows/build_snap.md)                         | Build snap                                                                                |
-| [build_rock.yaml](.github/workflows/build_rock.md)                         | Build rock                                                                                |
-| [build_charm.yaml](.github/workflows/build_charm.md)                       | Build charm                                                                               |
-| [release_snap.yaml](.github/workflows/release_snap.md)                     | Release snap to Snap Store                                                                |
-| [release_rock.yaml](.github/workflows/release_rock.md)                     | Release rock to GitHub Container Registry                                                 |
-| [release_charm.yaml](.github/workflows/release_charm.md)                   | Release charm to Charmhub                                                                 |
-| [_promote_charm.yaml](.github/workflows/_promote_charm.md)                 | **Experimental** `charmcraft promote`, update git tags, & generate release notes          |
-| [check_charm_pr.yaml](.github/workflows/check_charm_pr.md)                 | Check charm pull request has required labels for release notes                            |
-| [sync_docs.yaml](.github/workflows/sync_docs.md)                           | Sync Discourse documentation to GitHub                                                    |
-| [approve_renovate_pr.yaml](.github/workflows/approve_renovate_pr.md)       | Reduce required approvals on [Renovate](https://docs.renovatebot.com/) pull requests by 1 |
-| [_update_bundle.yaml](.github/workflows/_update_bundle.md)                 | **Experimental** Update charm revisions in bundle                                         |
-| [integration_test_charm.yaml](.github/workflows/integration_test_charm.md) | **Deprecated** Integration test charm                                                     |
+| Name                                                                         | Description                                                                               |
+|------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| [lint.yaml](.github/workflows/lint.md)                                       | Lint GitHub Actions workflows (`.github/workflows/`) and `tox run -e lint`                |
+| [build_snap.yaml](.github/workflows/build_snap.md)                           | Build snap                                                                                |
+| [build_rock.yaml](.github/workflows/build_rock.md)                           | Build rock                                                                                |
+| [build_charm.yaml](.github/workflows/build_charm.md)                         | Build charm                                                                               |
+| [release_python_package.yaml](.github/workflows/release_python_package.md)   | Release Python package to PyPI                                                            |
+| [check_python_package_pr.yaml](.github/workflows/check_python_package_pr.md) | Check Python package pull request has required semantic version prefix                    |
+| [release_snap.yaml](.github/workflows/release_snap.md)                       | Release snap to Snap Store                                                                |
+| [release_rock.yaml](.github/workflows/release_rock.md)                       | Release rock to GitHub Container Registry                                                 |
+| [release_charm.yaml](.github/workflows/release_charm.md)                     | Release charm to Charmhub                                                                 |
+| [_promote_charm.yaml](.github/workflows/_promote_charm.md)                   | **Experimental** `charmcraft promote`, update git tags, & generate release notes          |
+| [check_charm_pr.yaml](.github/workflows/check_charm_pr.md)                   | Check charm pull request has required labels for release notes                            |
+| [sync_docs.yaml](.github/workflows/sync_docs.md)                             | Sync Discourse documentation to GitHub                                                    |
+| [approve_renovate_pr.yaml](.github/workflows/approve_renovate_pr.md)         | Reduce required approvals on [Renovate](https://docs.renovatebot.com/) pull requests by 1 |
+| [_update_bundle.yaml](.github/workflows/_update_bundle.md)                   | **Experimental** Update charm revisions in bundle                                         |
+| [integration_test_charm.yaml](.github/workflows/integration_test_charm.md)   | **Deprecated** Integration test charm                                                     |
 
 ### Version
 Recommendation: pin the latest version (e.g. `v1.0.0`) and use [Renovate](https://docs.renovatebot.com/) to stay up-to-date.
