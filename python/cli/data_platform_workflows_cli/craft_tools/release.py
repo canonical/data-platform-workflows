@@ -74,7 +74,7 @@ def snap():
     logging.info("Pushing git tag(s)")
     tags = [f"{tag_prefix}{revision.value}" for revision in revisions]
     for tag in tags:
-        subprocess.run(["git", "tag", tag], check=True)
+        subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
         subprocess.run(["git", "push", "origin", tag], check=True)
 
 
@@ -138,7 +138,7 @@ def rock():
         return
     logging.info("Pushing git tag")
     tag = f"image-{multi_arch_digest}"
-    subprocess.run(["git", "tag", tag], check=True)
+    subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
     subprocess.run(["git", "push", "origin", tag], check=True)
 
 
@@ -184,5 +184,5 @@ def charm():
     logging.info("Pushing git tag(s)")
     tags = [f"{tag_prefix}{revision}" for revision in charm_revisions]
     for tag in tags:
-        subprocess.run(["git", "tag", tag], check=True)
+        subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
         subprocess.run(["git", "push", "origin", tag], check=True)
