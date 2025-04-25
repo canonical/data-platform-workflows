@@ -1,0 +1,16 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+name: Check pull request
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+    branches:
+      - main
+
+jobs:
+  check-pr:
+    name: Check pull request
+    uses: ./.github/workflows/check_python_package_pr.yaml

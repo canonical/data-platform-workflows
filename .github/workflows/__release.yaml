@@ -16,26 +16,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      - name: Check semantic version prefix for latest commit
-        run: python3 _check_semantic_version_prefix.py
-        env:
-          # Use env variable to avoid script injection
-          MESSAGE: ${{ github.event.head_commit.message }}
-      - name: Get release version
-        id: get-version
-        run: python3 _get_release_semantic_version.py
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # Checkout history with git tags
+      - name: Install CLI
+        run: pipx install ./python/cli
+      - name: Determine release tag
+        id: determine-tag
+        run: determine-semantic-version-tag
       - name: Update major version tag
         run: |
-          git tag '${{ steps.get-version.outputs.major_version }}' --force
-          git push origin '${{ steps.get-version.outputs.major_version }}' --force
+          git tag '${{ steps.determine-tag.outputs.major_version_tag }}' --force
+          git push origin '${{ steps.determine-tag.outputs.major_version_tag }}' --force
       - name: Create release
         run: |
-          git tag '${{ steps.get-version.outputs.full_version }}'
-          git push origin '${{ steps.get-version.outputs.full_version }}'
-          gh release create '${{ steps.get-version.outputs.full_version }}' --verify-tag --generate-notes
+          git tag '${{ steps.determine-tag.outputs.tag }}' --annotate -m '${{ steps.determine-tag.outputs.tag }}'
+          git push origin '${{ steps.determine-tag.outputs.tag }}'
+          gh release create '${{ steps.determine-tag.outputs.tag }}' --verify-tag --generate-notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
