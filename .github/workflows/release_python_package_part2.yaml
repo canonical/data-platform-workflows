@@ -1,0 +1,21 @@
+on:
+  workflow_call:
+    inputs:
+      git-tag:
+        description: |
+          Semantic version git tag
+  
+          Use output from canonical/data-platform-workflows release_python_package_part1.yaml
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Create GitHub release
+        run: gh release --repo '${{ github.repository }}' create '${{ inputs.git-tag }}' --verify-tag --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

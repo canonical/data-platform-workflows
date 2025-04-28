@@ -35,12 +35,41 @@ on:
       - main
 
 jobs:
-  release:
-    name: Release to PyPI
-    uses: canonical/data-platform-workflows/.github/workflows/release_python_package.yaml@v0.0.0
+  release-part1:
+    name: Release to PyPI (part 1)
+    uses: canonical/data-platform-workflows/.github/workflows/release_python_package_part1.yaml@v0.0.0
+    permissions:
+      contents: write  # Needed to create git tag
+
+  # Separate job is workaround for https://github.com/pypi/warehouse/issues/11096
+  release-trusted-publishing:
+    name: Release to PyPI (trusted publishing)
+    needs:
+      - release-part1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.release-part1.outputs.artifact-name }}
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+    permissions:
+      id-token: write  # Needed for PyPI trusted publishing
+
+  release-part2:
+    name: Release to PyPI (part 2)
+    needs:
+      - release-part1
+      - release-trusted-publishing
+    uses: canonical/data-platform-workflows/.github/workflows/release_python_package_part2.yaml@v0.0.0
+    with:
+      git-tag: ${{ needs.release-part1.outputs.git-tag }}
     permissions:
       contents: write  # Needed to create GitHub release
-      id-token: write  # Needed for PyPI trusted publishing
 ```
 
 ### Step 3: Add `check_pr.yaml` file to `.github/workflows/`

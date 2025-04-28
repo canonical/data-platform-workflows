@@ -1,17 +1,23 @@
 on:
   workflow_call:
-
-concurrency:
-  # Prevent race conditions
-  # (If multiple commits have been pushed since the last release, this workflow may get triggered
-  # on multiple commits. Without this, if the)
-  group: dpw-release-python-package-${{ github.ref }}
-  cancel-in-progress: true
+    outputs:
+      git-tag:
+        description: Semantic version git tag
+        value: ${{ jobs.tag.outputs.tag }}
+      artifact-name:
+        description: Python package distributions are uploaded to this GitHub artifact name
+        value: python-package-distributions
 
 jobs:
   tag:
     name: Tag release
     runs-on: ubuntu-latest
+    concurrency:
+      # Prevent race conditions
+      # (If multiple commits have been pushed since the last release, this workflow may get triggered
+      # on multiple commits. Without this, if the) TODO
+      group: dpw-release-python-package-${{ github.ref }}
+      cancel-in-progress: true
     timeout-minutes: 5
     steps:
       - name: Get workflow version
@@ -19,7 +25,7 @@ jobs:
         uses: canonical/get-workflow-version-action@v1
         with:
           repository-name: canonical/data-platform-workflows
-          file-name: release_python_package.yaml
+          file-name: release_python_package_part1.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
@@ -59,28 +65,5 @@ jobs:
       - name: Store the distribution packages
         uses: actions/upload-artifact@v4
         with:
-          name: python-package-distributions
+          name: python-package-distributions  # Keep in sync with `artifact-name` output
           path: dist/
-
-  release:
-    name: Release to PyPI
-    needs:
-      - tag
-      - build
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    environment: production
-    steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-      - name: Publish to PyPI
-        # Use trusted publishing
-        # https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
-        uses: pypa/gh-action-pypi-publish@release/v1
-      - name: Create GitHub release
-        run: gh release create '${{ needs.tag.outputs.tag }}' --verify-tag --generate-notes
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
