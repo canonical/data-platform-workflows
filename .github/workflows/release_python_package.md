@@ -117,3 +117,6 @@ git tag v0.1.0 origin/main --annotate
 git push origin v0.1.0
 ```
 To start at a different initial version, replace `v0.1.0` with a different semantic version
+
+### Step 7: Merge or push
+Merge/push the changes required by the previous steps. Prefix the PR title or commit message with `patch:`—if this is the first version of the package (otherwise, another prefix may appropriate)
