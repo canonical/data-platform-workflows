@@ -110,7 +110,7 @@ jobs:
 - f. Fill out "Owner" and "Repository name"
 
 ### Step 6: Create initial git tag
-After the changes required by the previous steps are in the `main` branch, run
+Immediately before the changes required by the previous steps are merged/pushed to the `main` branch, run
 ```
 git fetch origin
 git tag v0.1.0 origin/main --annotate
