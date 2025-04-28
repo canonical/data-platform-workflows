@@ -19,20 +19,16 @@ jobs:
           fetch-depth: 0  # Checkout history with git tags
       - name: Install CLI
         run: pipx install ./python/cli
-      - name: Determine release tag
-        id: determine-tag
-        run: determine-semantic-version-tag
+      - name: Create release tag
+        id: create-tag
+        run: create-semantic-version-tag
       - name: Update major version tag
         run: |
-          git tag '${{ steps.determine-tag.outputs.major_version_tag }}' --force
-          git push origin '${{ steps.determine-tag.outputs.major_version_tag }}' --force
+          git tag '${{ steps.create-tag.outputs.major_version_tag }}' --force
+          git push origin '${{ steps.create-tag.outputs.major_version_tag }}' --force
       - name: Create release
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag '${{ steps.determine-tag.outputs.tag }}' --annotate -m '${{ steps.determine-tag.outputs.tag }}'
-          git push origin '${{ steps.determine-tag.outputs.tag }}'
-          gh release create '${{ steps.determine-tag.outputs.tag }}' --verify-tag --generate-notes
+          gh release create '${{ steps.create-tag.outputs.tag }}' --verify-tag --generate-notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:

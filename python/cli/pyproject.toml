@@ -29,7 +29,7 @@ sync-docs = "data_platform_workflows_cli.sync_docs:main"
 compute-path-in-artifact = "data_platform_workflows_cli.compute_path_in_artifact:main"
 promote-charm = "data_platform_workflows_cli.craft_tools.promote:charm"
 check-python-package-pr-title = "data_platform_workflows_cli.check_semantic_version_prefix:check_pr_title"
-determine-semantic-version-tag = "data_platform_workflows_cli.determine_semantic_version_tag:main"
+create-semantic-version-tag = "data_platform_workflows_cli.create_semantic_version_tag:main"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

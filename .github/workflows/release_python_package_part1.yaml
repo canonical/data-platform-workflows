@@ -12,12 +12,6 @@ jobs:
   tag:
     name: Tag release
     runs-on: ubuntu-latest
-    concurrency:
-      # Prevent race conditions
-      # (If multiple commits have been pushed since the last release, this workflow may get triggered
-      # on multiple commits. Without this, if the) TODO
-      group: dpw-release-python-package-${{ github.ref }}
-      cancel-in-progress: true
     timeout-minutes: 5
     steps:
       - name: Get workflow version
@@ -33,17 +27,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Checkout history with git tags
-      - name: Determine release tag
-        id: determine-tag
-        run: determine-semantic-version-tag
-      - name: Create tag
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag '${{ steps.determine-tag.outputs.tag }}' --annotate -m '${{ steps.determine-tag.outputs.tag }}'
-          git push origin '${{ steps.determine-tag.outputs.tag }}'
+      - name: Create release tag
+        id: create-tag
+        run: create-semantic-version-tag
     outputs:
-      tag: ${{ steps.determine-tag.outputs.tag }}
+      tag: ${{ steps.create-tag.outputs.tag }}
   
   build:
     name: Build package

@@ -34,6 +34,11 @@ on:
     branches:
       - main
 
+concurrency:
+  # Prevent race conditions (if multiple commits have been pushed since the last release)
+  group: dpw-release-python-package-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   release-part1:
     name: Release to PyPI (part 1)
@@ -41,7 +46,7 @@ jobs:
     permissions:
       contents: write  # Needed to create git tag
 
-  # Separate job is workaround for https://github.com/pypi/warehouse/issues/11096
+  # Separate job needed to workaround https://github.com/pypi/warehouse/issues/11096
   release-trusted-publishing:
     name: Release to PyPI (trusted publishing)
     needs:
