@@ -1,0 +1,57 @@
+on:
+  workflow_call:
+    outputs:
+      git-tag:
+        description: Semantic version git tag
+        value: ${{ jobs.tag.outputs.tag }}
+      artifact-name:
+        description: Python package distributions are uploaded to this GitHub artifact name
+        value: python-package-distributions
+
+jobs:
+  tag:
+    name: Tag release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: canonical/data-platform-workflows
+          file-name: release_python_package_part1.yaml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Checkout history with git tags
+      - name: Create release tag
+        id: create-tag
+        run: create-semantic-version-tag
+    outputs:
+      tag: ${{ steps.create-tag.outputs.tag }}
+  
+  build:
+    name: Build package
+    needs:
+      - tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Checkout history with git tags
+      - name: Install poetry
+        run: |
+          pipx install poetry
+          pipx inject poetry 'poetry-dynamic-versioning[plugin]'
+      - name: Build package
+        run: poetry build
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions  # Keep in sync with `artifact-name` output
+          path: dist/

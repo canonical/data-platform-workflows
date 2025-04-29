@@ -78,7 +78,7 @@ def get_commit_sha_and_revisions(
         try:
             commit_shas.add(
                 subprocess.run(
-                    ["git", "rev-parse", tag], capture_output=True, check=True, text=True
+                    ["git", "rev-list", "-n", "1", tag], capture_output=True, check=True, text=True
                 ).stdout.strip()
             )
         except subprocess.CalledProcessError:
