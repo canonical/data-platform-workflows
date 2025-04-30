@@ -1,13 +1,8 @@
-# Copyright 2023 Canonical Ltd.
-# See LICENSE file for licensing details.
-
-# Usage documentation: release_charm.md
-
 on:
   workflow_call:
     inputs:
-      channel:
-        description: Charmhub channel to release to
+      track:
+        description: Charmhub track to release to
         required: true
         type: string
       artifact-prefix:
@@ -21,10 +16,6 @@ on:
         description: Relative path to charm directory from repository directory
         default: .
         type: string
-      create-git-tags:
-        description: Create git tag(s)
-        default: true
-        type: boolean
       charmcraft-snap-revision:
         description: charmcraft snap revision
         required: false
@@ -43,16 +34,21 @@ on:
 
 jobs:
   release-charm:
-    name: Release charm
+    name: Release charm to ${{ inputs.track }}/edge/pr-${{ github.event.pull_request.number }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # Use environment to track deployment history
+    # (https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/viewing-deployment-history)
+    # TODO future improvement: when https://bugs.launchpad.net/snapstore-server/+bug/2097446 is
+    # fixed, use isolated per-environment secrets for different risks
+    environment: edge-pr
     steps:
       - name: Get workflow version
         id: workflow-version
         uses: canonical/get-workflow-version-action@v1
         with:
           repository-name: canonical/data-platform-workflows
-          file-name: release_charm.yaml
+          file-name: release_charm_pr.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
@@ -76,7 +72,7 @@ jobs:
           merge-multiple: true
       - name: Upload & release charm
         id: release
-        run: release-charm --directory='${{ inputs.path-to-charm-directory }}' --channel='${{ inputs.channel }}' --create-tags='${{ inputs.create-git-tags }}'
+        run: release-charm-pr --directory='${{ inputs.path-to-charm-directory }}' --track='${{ inputs.track }}' --pr='${{ github.event.pull_request.number }}'
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

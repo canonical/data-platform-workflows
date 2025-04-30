@@ -6,6 +6,8 @@ Workflow file: [_promote_charm.yaml](_promote_charm.yaml)
 ## Limitations
 Currently, this workflow can only be used on repositories that contain a single charm (that needs to be promoted; additional unreleased test charms are okay). That charm must be located at the root of the repository directory (i.e. `charmcraft.yaml` is present in the root of the repository)
 
+This workflow currently only supports charms that implement in-place upgrades & rollbacks with [charm-refresh](https://github.com/canonical/charm-refresh) and, thus, use [tag_charm_edge.yaml](release_charm_edge.md).
+
 ## Usage
 ### Step 1: Add `promote.yaml` file to `.github/workflows/`
 ```yaml
@@ -58,7 +60,6 @@ on:
       - opened
       - labeled
       - unlabeled
-      - edited
     branches:
       - main
 
@@ -67,7 +68,7 @@ jobs:
     name: Check pull request
     uses: canonical/data-platform-workflows/.github/workflows/check_charm_pr.yaml@v0.0.0
 ```
-Update `branches` to include all branches that [`release_charm.yaml`](release_charm.md) runs on
+Update `branches` to include all branches that [`release_charm_edge.yaml`](release_charm_edge.md) runs on
 
 ### Step 3: Add `.github/release.yaml` file
 ```yaml
@@ -86,4 +87,4 @@ This workflow requires the charm directory (directory with charmcraft.yaml) to c
 
 "Unified charmcraft.yaml syntax" (where actions.yaml, charmcraft.yaml, config.yaml, and metadata.yaml are combined into a single charmcraft.yaml file) is not supported.
 
-Rationale in [release_charm.md](release_charm.md#rationale)
+Rationale in [release_charm_edge.md](release_charm_edge.md#rationale)

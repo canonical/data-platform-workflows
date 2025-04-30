@@ -9,7 +9,6 @@ import sys
 
 import yaml
 
-
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 
@@ -73,17 +72,12 @@ def snap():
         tag_prefix = f"{snap_name}/rev"
     logging.info("Pushing git tag(s)")
     tags = [f"{tag_prefix}{revision.value}" for revision in revisions]
+    subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
+    subprocess.run(
+        ["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"],
+        check=True,
+    )
     for tag in tags:
-        subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
-        subprocess.run(
-            [
-                "git",
-                "config",
-                "user.email",
-                "41898282+github-actions[bot]@users.noreply.github.com",
-            ],
-            check=True,
-        )
         subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
         subprocess.run(["git", "push", "origin", tag], check=True)
 
@@ -150,28 +144,28 @@ def rock():
     tag = f"image-{multi_arch_digest}"
     subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
     subprocess.run(
-        [
-            "git",
-            "config",
-            "user.email",
-            "41898282+github-actions[bot]@users.noreply.github.com",
-        ],
+        ["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"],
         check=True,
     )
     subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
     subprocess.run(["git", "push", "origin", tag], check=True)
 
 
-def charm():
+def _charm(*, pr: bool):
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
-    parser.add_argument("--channel", required=True)
-    parser.add_argument("--create-tags", required=True)
+    parser.add_argument("--track", required=True)
+    if pr:
+        parser.add_argument("--pr-number", required=True, type=int)
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
     metadata_file = yaml.safe_load((directory / "metadata.yaml").read_text())
     charm_name = metadata_file["name"]
+
+    channel = f"{args.track}/edge"
+    if pr:
+        channel += f"/pr-{args.pr_number}"
 
     # Release charm file(s) & store revision
     charm_revisions: list[int] = []
@@ -187,7 +181,7 @@ def charm():
                 "--path",
                 charm_file,
                 "--channel",
-                args.channel,
+                channel,
             ]
         )
         revision: int = json.loads(output)["revision"]
@@ -195,7 +189,7 @@ def charm():
         charm_revisions.append(revision)
     assert len(charm_revisions) > 0, "No charm packages found"
 
-    if json.loads(args.create_tags) is not True:
+    if pr:
         return
     if directory == pathlib.Path("."):
         tag_prefix = "rev"
@@ -203,16 +197,17 @@ def charm():
         tag_prefix = f"{charm_name}/rev"
     logging.info("Pushing git tag(s)")
     tags = [f"{tag_prefix}{revision}" for revision in charm_revisions]
+    subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
+    subprocess.run(
+        ["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"],
+        check=True,
+    )
     for tag in tags:
-        subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
-        subprocess.run(
-            [
-                "git",
-                "config",
-                "user.email",
-                "41898282+github-actions[bot]@users.noreply.github.com",
-            ],
-            check=True,
-        )
         subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
         subprocess.run(["git", "push", "origin", tag], check=True)
+
+def charm_edge():
+    _charm(pr=False)
+
+def charm_pr():
+    _charm(pr=True)

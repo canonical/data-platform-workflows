@@ -7,7 +7,7 @@ authors = [
     {name = "Carl Csaposs", email = "carl.csaposs@canonical.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.10"  # TODO: bump to >=3.12 when arm runners move to 24.04. enum.StrEnum requires >=3.11
+requires-python = ">=3.12"
 dependencies = [
     "pyyaml>=6.0.2",
     "requests>=2.32.3",
@@ -20,7 +20,8 @@ collect-rock-platforms = "data_platform_workflows_cli.craft_tools.collect_platfo
 collect-charm-platforms = "data_platform_workflows_cli.craft_tools.collect_platforms:charm"
 release-snap = "data_platform_workflows_cli.craft_tools.release:snap"
 release-rock = "data_platform_workflows_cli.craft_tools.release:rock"
-release-charm = "data_platform_workflows_cli.craft_tools.release:charm"
+release-charm-edge = "data_platform_workflows_cli.craft_tools.release:charm_edge"
+release-charm-pr = "data_platform_workflows_cli.craft_tools.release:charm_pr"
 update-bundle = "data_platform_workflows_cli.update_bundle:main"
 parse-snap-version = "data_platform_workflows_cli.parse_snap_version:main"
 allure-add-default-for-missing-results = "data_platform_workflows_cli.allure_add_default_for_missing_results:main"
@@ -30,6 +31,7 @@ compute-path-in-artifact = "data_platform_workflows_cli.compute_path_in_artifact
 promote-charm = "data_platform_workflows_cli.craft_tools.promote:charm"
 check-python-package-pr-title = "data_platform_workflows_cli.check_semantic_version_prefix:check_pr_title"
 create-semantic-version-tag = "data_platform_workflows_cli.create_semantic_version_tag:main"
+create-charm-version-tag-edge = "data_platform_workflows_cli.create_charm_refresh_version_tag_edge:main"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

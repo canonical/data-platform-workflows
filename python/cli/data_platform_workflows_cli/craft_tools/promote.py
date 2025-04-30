@@ -67,7 +67,7 @@ def get_commit_sha_and_revisions(
     if not revisions:
         if channel_missing_ok:
             logging.info(f"No revisions exist on {repr(channel)}")
-            return
+            return None
         raise ValueError(f"No revisions exist on {repr(channel)}")
     logging.info(f"Revisions on {repr(channel)}: {repr(revisions)}")
 
@@ -84,7 +84,7 @@ def get_commit_sha_and_revisions(
         except subprocess.CalledProcessError:
             logging.error(
                 f"Unable to find git tag {repr(tag)}. Was revision {revision} released with "
-                "data-platform-workflows release_charm.yaml?"
+                "data-platform-workflows release_charm_edge.yaml?"
             )
             raise
     if len(commit_shas) != 1:
@@ -96,6 +96,42 @@ def get_commit_sha_and_revisions(
     commit_sha = commit_shas.pop()
     logging.info(f"All revisions on {repr(channel)} were built from git commit {repr(commit_sha)}")
     return commit_sha, revisions
+
+
+def get_github_release_tag(*, commit_sha: str) -> str:
+    """Get GitHub release tag from commit"""
+    charm_refresh_compatibility_version_tags = subprocess.run(
+        ["git", "tag", "--list", "v*/*", "--points-at", commit_sha],
+        capture_output=True,
+        check=True,
+        text=True,
+    ).stdout.splitlines()
+    if len(charm_refresh_compatibility_version_tags) != 1:
+        raise ValueError(
+            f"Expected 1 charm refresh compatibility version tags on commit {commit_sha}, got "
+            f"{len(charm_refresh_compatibility_version_tags)}: "
+            f"{repr(charm_refresh_compatibility_version_tags)}"
+        )
+    return charm_refresh_compatibility_version_tags[0]
+
+
+def get_last_stable_release_tag(*, track: str, charm_name: str, tag_prefix: str) -> str | None:
+    """Get GitHub release tag for last stable release (if it exists) on `track`"""
+    channel = f"{track}/{Risk.STABLE.value}"
+    logging.info(f"Getting GitHub release tag for last {repr(channel)} release")
+    output = get_commit_sha_and_revisions(
+        channel=channel,
+        charm_name=charm_name,
+        tag_prefix=tag_prefix,
+        channel_missing_ok=True,  # In case no previous stable release
+    )
+    if output is None:
+        logging.warning(f"No existing release found on {repr(channel)}")
+        return None
+    commit_sha, _ = output
+    tag = get_github_release_tag(commit_sha=commit_sha)
+    logging.info(f"GitHub release tag for last {repr(channel)} release: {repr(tag)}")
+    return tag
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -166,7 +202,7 @@ def charm():
     to_channel = f"{track}/{to_risk}"
 
     charm_name = yaml.safe_load((directory / "metadata.yaml").read_text())["name"]
-    # `tag_prefix` format from release_charm.yaml
+    # `tag_prefix` format from release_charm_edge.yaml
     if directory == pathlib.Path("."):
         tag_prefix = "rev"
     else:
@@ -179,15 +215,12 @@ def charm():
         channel=from_channel, charm_name=charm_name, tag_prefix=tag_prefix
     )
     if to_risk is Risk.CANDIDATE:
-        # We will need to get commit for most recent stable release
-        stable_channel = f"{track}/{Risk.STABLE.value}"
-        logging.info(f"Checking that {repr(stable_channel)} revisions are from the same git commit")
-        get_commit_sha_and_revisions(
-            channel=stable_channel,
-            charm_name=charm_name,
-            tag_prefix=tag_prefix,
-            channel_missing_ok=True,  # In case no previous stable release
+        logging.info(
+            "Checking that the last stable release revisions are from the same git commit and "
+            "that we can determine the GitHub release tag"
         )
+        # Check before promoting to fail early
+        get_last_stable_release_tag(track=track, charm_name=charm_name, tag_prefix=tag_prefix)
 
     subprocess.run(["git", "checkout", from_commit_sha], check=True)
     # Don't reuse commit sha to avoid race condition if `from_channel` changes before
@@ -240,36 +273,12 @@ def charm():
             f"promoted. Expected charm name {repr(charm_name)}, got {repr(metadata.name)} instead"
         )
 
-    possible_release_tags = [f"{tag_prefix}{revision}" for revision in charm_revisions]
-    # Pick alphabetically first tag because of
-    # https://github.com/orgs/community/discussions/149281#discussioncomment-12071170
-    github_release_tag = sorted(possible_release_tags)[0]
+    github_release_tag = get_github_release_tag(commit_sha=promoted_commit_sha)
 
     if to_risk is Risk.CANDIDATE:
-        # Get tag for most recent stable release
-        stable_channel = f"{track}/{Risk.STABLE.value}"
-        logging.info(f"Getting git tag for most recent {repr(stable_channel)} release")
-        output = get_commit_sha_and_revisions(
-            channel=stable_channel,
-            charm_name=charm_name,
-            tag_prefix=tag_prefix,
-            channel_missing_ok=True,  # In case no previous stable release
+        previous_github_release_tag = get_last_stable_release_tag(
+            track=track, charm_name=charm_name, tag_prefix=tag_prefix
         )
-        if output is None:
-            logging.warning(f"No existing release found on {repr(stable_channel)}")
-            previous_github_release_tag = None
-        else:
-            _, stable_revisions = output
-            possible_stable_release_tags = [
-                f"{tag_prefix}{revision}" for revision in stable_revisions
-            ]
-            # Pick alphabetically first tag because of
-            # https://github.com/orgs/community/discussions/149281#discussioncomment-12071170
-            previous_github_release_tag = sorted(possible_stable_release_tags)[0]
-            logging.info(
-                f"Found git tag for most recent {repr(stable_channel)} release: "
-                f"{repr(previous_github_release_tag)}"
-            )
 
         if len(charm_revisions) > 1:
             title = f"Revisions {', '.join(str(revision) for revision in sorted(charm_revisions))}"
@@ -290,10 +299,6 @@ def charm():
             "--verify-tag",
             "--draft",
             "--generate-notes",
-            # TODO: remove when charm refresh versioning implemented?
-            # If `--draft` is passed, `--latest` appears to have no affect on release editing
-            # in GitHub's UI (the UI will set latest by default regardless)
-            "--latest=false",
             "--title",
             title,
             "--notes",

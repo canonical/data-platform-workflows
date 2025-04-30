@@ -29,7 +29,7 @@ This workflow requires the charm directory (directory with charmcraft.yaml) to c
 
 "Unified charmcraft.yaml syntax" (where actions.yaml, charmcraft.yaml, config.yaml, and metadata.yaml are combined into a single charmcraft.yaml file) is not supported.
 
-Rationale in [release_charm.md](release_charm.md#rationale)
+Rationale in [release_charm_edge.md](release_charm_edge.md#rationale)
 
 ## Behavior
 
