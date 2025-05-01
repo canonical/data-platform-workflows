@@ -18,7 +18,7 @@ jobs:
       - build
     uses: canonical/data-platform-workflows/.github/workflows/release_charm_pr.yaml@v0.0.0
     with:
-      track: latest
+      track: 'latest'
       artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
     secrets:
       charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
