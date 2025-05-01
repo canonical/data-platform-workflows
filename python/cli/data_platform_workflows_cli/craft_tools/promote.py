@@ -109,7 +109,7 @@ def get_github_release_tag(*, commit_sha: str) -> str:
     if len(charm_refresh_compatibility_version_tags) != 1:
         raise ValueError(
             f"Expected 1 charm refresh compatibility version tags on commit {commit_sha}, got "
-            f"{len(charm_refresh_compatibility_version_tags)}: "
+            f"{len(charm_refresh_compatibility_version_tags)} tags: "
             f"{repr(charm_refresh_compatibility_version_tags)}"
         )
     return charm_refresh_compatibility_version_tags[0]
