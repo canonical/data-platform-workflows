@@ -27,5 +27,7 @@ jobs:
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Checkout history with git tags
       - name: Create git tag
         run: create-charm-version-tag-edge --track='${{ inputs.track }}'
