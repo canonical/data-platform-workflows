@@ -95,6 +95,12 @@ def main():
             new_refresh_tag = f"v{track}/{new_charm_major}.0.0"
     logging.info(f"Determined new charm refresh compatibility version tag: {new_refresh_tag}")
 
+    subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
+    subprocess.run(
+        ["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"],
+        check=True,
+    )
+
     logging.info("Checking if new charm refresh compatibility version tag already exists")
     try:
         tag_commit_sha = subprocess.run(
