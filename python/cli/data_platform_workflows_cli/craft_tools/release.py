@@ -206,8 +206,10 @@ def _charm(*, pr: bool):
         subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
         subprocess.run(["git", "push", "origin", tag], check=True)
 
+
 def charm_edge():
     _charm(pr=False)
+
 
 def charm_pr():
     _charm(pr=True)
