@@ -1,0 +1,84 @@
+on:
+  workflow_call:
+    inputs:
+      track:
+        description: |
+          Charmhub track to release to
+          
+          Use output from canonical/data-platform-workflows tag_charm_edge.yaml
+        required: true
+        type: string
+      artifact-prefix:
+        description: |
+          Prefix for charm package GitHub artifact(s)
+
+          Use canonical/data-platform-workflows build_charm.yaml to build the charm(s)
+        required: true
+        type: string
+      path-to-charm-directory:
+        description: Relative path to charm directory from repository directory
+        default: .
+        type: string
+      charmcraft-snap-revision:
+        description: charmcraft snap revision
+        required: false
+        type: string
+      charmcraft-snap-channel:
+        description: |
+          charmcraft snap channel
+
+          Cannot be used if `charmcraft-snap-revision` input is passed
+        required: false
+        type: string
+    secrets:
+      charmhub-token:
+        description: Charmhub login token
+        required: true
+
+jobs:
+  release-charm:
+    name: Release charm to ${{ inputs.track }}/edge
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # Use environment to track deployment history
+    # (https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/viewing-deployment-history)
+    # TODO future improvement: when https://bugs.launchpad.net/snapstore-server/+bug/2097446 is
+    # fixed, use isolated per-environment secrets for different risks
+    environment: edge
+    steps:
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: canonical/data-platform-workflows
+          file-name: release_charm_edge.yaml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+      - name: Parse charmcraft version inputs
+        id: charmcraft-snap-version
+        run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
+      - name: Install charmcraft
+        run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+      - name: Install noctua
+        run: pipx install git+https://github.com/lucabello/noctua
+      - run: snap list
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Compute path in artifact
+        id: path-in-artifact
+        run: compute-path-in-artifact '${{ inputs.path-to-charm-directory }}'
+      - name: Download charm package(s)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
+          merge-multiple: true
+      - name: Upload & release charm
+        id: release
+        run: release-charm-edge --directory='${{ inputs.path-to-charm-directory }}' --track='${{ inputs.track }}'
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Charmcraft logs
+        if: ${{ success() || (failure() && steps.release.outcome == 'failure') }}
+        run: cat ~/.local/state/charmcraft/log/*

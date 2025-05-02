@@ -1,0 +1,33 @@
+on:
+  workflow_call:
+    inputs:
+      track:
+        description: Charmhub track to release to
+        required: true
+        type: string
+    outputs:
+      track:
+        description: Charmhub track to release to
+        value: ${{ inputs.track }}
+
+jobs:
+  tag:
+    name: Create charm refresh compatibility version git tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: canonical/data-platform-workflows
+          file-name: tag_charm_edge.yaml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Checkout history with git tags
+      - name: Create git tag
+        run: create-charm-version-tag-edge --track='${{ inputs.track }}'

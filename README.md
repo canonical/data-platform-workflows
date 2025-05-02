@@ -3,6 +3,7 @@
 | Name                                                                         | Description                                                                               |
 |------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | [lint.yaml](.github/workflows/lint.md)                                       | Lint GitHub Actions workflows (`.github/workflows/`) and `tox run -e lint`                |
+| [tag_charm_edge.yaml](.github/workflows/tag_charm_edge.md)                   | Create charm refresh compatibility version git tag before edge build & release            |
 | [build_snap.yaml](.github/workflows/build_snap.md)                           | Build snap                                                                                |
 | [build_rock.yaml](.github/workflows/build_rock.md)                           | Build rock                                                                                |
 | [build_charm.yaml](.github/workflows/build_charm.md)                         | Build charm                                                                               |
@@ -10,7 +11,8 @@
 | [check_python_package_pr.yaml](.github/workflows/check_python_package_pr.md) | Check Python package pull request has required semantic version prefix                    |
 | [release_snap.yaml](.github/workflows/release_snap.md)                       | Release snap to Snap Store                                                                |
 | [release_rock.yaml](.github/workflows/release_rock.md)                       | Release rock to GitHub Container Registry                                                 |
-| [release_charm.yaml](.github/workflows/release_charm.md)                     | Release charm to Charmhub                                                                 |
+| [release_charm_edge.yaml](.github/workflows/release_charm_edge.md)           | Release charm to Charmhub "edge" risk                                                     |
+| [release_charm_pr.yaml](.github/workflows/release_charm_pr.md)               | Release pull request charm to Charmhub branch                                             |
 | [_promote_charm.yaml](.github/workflows/_promote_charm.md)                   | **Experimental** `charmcraft promote`, update git tags, & generate release notes          |
 | [check_charm_pr.yaml](.github/workflows/check_charm_pr.md)                   | Check charm pull request has required labels for release notes                            |
 | [sync_docs.yaml](.github/workflows/sync_docs.md)                             | Sync Discourse documentation to GitHub                                                    |

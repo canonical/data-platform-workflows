@@ -100,6 +100,8 @@ jobs:
         run: parse-snap-version --revision='${{ inputs.lxd-snap-revision }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revision --channel-input-name=lxd-snap-channel
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Checkout history with git tags
       - name: Set up environment
         run: |
           sudo snap install lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
