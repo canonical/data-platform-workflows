@@ -1,4 +1,4 @@
-Workflow file: [release_python_package.yaml](release_python_package.yaml)
+Workflow files: [release_python_package_part1.yaml](release_python_package_part1.yaml), [release_python_package_part2.yaml](release_python_package_part2.yaml)
 
 ## Usage
 ### Step 1: Use [poetry-dynamic-versioning](https://github.com/mtkennerly/poetry-dynamic-versioning)
