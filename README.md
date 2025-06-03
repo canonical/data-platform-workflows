@@ -15,10 +15,10 @@
 | [release_charm_pr.yaml](.github/workflows/release_charm_pr.md)               | Release pull request charm to Charmhub branch                                             |
 | [_promote_charm.yaml](.github/workflows/_promote_charm.md)                   | **Experimental** `charmcraft promote`, update git tags, & generate release notes          |
 | [check_charm_pr.yaml](.github/workflows/check_charm_pr.md)                   | Check charm pull request has required labels for release notes                            |
-| [sync_docs.yaml](.github/workflows/sync_docs.md)                             | Sync Discourse documentation to GitHub                                                    |
 | [approve_renovate_pr.yaml](.github/workflows/approve_renovate_pr.md)         | Reduce required approvals on [Renovate](https://docs.renovatebot.com/) pull requests by 1 |
 | [_update_bundle.yaml](.github/workflows/_update_bundle.md)                   | **Experimental** Update charm revisions in bundle                                         |
 | [integration_test_charm.yaml](.github/workflows/integration_test_charm.md)   | **Deprecated** Integration test charm                                                     |
+| [sync_docs.yaml](.github/workflows/sync_docs.md)                             | **Deprecated** Sync Discourse documentation to GitHub                                     |
 
 ### Version
 Recommendation: pin the latest version (e.g. `v1.0.0`) and use [Renovate](https://docs.renovatebot.com/) to stay up-to-date.
