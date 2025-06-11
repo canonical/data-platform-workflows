@@ -8,10 +8,14 @@ on:
 
 jobs:
   sync-docs:
-    name: Sync docs from Discourse
+    name: (deprecated) Sync docs from Discourse
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+    - name: Deprecation notice
+      run: |
+        # shellcheck disable=SC2016
+        echo '::warning::The `sync_docs.yaml` workflow is deprecated & will be removed in a future release.'
     - name: Get workflow version
       id: workflow-version
       uses: canonical/get-workflow-version-action@v1

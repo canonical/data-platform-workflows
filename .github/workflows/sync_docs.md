@@ -1,5 +1,8 @@
 Workflow file: [sync_docs.yaml](sync_docs.yaml)
 
+> [!WARNING]
+> This workflow is **deprecated** & will be removed in a future release.
+
 ## Usage
 Add `sync_docs.yaml` file to `.github/workflows/`
 
