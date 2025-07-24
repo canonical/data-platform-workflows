@@ -63,6 +63,12 @@ jobs:
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 15
     steps:
+      - name: (IS hosted) Install pipx
+        if: ${{ contains(matrix.platform.runner, 'self-hosted') }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install pipx -y
+          pipx ensurepath
       - name: Get workflow version
         id: workflow-version
         uses: canonical/get-workflow-version-action@v1
