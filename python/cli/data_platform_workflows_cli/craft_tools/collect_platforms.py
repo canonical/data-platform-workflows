@@ -26,8 +26,8 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 RUNNERS = {
     craft.Architecture.X64: "ubuntu-latest",
     craft.Architecture.ARM64: "ubuntu-24.04-arm",
-    # No sizes (e.g. "large") currently available for s390x IS-hosted runners
-    craft.Architecture.S390X: ["self-hosted", "s390x", "noble"],
+    # Use PS6 runners while PS7 runners unstable: https://chat.canonical.com/canonical/pl/3wcxtsrzo3ykdxe6rzp5uuus8h
+    craft.Architecture.S390X: "self-hosted-linux-s390x-noble-edge",
 }
 
 
