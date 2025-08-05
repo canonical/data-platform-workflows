@@ -27,13 +27,6 @@ jobs:
       pull-requests: write  # Needed to create PR
 ```
 
-### metadata.yaml required
-This workflow requires the charm directory (directory with charmcraft.yaml) to contain a metadata.yaml file with the `docs` key. Syntax: https://juju.is/docs/sdk/metadata-yaml
-
-"Unified charmcraft.yaml syntax" (where actions.yaml, charmcraft.yaml, config.yaml, and metadata.yaml are combined into a single charmcraft.yaml file) is not supported.
-
-Rationale in [release_charm_edge.md](release_charm_edge.md#rationale)
-
 ## Behavior
 
 Downloads all Discourse topics in the charm's Charmhub documentation to `/docs/` directory in the charm's repository.
@@ -41,7 +34,7 @@ Downloads all Discourse topics in the charm's Charmhub documentation to `/docs/`
 >[!NOTE]
 > Any content in the `/docs/` directory that is not part of this workflow will get removed.
 
-The topics are determined by the navigation table in the charm's overview page - i.e. the page linked in the `metadata.yaml` `docs:` field. 
+The topics are determined by the navigation table in the charm's overview page - i.e. the page linked in the `metadata.yaml` `docs:` field or the `charmcraft.yaml` `links: documentation:` field.
 
 When the workflow is triggered, it downloads all Discourse topics in their latest state and compares them to the `/docs/` directory in the default branch (e.g. `main`).
 * If the contents match, GitHub is up to date with Discourse. Nothing happens.

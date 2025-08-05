@@ -23,10 +23,3 @@ jobs:
     secrets:
       charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
 ```
-
-### metadata.yaml required
-This workflow requires the charm directory (directory with charmcraft.yaml) to contain a metadata.yaml file with the `name` key. If the charm uses OCI images (Kubernetes only), metadata.yaml must also contain the `resources` key. Syntax: https://juju.is/docs/sdk/metadata-yaml
-
-"Unified charmcraft.yaml syntax" (where actions.yaml, charmcraft.yaml, config.yaml, and metadata.yaml are combined into a single charmcraft.yaml file) is not supported.
-
-Rationale in [release_charm_edge.md](release_charm_edge.md#rationale)
