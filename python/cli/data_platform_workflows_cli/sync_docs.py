@@ -16,9 +16,7 @@ DOCS_LOCAL_PATH = pathlib.Path("docs/")
 def get_topic(topic_id_: str):
     """Get markdown content of a discourse.charmhub.io topic"""
 
-    response = requests.get(
-        f"https://discourse.charmhub.io/raw/{topic_id_}/1"
-    )  # "/1" for post 1
+    response = requests.get(f"https://discourse.charmhub.io/raw/{topic_id_}/1")  # "/1" for post 1
 
     response.raise_for_status()
     return response.text
@@ -55,9 +53,7 @@ class Topic:
 
         match = re.fullmatch(r"/t/([0-9]+)", link)
         if not match:
-            raise ValueError(
-                f'Invalid navlink "{link}". Expected something like "/t/9707"'
-            )
+            raise ValueError(f'Invalid navlink "{link}". Expected something like "/t/9707"')
         # Example `topic_id`: "9707"
         topic_id = match.group(1)
 
@@ -126,8 +122,7 @@ def main():
     # Remove first row (e.g. "|--------|--------|-------------|")
     rows = rows[1:]
     rows: list[dict[str, str]] = [
-        {key.strip(): value.strip() for key, value in row.items() if key != ""}
-        for row in rows
+        {key.strip(): value.strip() for key, value in row.items() if key != ""} for row in rows
     ]
 
     try:
