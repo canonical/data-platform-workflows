@@ -87,9 +87,14 @@ def main():
     """Update Discourse documentation topics in docs/ directory"""
 
     # Example `overview_topic_link`: "https://discourse.charmhub.io/t/charmed-postgresql-documentation/9710"
-    overview_topic_link: str = yaml.safe_load(
-        pathlib.Path("metadata.yaml").read_text()
-    )["docs"]
+    overview_topic_link = ""
+    if not pathlib.Path("metadata.yaml").exists():
+        overview_topic_link = yaml.safe_load(pathlib.Path("charmcraft.yaml").read_text())["links"][
+            "documentation"
+        ]
+    else:
+        overview_topic_link = yaml.safe_load(pathlib.Path("metadata.yaml").read_text())["docs"]
+
     assert overview_topic_link.startswith("https://discourse.charmhub.io/")
 
     # Example `overview_topic_id`: "9710"

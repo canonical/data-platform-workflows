@@ -160,7 +160,11 @@ def _charm(*, pr: bool):
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
-    metadata_file = yaml.safe_load((directory / "metadata.yaml").read_text())
+    if not (directory / "metadata.yaml").exists():
+        metadata_file = yaml.safe_load((directory / "charmcraft.yaml").read_text())
+    else:
+        metadata_file = yaml.safe_load((directory / "metadata.yaml").read_text())
+
     charm_name = metadata_file["name"]
 
     channel = f"{args.track}/edge"

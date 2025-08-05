@@ -142,7 +142,13 @@ class Metadata:
 
     @classmethod
     def from_file(cls, *, directory: pathlib.Path):
-        file = yaml.safe_load((directory / "metadata.yaml").read_text())
+        if not (directory / "metadata.yaml").exists():
+            file = yaml.safe_load((directory / "charmcraft.yaml").read_text())
+            display_name = file["title"]
+        else:
+            file = yaml.safe_load((directory / "metadata.yaml").read_text())
+            display_name = file["display-name"]
+
         # (Only for Kubernetes charms) get OCI resources
         oci_resources = {}
         for resource_name, resource in file.get("resources", {}).items():
@@ -152,12 +158,11 @@ class Metadata:
             if "@sha256:" not in oci_hash:
                 raise ValueError(
                     "Unable to promote charm that does not pin all of its `oci-image` resources "
-                    f"to a sha256 digest in metadata.yaml: {repr(resource['upstream-source'])}"
+                    f"to a sha256 digest in metadata: {repr(resource['upstream-source'])}"
                 )
             oci_resources[resource_name] = oci_hash
-        return cls(
-            name=file["name"], display_name=file["display-name"], oci_resources=oci_resources
-        )
+
+        return cls(name=file["name"], display_name=display_name, oci_resources=oci_resources)
 
 
 def charm():
@@ -201,7 +206,11 @@ def charm():
     from_channel = f"{track}/{from_risk}"
     to_channel = f"{track}/{to_risk}"
 
-    charm_name = yaml.safe_load((directory / "metadata.yaml").read_text())["name"]
+    if not (directory / "metadata.yaml").exists():
+        charm_name = yaml.safe_load((directory / "charmcraft.yaml").read_text())["name"]
+    else:
+        charm_name = yaml.safe_load((directory / "metadata.yaml").read_text())["name"]
+
     # `tag_prefix` format from release_charm_edge.yaml
     if directory == pathlib.Path("."):
         tag_prefix = "rev"
@@ -232,7 +241,7 @@ def charm():
 
     if metadata_on_from_commit.name != charm_name:
         raise ValueError(
-            "Charm name in metadata.yaml changed between latest commit on branch "
+            "Charm name in metadata changed between latest commit on branch "
             f"({repr(charm_name)}) and commit on {repr(from_channel)} "
             f"({repr(metadata_on_from_commit.name)}). Unable to promote charm"
         )
@@ -269,7 +278,7 @@ def charm():
     metadata = Metadata.from_file(directory=directory)
     if metadata.name != charm_name:
         raise ValueError(
-            "Charm name in metadata.yaml changed while charm was promoted. Invalid charm "
+            "Charm name in metadata changed while charm was promoted. Invalid charm "
             f"promoted. Expected charm name {repr(charm_name)}, got {repr(metadata.name)} instead"
         )
 
