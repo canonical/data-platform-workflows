@@ -142,7 +142,7 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a") as file:
               file.write(output)
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install tox & poetry
         run: |
           pipx install tox
@@ -293,7 +293,7 @@ jobs:
               file.write(output)
       - name: Checkout
         timeout-minutes: 3
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up environment
         timeout-minutes: 5
         run: |
@@ -543,7 +543,7 @@ jobs:
       # git push origin gh-pages-beta
       # )
       - name: Checkout GitHub pages branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: gh-pages-beta
           path: repo/

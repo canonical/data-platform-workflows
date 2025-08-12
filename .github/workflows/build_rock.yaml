@@ -46,7 +46,7 @@ jobs:
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Collect rock platforms to build from rockcraft.yaml
         id: collect
         run: collect-rock-platforms --directory='${{ inputs.path-to-rock-directory }}'
@@ -82,7 +82,7 @@ jobs:
         id: rockcraft-snap-version
         run: parse-snap-version --revision='${{ inputs.rockcraft-snap-revision }}' --channel='${{ inputs.rockcraft-snap-channel }}' --revision-input-name=rockcraft-snap-revision --channel-input-name=rockcraft-snap-channel
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up environment
         run: |
           sudo adduser "$USER" lxd
