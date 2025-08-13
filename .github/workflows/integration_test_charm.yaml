@@ -432,7 +432,7 @@ jobs:
         run: poetry add --lock --group integration juju@'${{ inputs.libjuju-version-constraint }}'
       - name: Download packed charm(s)
         timeout-minutes: 5
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: ${{ inputs.artifact-prefix }}-*
           merge-multiple: true
@@ -550,12 +550,12 @@ jobs:
       - name: Download default test collection results
         # Default test results in case the integration tests time out or runner set up fails
         # (So that Allure report will show "unknown"/"failed" test result, instead of omitting the test)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: allure-collection-default-results/
           name: allure-collection-default-results-integration-test-charm
       - name: Download test results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: allure-results/
           pattern: allure-results-integration-test-charm-${{ inputs.cloud }}-juju-${{ inputs.juju-agent-version || needs.integration-test.outputs.juju-snap-channel-for-artifact }}-${{ inputs.architecture }}-*
