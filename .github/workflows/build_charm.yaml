@@ -128,7 +128,7 @@ jobs:
           sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
           pipx install charmcraftcache
           pipx install poetry
-          pipx install charmcraftlocal
+          pipx install git+https://github.com/canonical/charmcraftlocal@test
       - run: snap list
       - name: Pack charm
         id: pack
