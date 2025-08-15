@@ -127,6 +127,8 @@ jobs:
 
           sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
           pipx install charmcraftcache
+          pipx install poetry
+          pipx install charmcraftlocal
       - run: snap list
       - name: Pack charm
         id: pack
@@ -134,9 +136,9 @@ jobs:
         run: |
           if '${{ inputs.cache }}'
           then
-            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftcache pack -v --platform='${{ matrix.platform.name }}'
+            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v --platform='${{ matrix.platform.name }}'
           else
-            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraft pack -v --platform='${{ matrix.platform.name }}'
+            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v --command-name=charmcraft --platform='${{ matrix.platform.name }}'
           fi
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
