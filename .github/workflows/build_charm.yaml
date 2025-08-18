@@ -134,7 +134,7 @@ jobs:
           sudo iptables -P FORWARD ACCEPT
 
           sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
-          pipx install charmcraftcache
+          pipx install git+https://github.com/canonical/charmcraftcache@monorepo
           pipx install poetry
           pipx install git+https://github.com/canonical/charmcraftlocal@test
       - run: snap list
