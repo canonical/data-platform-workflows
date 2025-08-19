@@ -70,8 +70,10 @@ def main():
     try:
         new_charm_major = data["charm_major"]
     except KeyError:
-        # TODO add link to refresh v3 dev docs
-        raise KeyError("Required key missing from refresh_versions.toml")
+        raise KeyError(
+            "Required key missing from refresh_versions.toml. Docs: "
+            "https://canonical-charm-refresh.readthedocs-hosted.com/latest/add-to-charm/refresh-versions-toml/"
+        )
 
     if last_refresh_tag is None:
         new_refresh_tag = f"v{track}/1.0.0"
