@@ -14,11 +14,41 @@ def main():
     args = parser.parse_args()
     track = args.track
 
-    if not pathlib.Path("refresh_versions.toml").exists():
-        raise FileNotFoundError(
-            "refresh_versions.toml not found. The tag_charm_edge.yaml workflow currently only "
-            "supports git repositories that contain a single charm"
+    charm_majors_by_path = {}
+    charm_directories = []
+    for path in pathlib.Path().glob("**/charmcraft.yaml"):
+        if "tests" in path.parts:
+            logging.info(
+                f"Ignoring charm inside a 'tests' directory: {repr(path.parent)}"
+            )
+            continue
+        charm_directories.append(path)
+    refresh_versions_toml_paths = [
+        path.parent / "refresh_versions.toml" for path in charm_directories
+    ]
+    for refresh_versions_toml in refresh_versions_toml_paths:
+        try:
+            with refresh_versions_toml.open("rb") as file:
+                data = tomllib.load(file)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"refresh_versions.toml missing for charm {repr(refresh_versions_toml.parent)}"
+            )
+        try:
+            charm_majors_by_path[refresh_versions_toml] = data["charm_major"]
+        except KeyError:
+            raise KeyError(
+                f"Required key missing from {repr(refresh_versions_toml)}. Docs: "
+                "https://canonical-charm-refresh.readthedocs-hosted.com/latest/add-to-charm/refresh-versions-toml/"
+            )
+    if not charm_majors_by_path:
+        raise FileNotFoundError("No charmcraft.yaml files found")
+    new_charm_majors = set(charm_majors_by_path.values())
+    if len(new_charm_majors) != 1:
+        raise ValueError(
+            f"charm_major value is not identical in all refresh_versions.toml files: {repr(charm_majors_by_path)}"
         )
+    new_charm_major = new_charm_majors.pop()
 
     # Create charm refresh compatibility version tag
     # https://docs.google.com/document/d/1Jv1jhWLl8ejK3iJn7Q3VbCIM9GIhp8926bgXpdtx-Sg/edit?tab=t.0
@@ -45,13 +75,14 @@ def main():
                     "--diff-filter=A",
                     "--name-only",
                     "--no-commit-id",
+                    "-r",
                     "HEAD",
                 ],
                 capture_output=True,
                 check=True,
                 text=True,
             ).stdout.splitlines()
-            if "refresh_versions.toml" in files_added_in_last_commit:
+            if all(str(path) in files_added_in_last_commit for path in refresh_versions_toml_paths):
                 last_refresh_tag = None
                 # charm-refresh was (most likely) added for the first time in the last commit
                 logging.info("Detected that refresh_versions.toml was added in the last commit")
@@ -64,16 +95,6 @@ def main():
             print(f"{e.stderr=}")
             raise
     logging.info(f"Last charm refresh compatibility version tag: {last_refresh_tag}")
-
-    with pathlib.Path("refresh_versions.toml").open("rb") as file:
-        data = tomllib.load(file)
-    try:
-        new_charm_major = data["charm_major"]
-    except KeyError:
-        raise KeyError(
-            "Required key missing from refresh_versions.toml. Docs: "
-            "https://canonical-charm-refresh.readthedocs-hosted.com/latest/add-to-charm/refresh-versions-toml/"
-        )
 
     if last_refresh_tag is None:
         new_refresh_tag = f"v{track}/1.0.0"
