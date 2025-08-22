@@ -43,8 +43,8 @@ on:
         required: true
 
 jobs:
-  promote-charm:
-    name: Promote charm from ${{ inputs.track }}/${{ inputs.from-risk }} to ${{ inputs.track }}/${{ inputs.to-risk }}
+  promote-charms:
+    name: Promote charms from ${{ inputs.track }}/${{ inputs.from-risk }} to ${{ inputs.track }}/${{ inputs.to-risk }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     # Use environment to track deployment history
@@ -59,7 +59,7 @@ jobs:
         uses: canonical/get-workflow-version-action@v1
         with:
           repository-name: canonical/data-platform-workflows
-          file-name: _promote_charm.yaml
+          file-name: _promote_charms.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
@@ -73,9 +73,9 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Checkout history with git tags
-      - name: Promote charm
+      - name: Promote charms
         id: promote
-        run: promote-charm --track='${{ inputs.track }}' --from-risk='${{ inputs.from-risk }}' --to-risk='${{ inputs.to-risk }}' --ref='${{ github.ref }}'
+        run: promote-charms --track='${{ inputs.track }}' --from-risk='${{ inputs.from-risk }}' --to-risk='${{ inputs.to-risk }}' --ref='${{ github.ref }}'
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
