@@ -70,7 +70,7 @@ jobs:
         run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
       - run: snap list
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Checkout history with git tags
       - name: Promote charm

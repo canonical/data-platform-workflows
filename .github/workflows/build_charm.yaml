@@ -66,7 +66,7 @@ jobs:
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Collect charm platforms to build from charmcraft.yaml
         id: collect
         run: collect-charm-platforms --directory='${{ inputs.path-to-charm-directory }}'
@@ -105,7 +105,7 @@ jobs:
         id: lxd-snap-version
         run: parse-snap-version --revision='${{ inputs.lxd-snap-revision }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revision --channel-input-name=lxd-snap-channel
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Checkout history with git tags
       - name: Set up environment

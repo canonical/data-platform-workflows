@@ -61,7 +61,7 @@ jobs:
         run: pipx install git+https://github.com/lucabello/noctua
       - run: snap list
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Compute path in artifact
         id: path-in-artifact
         run: compute-path-in-artifact '${{ inputs.path-to-charm-directory }}'
