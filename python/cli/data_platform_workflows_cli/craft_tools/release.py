@@ -20,13 +20,13 @@ class OCIResource:
     revision: int
 
 
-def run(command_: list):
+def run(command_: list, *, cwd=None):
     """Run subprocess command & log stderr
 
     Returns:
         stdout
     """
-    process = subprocess.run(command_, capture_output=True, text=True)
+    process = subprocess.run(command_, capture_output=True, text=True, cwd=cwd)
     try:
         process.check_returncode()
     except subprocess.CalledProcessError as e:
@@ -179,10 +179,11 @@ def _charm(*, pr: bool):
                 charm_name,
                 "--json",
                 "--path",
-                charm_file,
+                str(charm_file.relative_to(directory)),
                 "--channel",
                 channel,
-            ]
+            ],
+            cwd=directory,
         )
         revision: int = json.loads(output)["revision"]
         logging.info(f"Released charm {revision=}")
