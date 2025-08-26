@@ -13,7 +13,7 @@
 | [release_rock.yaml](.github/workflows/release_rock.md)                       | Release rock to GitHub Container Registry                                                 |
 | [release_charm_edge.yaml](.github/workflows/release_charm_edge.md)           | Release charm to Charmhub "edge" risk                                                     |
 | [release_charm_pr.yaml](.github/workflows/release_charm_pr.md)               | Release pull request charm to Charmhub branch                                             |
-| [_promote_charm.yaml](.github/workflows/_promote_charm.md)                   | **Experimental** `charmcraft promote`, update git tags, & generate release notes          |
+| [_promote_charms.yaml](.github/workflows/_promote_charms.md)                 | **Experimental** `charmcraft promote`, update git tags, & generate release notes          |
 | [check_charm_pr.yaml](.github/workflows/check_charm_pr.md)                   | Check charm pull request has required labels for release notes                            |
 | [approve_renovate_pr.yaml](.github/workflows/approve_renovate_pr.md)         | Reduce required approvals on [Renovate](https://docs.renovatebot.com/) pull requests by 1 |
 | [_update_bundle.yaml](.github/workflows/_update_bundle.md)                   | **Experimental** Update charm revisions in bundle                                         |
