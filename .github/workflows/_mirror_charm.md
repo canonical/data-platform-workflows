@@ -15,9 +15,9 @@ jobs:
       matrix:
         charm:
           - path: kubernetes
-            repo: canonical/mysql-router-k8s-operator-mirror
+            repo: canonical/mysql-router-k8s-operator
           - path: machines
-            repo: canonical/mysql-router-operator-mirror
+            repo: canonical/mysql-router-operator
     name: Mirror charm | ${{ matrix.charm.path }}
     needs:
       - release
