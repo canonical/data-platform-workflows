@@ -1,0 +1,37 @@
+on:
+  workflow_call:
+    inputs:
+      path-to-charm-directory:
+        description: Relative path to charm directory from repository directory
+        required: true
+        type: string
+      repository:
+        description: GitHub repository to mirror to (e.g. "octocat/Hello-World")
+        required: true
+        type: string
+    secrets:
+      token:
+        description: |
+          GitHub App token or fine grained personal access token (not GITHUB_TOKEN)
+
+          Permissions needed for fine grained personal access token:
+          - Contents: Read and write
+          for the GitHub repository passed to the `repository` input
+        required: true
+
+jobs:
+  mirror-charm:
+    name: Mirror charm to ${{ inputs.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Set up environment
+        run: pipx install git-filter-repo charmcraftlocal
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Checkout history with git tags
+          token: ${{ secrets.token }}  # Token used during `git push` in `charmcraftlocal mirror`
+      - name: Mirror charm
+        working-directory: ${{ inputs.path-to-charm-directory }}
+        run: charmcraftlocal mirror '${{ inputs.repository }}' -v
