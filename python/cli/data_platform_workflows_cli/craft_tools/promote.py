@@ -97,8 +97,20 @@ def get_commit_sha_and_revisions(*, channel: str, charms_: list[Charm], channel_
     logging.info(f"Getting revisions on {repr(channel)}")
     revisions: dict[Charm, list[int]] = {}
     for charm in charms_:
+        # One-time exception to requirement that charms in monorepo have the same track—to enable
+        # MySQL Router charms to use monorepo. (VM 8.0 track is managed by another team for
+        # historical reasons.) Refresh compatibility tag will still use "dpe".
+        if charm.name == "mysql-router-k8s" and channel.startswith("dpe/"):
+            logging.warning(
+                "Exception for mysql-router-k8s on track 'dpe': using track '8.0' instead for "
+                "Charmhub operations"
+            )
+            charm_channel = channel.replace("dpe/", "8.0/")
+        else:
+            charm_channel = channel
+
         response = requests.get(
-            f"https://api.snapcraft.io/v2/charms/info/{charm.name}?fields=channel-map&channel={channel}"
+            f"https://api.snapcraft.io/v2/charms/info/{charm.name}?fields=channel-map&channel={charm_channel}"
         )
         response.raise_for_status()
         channel_map = response.json()["channel-map"]
@@ -384,8 +396,23 @@ def charms():
 
     logging.info(f"Promoting charms from {repr(from_channel)} to {repr(to_channel)}")
     for charm in charms_:
+        # One-time exception to requirement that charms in monorepo have the same track—to enable
+        # MySQL Router charms to use monorepo. (VM 8.0 track is managed by another team for
+        # historical reasons.) Refresh compatibility tag will still use "dpe".
+        if charm.name == "mysql-router-k8s" and track == "dpe":
+            logging.warning(
+                "Exception for mysql-router-k8s on track 'dpe': using track '8.0' instead for "
+                "Charmhub operations"
+            )
+            charm_from_channel = from_channel.replace("dpe/", "8.0/")
+            charm_to_channel = to_channel.replace("dpe/", "8.0/")
+        else:
+            charm_from_channel = from_channel
+            charm_to_channel = to_channel
+
         logging.info(
-            f"Promoting {repr(charm.name)} charm from {repr(from_channel)} to {repr(to_channel)}"
+            f"Promoting {repr(charm.name)} charm from {repr(charm_from_channel)} to "
+            f"{repr(charm_to_channel)}"
         )
         subprocess.run(
             [
@@ -394,9 +421,9 @@ def charms():
                 "--name",
                 charm.name,
                 "--from-channel",
-                from_channel,
+                charm_from_channel,
                 "--to-channel",
-                to_channel,
+                charm_to_channel,
                 "--yes",
             ],
             check=True,
