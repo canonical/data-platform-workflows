@@ -3,6 +3,8 @@ on:
     inputs:
       refresh-compat-version:
         description: charm refresh compatibility version
+        required: true
+        type: string
       track:
         description: |
           Charmhub track
