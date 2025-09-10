@@ -1,0 +1,70 @@
+on:
+  workflow_call:
+    inputs:
+      refresh-compat-version:
+        description: charm refresh compatibility version
+      track:
+        description: |
+          Charmhub track
+
+          https://juju.is/docs/juju/channel#heading--track
+        required: true
+        type: string
+      charmcraft-snap-revision:
+        description: charmcraft snap revision
+        required: false
+        type: string
+      charmcraft-snap-channel:
+        description: |
+          charmcraft snap channel
+
+          Cannot be used if `charmcraft-snap-revision` input is passed
+        required: false
+        type: string
+    secrets:
+      charmhub-token:
+        description: Charmhub login token
+        required: true
+
+jobs:
+  promote-charms-to-candidate:
+    name: Promote charms from ${{ inputs.track }}/edge to ${{ inputs.track }}/candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: canonical/data-platform-workflows
+          file-name: _promote_charms_to_candidate.yaml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+      - name: Parse charmcraft version inputs
+        id: charmcraft-snap-version
+        run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
+      - name: Install charmcraft
+        run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+      - run: snap list
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Checkout history with git tags
+      - name: Promote charms
+        id: promote
+        run: promote-charms --track='${{ inputs.track }}' --from-risk='edge' --to-risk='candidate' --ref='${{ github.ref }}'
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Charmcraft logs
+        if: ${{ success() || (failure() && steps.promote.outcome == 'failure') }}
+        run: cat ~/.local/state/charmcraft/log/*
+
+  announce-candidate:
+    name: Announce candidate release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Announce candidate release
+        id: announce-candidate
+        run: announce-candidate --refresh-version='${{ inputs.refresh-compat-version }}'
