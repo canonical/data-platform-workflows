@@ -27,6 +27,9 @@ on:
       charmhub-token:
         description: Charmhub login token
         required: true
+      mattermost-webhook-url:
+        description: The Mattermost incoming webhook URL
+        required: true
 
 jobs:
   promote-charms-to-candidate:
@@ -68,5 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Announce candidate release
+        env:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost-webhook-url }}
         id: announce-candidate
         run: announce-candidate --refresh-version='${{ inputs.refresh-compat-version }}'

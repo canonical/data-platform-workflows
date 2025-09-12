@@ -7,9 +7,7 @@ import subprocess
 
 import requests
 
-MATTERMOST_BOT_TOKEN = os.environ["MATTERMOST_BOT_TOKEN"]
-MATTERMOST_CHANNEL_ID = os.environ["MATTERMOST_CHANNEL_ID"]
-MATTERMOST_SERVER_URL = os.environ["MATTERMOST_SERVER_URL"]
+MATTERMOST_WEBHOOK_URL = os.environ["MATTERMOST_WEBHOOK_URL"]
 REPO = os.environ["GITHUB_REPOSITORY"]
 GH_TOKEN = os.environ.get("GITHUB_TOKEN")
 
@@ -87,9 +85,9 @@ def notify_mattermost(refresh_version, issue_url):
     f"Issue: {issue_url}\n\n"
     "Approvers required to promote to stable: TBD"
     response_ = requests.post(
-        f'{MATTERMOST_SERVER_URL.removesuffix("/")}/api/v4/posts',
-        headers={"Authorization": f'Bearer {MATTERMOST_BOT_TOKEN}'},
-        json={"channel_id": MATTERMOST_CHANNEL_ID, "message": message},
+        MATTERMOST_WEBHOOK_URL,
+        headers={"Content-Type": "application/json"},
+        json={"text": message},
     )
     response_.raise_for_status()
 
