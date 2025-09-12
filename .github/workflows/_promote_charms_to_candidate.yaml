@@ -58,6 +58,7 @@ jobs:
           fetch-depth: 0  # Checkout history with git tags
       - name: Promote charms
         id: promote
+        #TODO promote using refresh compat version instead of from risk 
         run: promote-charms --track='${{ inputs.track }}' --from-risk='edge' --to-risk='candidate' --ref='${{ github.ref }}'
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
@@ -70,6 +71,15 @@ jobs:
     name: Announce candidate release
     runs-on: ubuntu-latest
     steps:
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: canonical/data-platform-workflows
+          file-name: _promote_charms_to_candidate.yaml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
       - name: Announce candidate release
         env:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.mattermost-webhook-url }}
