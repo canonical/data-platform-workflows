@@ -34,6 +34,7 @@ create-semantic-version-tag = "data_platform_workflows_cli.create_semantic_versi
 create-charm-version-tag-edge = "data_platform_workflows_cli.create_charm_refresh_version_tag_edge:main"
 check-charm-contains-valid-refresh-version = "data_platform_workflows_cli.check_charm_contains_valid_refresh_version:main"
 announce-candidate = "data_platform_workflows_cli.announce_candidate:main"
+check-labels = "data_platform_workflows_cli.announce_candidate:main"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

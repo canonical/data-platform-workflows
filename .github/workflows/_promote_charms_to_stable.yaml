@@ -1,0 +1,98 @@
+on:
+  workflow_call:
+    inputs:
+      refresh-compat-version:
+        description: charm refresh compatibility version
+        required: true
+        type: string
+      track:
+        description: |
+          Charmhub track
+
+          https://juju.is/docs/juju/channel#heading--track
+        required: true
+        type: string
+      charmcraft-snap-revision:
+        description: charmcraft snap revision
+        required: false
+        type: string
+      charmcraft-snap-channel:
+        description: |
+          charmcraft snap channel
+
+          Cannot be used if `charmcraft-snap-revision` input is passed
+        required: false
+        type: string
+      issue-number:
+        required: true
+        type: number
+    secrets:
+      charmhub-token:
+        description: Charmhub login token
+        required: true
+
+jobs:
+  check-approvals:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write    # needed to comment on issues
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install requests
+        run: pip install requests
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: canonical/data-platform-workflows
+          file-name: _promote_charms_to_candidate.yaml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+      - name: Check issue labels
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: check-labels --issue-number='${{ inputs.issue-number }}'
+
+  promote-charms-to-stable:
+    name: Promote charms from ${{ inputs.track }}/candidate to ${{ inputs.track }}/stable
+    needs:
+     - check-approvals
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: canonical/data-platform-workflows
+          file-name: _promote_charms_to_candidate.yaml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+      - name: Parse charmcraft version inputs
+        id: charmcraft-snap-version
+        run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
+      - name: Install charmcraft
+        run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+      - run: snap list
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Checkout history with git tags
+      - name: Promote charms
+        id: promote
+        #TODO promote using refresh compat version instead of from risk
+        run: promote-charms --track='${{ inputs.track }}' --from-risk='candidate' --to-risk='stable' --ref='${{ github.ref }}'
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Charmcraft logs
+        if: ${{ success() || (failure() && steps.promote.outcome == 'failure') }}
+        run: cat ~/.local/state/charmcraft/log/*
