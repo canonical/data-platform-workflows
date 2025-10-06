@@ -36,7 +36,7 @@ jobs:
           file-name: release_rock.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
       - name: Install skopeo
         run: |
           sudo apt-get update

@@ -51,7 +51,7 @@ jobs:
           file-name: release_charm_pr.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
       - name: Parse charmcraft version inputs
         id: charmcraft-snap-version
         run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
