@@ -87,7 +87,7 @@ class Charm:
             return f"{self.name}/rev"
 
 
-def get_commit_sha_and_revisions(*, channel: str, charms_: list[Charm], channel_missing_ok=False):
+def get_commit_sha_and_release_title(*, channel: str, charms_: list[Charm], channel_missing_ok=False):
     """Get (& verify) commit sha that all charm revisions on a Charmhub channel name were built from
 
     Checks revisions across all Charmhub channels (each charm has a Charmhub channel) with name
@@ -209,7 +209,7 @@ def get_last_stable_release_tag(*, track: str, charms_: list[Charm]) -> str | No
     """Get GitHub release tag for last stable release (if it exists) on `track`"""
     channel = f"{track}/{Risk.STABLE.value}"
     logging.info(f"Getting GitHub release tag for last {repr(channel)} release")
-    output = get_commit_sha_and_revisions(
+    output = get_commit_sha_and_release_title(
         channel=channel,
         charms_=charms_,
         channel_missing_ok=True,  # In case no previous stable release
@@ -247,7 +247,7 @@ def _validate_promotion_and_create_release(
         logging.info("Checking that revisions that will be promoted are from the same git commit")
     else:
         logging.info("Getting git commit of revisions that were promoted")
-    promoted_commit_sha, release_title = get_commit_sha_and_revisions(
+    promoted_commit_sha, release_title = get_commit_sha_and_release_title(
         channel=channel, charms_=charms_
     )
 
