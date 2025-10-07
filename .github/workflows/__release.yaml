@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0  # Checkout history with git tags
       - name: Install CLI
-        run: pipx install ./python/cli
+        run: pipx install ./_cli
       - name: Create release tag
         id: create-tag
         run: create-semantic-version-tag

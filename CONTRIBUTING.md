@@ -12,7 +12,7 @@ The public interface consists of
 - (Explicit and implicit) input and output for the *public workflows*. This includes:
   - *Public workflow* file names
   - *Public workflow* `inputs` and `outputs` under `workflow_call`
-  - Any assumptions made about the caller workflow repository layout (e.g. existence of tox.ini file). This applies to any workflows or scripts called by a *public workflow*, **even if they begin with an underscore**. (e.g. [_get_workflow_version.yaml](.github/workflows/_get_workflow_version.yaml), [python/cli](python/cli))
+  - Any assumptions made about the caller workflow repository layout (e.g. existence of tox.ini file). This applies to any workflows or scripts called by a *public workflow*, **even if they begin with an underscore**. (e.g. [_get_workflow_version.yaml](.github/workflows/_get_workflow_version.yaml), [_cli](_cli))
 - [python/pytest_plugins/](python/pytest_plugins/)
 
 ### Pull request name convention

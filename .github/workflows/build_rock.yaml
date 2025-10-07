@@ -44,7 +44,7 @@ jobs:
           file-name: build_rock.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
       - name: Checkout
         uses: actions/checkout@v5
       - name: Collect rock platforms to build from rockcraft.yaml
@@ -77,7 +77,7 @@ jobs:
           file-name: build_rock.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
       - name: Parse rockcraft version inputs
         id: rockcraft-snap-version
         run: parse-snap-version --revision='${{ inputs.rockcraft-snap-revision }}' --channel='${{ inputs.rockcraft-snap-channel }}' --revision-input-name=rockcraft-snap-revision --channel-input-name=rockcraft-snap-channel

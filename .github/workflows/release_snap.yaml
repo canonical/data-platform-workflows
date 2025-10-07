@@ -58,7 +58,7 @@ jobs:
           file-name: release_snap.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
       - name: Parse snapcraft version inputs
         id: snapcraft-snap-version
         run: parse-snap-version --revision='${{ inputs.snapcraft-snap-revision }}' --channel='${{ inputs.snapcraft-snap-channel }}' --revision-input-name=snapcraft-snap-revision --channel-input-name=snapcraft-snap-channel

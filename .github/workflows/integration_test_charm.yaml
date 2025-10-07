@@ -241,7 +241,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         timeout-minutes: 2
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
       - name: Redact secrets from log
         timeout-minutes: 1
         run: redact-secrets
@@ -523,7 +523,7 @@ jobs:
           file-name: integration_test_charm.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
       - name: Download Allure
         # Following instructions from https://allurereport.org/docs/gettingstarted-installation/#install-via-the-system-package-manager-for-linux
         run: gh release download --repo allure-framework/allure2 --pattern 'allure_*.deb'
