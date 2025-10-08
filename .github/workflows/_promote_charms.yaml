@@ -26,6 +26,14 @@ on:
           Must be one of "beta", "candidate", "stable"
         required: true
         type: string
+      deprecated-legacy-charms-without-charm-refresh-compatibility-version-tag:
+        description: |
+          (deprecated) Charm(s) do not have charm refresh compatibility version tag
+
+          Only use this input for charms with an existing legacy track that does not have charm refresh compatibility version tags
+          For new tracks, use tag_charm_edge.yaml to create the tags and do not use this input. Usage docs: https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/release_charm_edge.md
+        default: false
+        type: boolean
       charmcraft-snap-revision:
         description: charmcraft snap revision
         required: false
@@ -75,7 +83,7 @@ jobs:
           fetch-depth: 0  # Checkout history with git tags
       - name: Promote charms
         id: promote
-        run: promote-charms --track='${{ inputs.track }}' --from-risk='${{ inputs.from-risk }}' --to-risk='${{ inputs.to-risk }}' --ref='${{ github.ref }}'
+        run: promote-charms --track='${{ inputs.track }}' --from-risk='${{ inputs.from-risk }}' --to-risk='${{ inputs.to-risk }}' --ref='${{ github.ref }}' --legacy-no-refresh-compatibility-tag='${{ toJSON(inputs.deprecated-legacy-charms-without-charm-refresh-compatibility-version-tag) }}'
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

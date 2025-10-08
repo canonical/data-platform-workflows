@@ -4,9 +4,11 @@ Workflow file: [_promote_charms.yaml](_promote_charms.yaml)
 > Subject to **breaking changes on patch release**. `_promote_charms.yaml` is experimental & not part of the public interface.
 
 ## Limitations
-This workflow currently only supports charms that implement in-place upgrades & rollbacks with [charm-refresh](https://github.com/canonical/charm-refresh) and, thus, use [tag_charm_edge.yaml](release_charm_edge.md).
+All charms must be released to the same track.
 
-All charms must be released to the same track. All charms must share an identical charm refresh compatibility version tag.
+For charms that implement in-place upgrades & rollbacks with [charm-refresh](https://github.com/canonical/charm-refresh), [tag_charm_edge.yaml](release_charm_edge.md) must be used and all charms must share an identical charm refresh compatibility version tag.
+
+(**deprecated**) For existing legacy tracks that do not have charm refresh compatibility version tags, the `deprecated-legacy-charms-without-charm-refresh-compatibility-version-tag` input can be used. Charms with charm refresh compatibility version tags and charms without cannot be mixed in the same git branch. For new tracks, [tag_charm_edge.yaml](release_charm_edge.md) must be used and this input must not be used.
 
 ## Usage
 ### Step 1: Add `promote.yaml` file to `.github/workflows/`

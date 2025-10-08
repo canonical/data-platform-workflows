@@ -1,6 +1,7 @@
 import argparse
 import dataclasses
 import enum
+import json
 import logging
 import pathlib
 import subprocess
@@ -87,12 +88,18 @@ class Charm:
             return f"{self.name}/rev"
 
 
-def get_commit_sha_and_release_title(*, channel: str, charms_: list[Charm], channel_missing_ok=False):
+def get_commit_sha_and_release_title(
+    *,
+    channel: str,
+    charms_: list[Charm],
+    legacy_no_refresh_compatibility_tag: bool,
+    channel_missing_ok=False,
+):
     """Get (& verify) commit sha that all charm revisions on a Charmhub channel name were built from
 
     Checks revisions across all Charmhub channels (each charm has a Charmhub channel) with name
 
-    Returns (commit sha, GitHub release title)
+    Returns (commit sha, GitHub release title, legacy GitHub release tag)
     """
     logging.info(f"Getting revisions on {repr(channel)}")
     revisions: dict[Charm, list[int]] = {}
@@ -128,7 +135,7 @@ def get_commit_sha_and_release_title(*, channel: str, charms_: list[Charm], chan
         raise ValueError(f"No {repr(missing.name)} revisions exist on {repr(channel)}")
 
     logging.info("Checking that revisions were built from the same git commit")
-    commit_shas = set()
+    commit_shas: set[str] = set()
     for charm, charm_revisions in revisions.items():
         for revision in charm_revisions:
             tag = f"{charm.tag_prefix}{revision}"
@@ -185,7 +192,21 @@ def get_commit_sha_and_release_title(*, channel: str, charms_: list[Charm], chan
             )
         release_title = f"Revisions: {' | '.join(title_parts)}"
 
-    return commit_sha, release_title
+    if legacy_no_refresh_compatibility_tag:
+        # Determine GitHub release tag
+
+        revision_tags: list[str] = []
+        for charm, charm_revisions in revisions.items():
+            for revision in charm_revisions:
+                tag = f"{charm.tag_prefix}{revision}"
+                revision_tags.append(tag)
+        # Pick alphabetically first tag because of
+        # https://github.com/orgs/community/discussions/149281#discussioncomment-12071170
+        legacy_github_release_tag = sorted(revision_tags)[0]
+    else:
+        legacy_github_release_tag = None
+
+    return commit_sha, release_title, legacy_github_release_tag
 
 
 def get_github_release_tag(*, commit_sha: str) -> str:
@@ -205,19 +226,25 @@ def get_github_release_tag(*, commit_sha: str) -> str:
     return charm_refresh_compatibility_version_tags[0]
 
 
-def get_last_stable_release_tag(*, track: str, charms_: list[Charm]) -> str | None:
+def get_last_stable_release_tag(
+    *, track: str, charms_: list[Charm], legacy_no_refresh_compatibility_tag: bool
+) -> str | None:
     """Get GitHub release tag for last stable release (if it exists) on `track`"""
     channel = f"{track}/{Risk.STABLE.value}"
     logging.info(f"Getting GitHub release tag for last {repr(channel)} release")
     output = get_commit_sha_and_release_title(
         channel=channel,
         charms_=charms_,
+        legacy_no_refresh_compatibility_tag=legacy_no_refresh_compatibility_tag,
         channel_missing_ok=True,  # In case no previous stable release
     )
     if output is None:
         logging.warning(f"No existing release found on {repr(channel)}")
         return None
-    commit_sha, _ = output
+    commit_sha, _, legacy_github_release_tag = output
+    if legacy_no_refresh_compatibility_tag:
+        assert legacy_github_release_tag is not None
+        return legacy_github_release_tag
     tag = get_github_release_tag(commit_sha=commit_sha)
     logging.info(f"GitHub release tag for last {repr(channel)} release: {repr(tag)}")
     return tag
@@ -242,13 +269,18 @@ def _validate_promotion_and_create_release(
     track: str,
     channel: str,
     to_risk: Risk,
+    legacy_no_refresh_compatibility_tag: bool,
 ):
     if dry_run:
         logging.info("Checking that revisions that will be promoted are from the same git commit")
     else:
         logging.info("Getting git commit of revisions that were promoted")
-    promoted_commit_sha, release_title = get_commit_sha_and_release_title(
-        channel=channel, charms_=charms_
+    promoted_commit_sha, release_title, legacy_github_release_tag = (
+        get_commit_sha_and_release_title(
+            channel=channel,
+            charms_=charms_,
+            legacy_no_refresh_compatibility_tag=legacy_no_refresh_compatibility_tag,
+        )
     )
 
     subprocess.run(["git", "checkout", promoted_commit_sha], check=True)
@@ -285,7 +317,10 @@ def _validate_promotion_and_create_release(
                 )
             raise ValueError(message)
 
-    github_release_tag = get_github_release_tag(commit_sha=promoted_commit_sha)
+    if legacy_no_refresh_compatibility_tag:
+        github_release_tag = legacy_github_release_tag
+    else:
+        github_release_tag = get_github_release_tag(commit_sha=promoted_commit_sha)
 
     if to_risk is Risk.CANDIDATE:
         if dry_run:
@@ -293,7 +328,11 @@ def _validate_promotion_and_create_release(
                 "Checking that the last stable release revisions are from the same git commit and "
                 "that we can determine the GitHub release tag"
             )
-        previous_github_release_tag = get_last_stable_release_tag(track=track, charms_=charms_)
+        previous_github_release_tag = get_last_stable_release_tag(
+            track=track,
+            charms_=charms_,
+            legacy_no_refresh_compatibility_tag=legacy_no_refresh_compatibility_tag,
+        )
 
     if dry_run:
         return
@@ -343,7 +382,9 @@ def charms():
     parser.add_argument("--from-risk", required=True)
     parser.add_argument("--to-risk", required=True)
     parser.add_argument("--ref", required=True)
+    parser.add_argument("--legacy-no-refresh-compatibility-tag", required=True)
     args = parser.parse_args()
+    legacy_no_refresh_compatibility_tag: bool = json.loads(args.legacy_no_refresh_compatibility_tag)
 
     charms_: list[Charm] = []
     for path in pathlib.Path().glob("**/charmcraft.yaml"):
@@ -384,14 +425,19 @@ def charms():
         raise FileNotFoundError(
             "Repository must contain `.github/release.yaml` to automatically generate release "
             "notes in the correct format. See "
-            "https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/promote_charms.md#step-3-add-githubreleaseyaml-file"
+            "https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/_promote_charms.md#step-3-add-githubreleaseyaml-file"
         )
 
     from_channel = f"{track}/{from_risk}"
     to_channel = f"{track}/{to_risk}"
 
     _validate_promotion_and_create_release(
-        dry_run=True, charms_=charms_, track=track, channel=from_channel, to_risk=to_risk
+        dry_run=True,
+        charms_=charms_,
+        track=track,
+        channel=from_channel,
+        to_risk=to_risk,
+        legacy_no_refresh_compatibility_tag=legacy_no_refresh_compatibility_tag,
     )
 
     logging.info(f"Promoting charms from {repr(from_channel)} to {repr(to_channel)}")
@@ -430,5 +476,10 @@ def charms():
         )
 
     _validate_promotion_and_create_release(
-        dry_run=False, charms_=charms_, track=track, channel=to_channel, to_risk=to_risk
+        dry_run=False,
+        charms_=charms_,
+        track=track,
+        channel=to_channel,
+        to_risk=to_risk,
+        legacy_no_refresh_compatibility_tag=legacy_no_refresh_compatibility_tag,
     )
