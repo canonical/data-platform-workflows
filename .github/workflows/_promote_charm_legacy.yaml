@@ -1,0 +1,84 @@
+on:
+  workflow_call:
+    inputs:
+      track:
+        description: |
+          Charmhub track
+
+          https://juju.is/docs/juju/channel#heading--track
+        required: true
+        type: string
+      from-risk:
+        description:
+          Promote from `track` input and this Charmhub risk
+
+          https://juju.is/docs/juju/channel#heading--risk
+
+          Must be one of "edge", "beta", "candidate"
+        required: true
+        type: string
+      to-risk:
+        description:
+          Promote to `track` input and this Charmhub risk
+
+          https://juju.is/docs/juju/channel#heading--risk
+
+          Must be one of "beta", "candidate", "stable"
+        required: true
+        type: string
+      charmcraft-snap-revision:
+        description: charmcraft snap revision
+        required: false
+        type: string
+      charmcraft-snap-channel:
+        description: |
+          charmcraft snap channel
+
+          Cannot be used if `charmcraft-snap-revision` input is passed
+        required: false
+        type: string
+    secrets:
+      charmhub-token:
+        description: Charmhub login token
+        required: true
+
+jobs:
+  promote-charm:
+    name: (deprecated) Promote charm from ${{ inputs.track }}/${{ inputs.from-risk }} to ${{ inputs.track }}/${{ inputs.to-risk }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Use environment to track deployment history
+    # (https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/viewing-deployment-history)
+    # TODO future improvement: when https://bugs.launchpad.net/snapstore-server/+bug/2097446 is
+    # fixed, use isolated per-environment secrets for different risks & require manual approval to
+    # access stable secret in order to improve security posture & avoid mistakes
+    environment: ${{ inputs.to-risk }}
+    steps:
+      - name: Get workflow version
+        id: workflow-version
+        uses: canonical/get-workflow-version-action@v1
+        with:
+          repository-name: canonical/data-platform-workflows
+          file-name: _promote_charm_legacy.yaml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install CLI
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=python/cli
+      - name: Parse charmcraft version inputs
+        id: charmcraft-snap-version
+        run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
+      - name: Install charmcraft
+        run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+      - run: snap list
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Checkout history with git tags
+      - name: Promote charm
+        id: promote
+        run: promote-charm-legacy --track='${{ inputs.track }}' --from-risk='${{ inputs.from-risk }}' --to-risk='${{ inputs.to-risk }}' --ref='${{ github.ref }}'
+        env:
+          CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Charmcraft logs
+        if: ${{ success() || (failure() && steps.promote.outcome == 'failure') }}
+        run: cat ~/.local/state/charmcraft/log/*
