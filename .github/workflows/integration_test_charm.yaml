@@ -217,6 +217,11 @@ jobs:
           rm -r /opt/hostedtoolcache/
           printf '\nDisk usage after cleanup\n'
           df --human-readable
+      - name: (Github hosted) Mount /mnt to have more storage 
+        if: ${{ !matrix.groups.is_hosted }}
+        run: |
+          sudo mkdir -p /var/snap/lxd/common/lxd/storage-pools
+          sudo mount --bind /mnt /var/snap/lxd/common/lxd/storage-pools
       - name: (IS hosted) Disk usage
         timeout-minutes: 1
         if: ${{ matrix.groups.is_hosted }}
@@ -404,7 +409,7 @@ jobs:
             then
               sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image copy ubuntu:8de71f421b30 local: --alias 'juju/focal/amd64'
             else
-              sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image copy ubuntu:82b997ec581b local: --alias 'juju/ubuntu@22.04/amd64'
+              sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image copy ubuntu:568f69ff1166 local: --alias 'juju/ubuntu@22.04/amd64'
             fi
           else
             sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image copy ubuntu:60d56aa663ed local: --alias 'juju/ubuntu@22.04/arm64'
