@@ -359,6 +359,8 @@ def charms():
     charms_ = sorted(charms_, key=lambda charm: charm.name)
 
     track = args.track
+    if track == "":
+        raise ValueError("`track` input must not be empty string")
     if "/" in track:
         raise ValueError(f"`track` input cannot contain '/' character: {repr(track)}")
     from_risk = Risk.get(args.from_risk, direction=Direction.FROM)
