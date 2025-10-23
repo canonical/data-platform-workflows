@@ -134,6 +134,8 @@ def charm():
     directory = pathlib.Path(".")
 
     track = args.track
+    if track == "":
+        raise ValueError("`track` input must not be empty string")
     if "/" in track:
         raise ValueError(f"`track` input cannot contain '/' character: {repr(track)}")
     from_risk = Risk.get(args.from_risk, direction=Direction.FROM)
