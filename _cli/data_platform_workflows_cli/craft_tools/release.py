@@ -42,6 +42,10 @@ def snap():
     parser.add_argument("--create-tags", required=True)
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
+    channel = args.channel
+
+    if channel == "":
+        raise ValueError("`channel` input must not be empty string")
 
     snap_name = yaml.safe_load((directory / "snap/snapcraft.yaml").read_text())["name"]
 
@@ -56,7 +60,7 @@ def snap():
         # Example: "amd64"
         architecture = snap_file.name.removesuffix(".snap").split("_")[-1]
         logging.info(f"Uploading {snap_file=}")
-        output = run(["snapcraft", "upload", "--release", args.channel, snap_file])
+        output = run(["snapcraft", "upload", "--release", channel, snap_file])
         # Example `output`: "Revision 3 created for 'charmed-postgresql' and released to 'latest/edge'"
         match = re.match("Revision ([0-9]+) created for ", output)
         assert match, "Unable to parse revision"
@@ -163,7 +167,10 @@ def _charm(*, pr: bool):
     metadata_file = yaml.safe_load((directory / "metadata.yaml").read_text())
     charm_name = metadata_file["name"]
 
-    channel = f"{args.track}/edge"
+    track = args.track
+    if track == "":
+        raise ValueError("`track` input must not be empty string")
+    channel = f"{track}/edge"
     if pr:
         channel += f"/pr-{args.pr_number}"
 

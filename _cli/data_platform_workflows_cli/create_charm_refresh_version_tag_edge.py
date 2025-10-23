@@ -14,6 +14,9 @@ def main():
     args = parser.parse_args()
     track = args.track
 
+    if track == "":
+        raise ValueError("`track` input must not be empty string")
+
     charm_majors_by_path = {}
     charm_directories = []
     for path in pathlib.Path().glob("**/charmcraft.yaml"):
