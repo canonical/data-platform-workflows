@@ -161,7 +161,7 @@ def charm():
         raise FileNotFoundError(
             "Repository must contain `.github/release.yaml` to automatically generate release "
             "notes in the correct format. See "
-            "https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/promote_charm.md#step-3-add-githubreleaseyaml-file"
+            "https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/_promote_charm_legacy.md#step-3-add-githubreleaseyaml-file"
         )
 
     from_channel = f"{track}/{from_risk}"
