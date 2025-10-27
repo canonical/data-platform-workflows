@@ -133,6 +133,14 @@ def charm():
     args = parser.parse_args()
     directory = pathlib.Path(".")
 
+    # Check if a refresh_versions.toml file exists anywhere in the repository
+    if next(pathlib.Path().glob("**/refresh_versions.toml"), False):
+        raise ValueError(
+            "The `_promote_charm_legacy.yaml` workflow does not support tracks with charm refresh "
+            "compatibility version tags. Use `_promote_charms.yaml` instead: "
+            "https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/_promote_charms.md"
+        )
+
     track = args.track
     if track == "":
         raise ValueError("`track` input must not be empty string")
