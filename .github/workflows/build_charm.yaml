@@ -159,7 +159,7 @@ jobs:
         id: path-in-artifact
         run: compute-path-in-artifact '${{ inputs.path-to-charm-directory }}'
       - name: Upload charm package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-${{ matrix.platform.name_in_artifact }}
           # .empty file required to preserve directory structure
