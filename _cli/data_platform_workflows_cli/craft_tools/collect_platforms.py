@@ -43,11 +43,21 @@ def collect(craft_: craft.Craft):
     platforms = []
     if craft_ is craft.Craft.CHARM:
         for platform in charmcraft_platforms.get(craft_file):
+            try:
+                runner = RUNNERS[platform.architecture]
+            except KeyError:
+                print(
+                    f"::warning::Skipped {repr(platform)} platform since the "
+                    f"{repr(platform.architecture)} architecture is not currently supported by "
+                    "build_charm.yaml. Please open an issue if you'd like this architecture to be "
+                    "supported"
+                )
+                continue
             # Example `platform`: "ubuntu@22.04:amd64"
             platforms.append(
                 {
                     "name": platform,
-                    "runner": RUNNERS[platform.architecture],
+                    "runner": runner,
                     "name_in_artifact": platform.replace(":", "-"),
                 }
             )
@@ -55,7 +65,16 @@ def collect(craft_: craft.Craft):
         for platform in yaml_data["platforms"]:
             # Example `platform`: "amd64"
             architecture = craft.Architecture(platform)
-            platforms.append({"name": platform, "runner": RUNNERS[architecture]})
+            try:
+                runner = RUNNERS[architecture]
+            except KeyError:
+                print(
+                    f"::warning::Skipped {repr(platform)} architecture since it is not currently "
+                    "supported by build_rock.yaml. Please open an issue if you'd like this "
+                    "architecture to be supported"
+                )
+                continue
+            platforms.append({"name": platform, "runner": runner})
     elif craft_ is craft.Craft.SNAP:
         if yaml_data["base"] == "core24":
             platforms_ = yaml_data["platforms"]
@@ -70,7 +89,16 @@ def collect(craft_: craft.Craft):
             for platform in platforms_:
                 # Example `platform`: "amd64"
                 architecture = craft.Architecture(platform)
-                platforms.append({"name": platform, "runner": RUNNERS[architecture]})
+                try:
+                    runner = RUNNERS[architecture]
+                except KeyError:
+                    print(
+                        f"::warning::Skipped {repr(platform)} architecture since it is not "
+                        "currently supported by build_snap.yaml. Please open an issue if you'd "
+                        "like this architecture to be supported"
+                    )
+                    continue
+                platforms.append({"name": platform, "runner": runner})
         elif yaml_data["base"] == "core22":
             for entry in yaml_data["architectures"]:
                 # Example: ["amd64"]
@@ -83,7 +111,16 @@ def collect(craft_: craft.Craft):
                 # Example: "amd64"
                 platform = platforms_[0]
                 architecture = craft.Architecture(platform)
-                platforms.append({"name": platform, "runner": RUNNERS[architecture]})
+                try:
+                    runner = RUNNERS[architecture]
+                except KeyError:
+                    print(
+                        f"::warning::Skipped {repr(platform)} architecture since it is not "
+                        "currently supported by build_snap.yaml. Please open an issue if you'd "
+                        "like this architecture to be supported"
+                    )
+                    continue
+                platforms.append({"name": platform, "runner": runner})
         else:
             raise ValueError(f'Unsupported snapcraft.yaml base: {repr(yaml_data["base"])}')
     else:
