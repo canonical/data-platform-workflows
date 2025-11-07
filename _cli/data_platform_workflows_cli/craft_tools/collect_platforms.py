@@ -64,10 +64,10 @@ def collect(craft_: craft.Craft):
     elif craft_ is craft.Craft.ROCK:
         for platform in yaml_data["platforms"]:
             # Example `platform`: "amd64"
-            architecture = craft.Architecture(platform)
             try:
+                architecture = craft.Architecture(platform)
                 runner = RUNNERS[architecture]
-            except KeyError:
+            except (ValueError, KeyError):
                 print(
                     f"::warning::Skipped {repr(platform)} architecture since it is not currently "
                     "supported by build_rock.yaml. Please open an issue if you'd like this "
@@ -88,10 +88,10 @@ def collect(craft_: craft.Craft):
                     )
             for platform in platforms_:
                 # Example `platform`: "amd64"
-                architecture = craft.Architecture(platform)
                 try:
+                    architecture = craft.Architecture(platform)
                     runner = RUNNERS[architecture]
-                except KeyError:
+                except (ValueError, KeyError):
                     print(
                         f"::warning::Skipped {repr(platform)} architecture since it is not "
                         "currently supported by build_snap.yaml. Please open an issue if you'd "
@@ -110,10 +110,10 @@ def collect(craft_: craft.Craft):
                     )
                 # Example: "amd64"
                 platform = platforms_[0]
-                architecture = craft.Architecture(platform)
                 try:
+                    architecture = craft.Architecture(platform)
                     runner = RUNNERS[architecture]
-                except KeyError:
+                except (ValueError, KeyError):
                     print(
                         f"::warning::Skipped {repr(platform)} architecture since it is not "
                         "currently supported by build_snap.yaml. Please open an issue if you'd "
