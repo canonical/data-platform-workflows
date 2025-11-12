@@ -242,6 +242,8 @@ def _validate_promotion_and_create_release(
     track: str,
     channel: str,
     to_risk: Risk,
+    ref: str,
+    default_branch: str,
 ):
     if dry_run:
         logging.info("Checking that revisions that will be promoted are from the same git commit")
@@ -331,10 +333,14 @@ def _validate_promotion_and_create_release(
     elif to_risk is Risk.STABLE:
         # Publish GitHub release draft created during promotion to candidate risk
         logging.info("Publishing GitHub release")
-        subprocess.run(
-            ["gh", "release", "edit", github_release_tag, "--verify-tag", "--draft=false"],
-            check=True,
-        )
+        command = ["gh", "release", "edit", github_release_tag, "--verify-tag", "--draft=false"]
+        # Check if the branch this workflow run was triggered on is the default branch for this
+        # GitHub repository
+        if ref == f"refs/heads/{default_branch}":
+            command.append("--latest")
+        else:
+            command.append("--latest=false")
+        subprocess.run(command, check=True)
 
 
 def charms():
@@ -343,6 +349,7 @@ def charms():
     parser.add_argument("--from-risk", required=True)
     parser.add_argument("--to-risk", required=True)
     parser.add_argument("--ref", required=True)
+    parser.add_argument("--default-branch", required=True)
     args = parser.parse_args()
 
     charms_: list[Charm] = []
@@ -376,11 +383,13 @@ def charms():
             f"{repr(from_risk.value)} to 'candidate' first"
         )
 
-    if not args.ref.startswith("refs/heads/"):
+    ref = args.ref
+    if not ref.startswith("refs/heads/"):
         raise ValueError(
             "This workflow must be run on `workflow_dispatch` from the branch that contains track "
             f"{repr(track)}"
         )
+    default_branch = args.default_branch
 
     if not pathlib.Path(".github/release.yaml").exists():
         raise FileNotFoundError(
@@ -393,7 +402,13 @@ def charms():
     to_channel = f"{track}/{to_risk}"
 
     _validate_promotion_and_create_release(
-        dry_run=True, charms_=charms_, track=track, channel=from_channel, to_risk=to_risk
+        dry_run=True,
+        charms_=charms_,
+        track=track,
+        channel=from_channel,
+        to_risk=to_risk,
+        ref=ref,
+        default_branch=default_branch,
     )
 
     logging.info(f"Promoting charms from {repr(from_channel)} to {repr(to_channel)}")
@@ -432,5 +447,11 @@ def charms():
         )
 
     _validate_promotion_and_create_release(
-        dry_run=False, charms_=charms_, track=track, channel=to_channel, to_risk=to_risk
+        dry_run=False,
+        charms_=charms_,
+        track=track,
+        channel=to_channel,
+        to_risk=to_risk,
+        ref=ref,
+        default_branch=default_branch,
     )
