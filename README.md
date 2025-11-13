@@ -73,5 +73,17 @@ Workflows that begin with one underscore (e.g. `_foo.yaml`) are internal and are
 
 Workflows that begin with two underscores (e.g. `__foo.yaml`) are for this repository only. They may only be (triggered by an event on this repository or) called by workflows in this repository that begin with two underscores.
 
+## Documentation
+
+To be added.
+
+## Community and support
+
+- Report [issues](https://github.com/canonical/data-platform-workflows/issues)
+- [Contact us on Matrix](https://matrix.to/#/#charmhub-data-platform:ubuntu.com)
+
+Data Platform Workflows is covered by the [Ubuntu Code of
+Conduct](https://ubuntu.com/community/ethos/code-of-conduct).
+
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
