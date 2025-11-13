@@ -75,7 +75,8 @@ Workflows that begin with two underscores (e.g. `__foo.yaml`) are for this repos
 
 ## Documentation
 
-To be added.
+- User Documentation: See [Workflows](#workflows) 
+- Developer Documentation: To be added.
 
 ## Community and support
 
