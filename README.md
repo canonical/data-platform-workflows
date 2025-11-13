@@ -76,7 +76,7 @@ Workflows that begin with two underscores (e.g. `__foo.yaml`) are for this repos
 ## Documentation
 
 - User Documentation: See [Workflows](#workflows) 
-- Developer Documentation: To be added.
+- Developer Documentation: See [CONTRIBUTING.md](CONTRIBUTING.md). To be improved.
 
 ## Community and support
 
@@ -86,5 +86,3 @@ Workflows that begin with two underscores (e.g. `__foo.yaml`) are for this repos
 Data Platform Workflows is covered by the [Ubuntu Code of
 Conduct](https://ubuntu.com/community/ethos/code-of-conduct).
 
-## Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md)
