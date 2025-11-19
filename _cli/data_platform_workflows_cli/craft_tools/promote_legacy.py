@@ -130,6 +130,7 @@ def charm():
     parser.add_argument("--from-risk", required=True)
     parser.add_argument("--to-risk", required=True)
     parser.add_argument("--ref", required=True)
+    parser.add_argument("--default-branch", required=True)
     args = parser.parse_args()
     directory = pathlib.Path(".")
 
@@ -159,11 +160,13 @@ def charm():
             f"{repr(from_risk.value)} to 'candidate' first"
         )
 
-    if not args.ref.startswith("refs/heads/"):
+    ref = args.ref
+    if not ref.startswith("refs/heads/"):
         raise ValueError(
             "This workflow must be run on `workflow_dispatch` from the branch that contains track "
             f"{repr(track)}"
         )
+    default_branch = args.default_branch
 
     if not pathlib.Path(".github/release.yaml").exists():
         raise FileNotFoundError(
@@ -316,7 +319,11 @@ def charm():
     elif to_risk is Risk.STABLE:
         # Publish GitHub release draft created during promotion to candidate risk
         logging.info("Publishing GitHub release")
-        subprocess.run(
-            ["gh", "release", "edit", github_release_tag, "--verify-tag", "--draft=false"],
-            check=True,
-        )
+        command = ["gh", "release", "edit", github_release_tag, "--verify-tag", "--draft=false"]
+        # Check if the branch this workflow run was triggered on is the default branch for this
+        # GitHub repository
+        if ref == f"refs/heads/{default_branch}":
+            command.append("--latest")
+        else:
+            command.append("--latest=false")
+        subprocess.run(command, check=True)
