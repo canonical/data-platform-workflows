@@ -53,7 +53,7 @@ jobs:
         id: path-in-artifact
         run: compute-path-in-artifact '${{ inputs.path-to-rock-directory }}'
       - name: Download rock package(s)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
           merge-multiple: true

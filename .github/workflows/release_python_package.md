@@ -56,7 +56,7 @@ jobs:
     environment: production
     steps:
       - name: Download all the dists
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ needs.release-part1.outputs.artifact-name }}
           path: dist/
