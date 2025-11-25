@@ -13,7 +13,7 @@ jobs:
 ### Supported `platforms` and `architectures` syntax in snapcraft.yaml
 See https://snapcraft.io/docs/architectures#how-to-create-a-snap-for-a-specific-architecture
 
-#### core24
+#### core26 & core24
 Only `platforms` is supported. `architectures` is not supported
 
 Only "shorthand notation" is supported

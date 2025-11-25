@@ -76,7 +76,7 @@ def collect(craft_: craft.Craft):
                 continue
             platforms.append({"name": platform, "runner": runner})
     elif craft_ is craft.Craft.SNAP:
-        if yaml_data["base"] == "core24":
+        if yaml_data["base"] in ("core24", "core26"):
             platforms_ = yaml_data["platforms"]
             if not isinstance(platforms_, dict):
                 raise TypeError("Expected type 'dict' for snapcraft.yaml 'platforms'")
