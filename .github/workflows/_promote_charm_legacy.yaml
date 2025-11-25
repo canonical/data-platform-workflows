@@ -75,7 +75,7 @@ jobs:
           fetch-depth: 0  # Checkout history with git tags
       - name: Promote charm
         id: promote
-        run: promote-charm-legacy --track='${{ inputs.track }}' --from-risk='${{ inputs.from-risk }}' --to-risk='${{ inputs.to-risk }}' --ref='${{ github.ref }}'
+        run: promote-charm-legacy --track='${{ inputs.track }}' --from-risk='${{ inputs.from-risk }}' --to-risk='${{ inputs.to-risk }}' --ref='${{ github.ref }}' --default-branch='${{ github.event.repository.default_branch }}'
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

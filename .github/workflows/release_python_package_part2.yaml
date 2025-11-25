@@ -16,6 +16,25 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Create GitHub release
-        run: gh release --repo '${{ github.repository }}' create '${{ inputs.git-tag }}' --verify-tag --generate-notes
+        # GitHub CLI docs on `--latest` are incorrect; default is to always mark release as latest
+        # https://github.com/cli/cli/blob/85d6766c621a9d67e0d353a12bb388c40ceca2a1/pkg/cmd/release/create/create.go#L217
+        # https://github.com/cli/cli/blob/85d6766c621a9d67e0d353a12bb388c40ceca2a1/pkg/cmdutil/flags.go#L23
+        # (default is not automatic, as written in the CLI docs)
+        # The actual behavior matches the default value for `make_latest` in the GitHub API:
+        # https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#create-a-release
+        # Furthermore, the automatic behavior (when setting `make_latest` to `legacy` and calling
+        # the API directly), from testing, appears to only work with semantic versions—otherwise
+        # the ordering appears to be alphabetical (so it sees "v1.0.0.2" as a newer version than
+        # "v1.0.0.10")
+        # Instead, determine if this is the latest version by whether this branch is the default
+        # branch
+        run: |
+          # Check if this branch is the default branch for the GitHub repository
+          if [[ '${{ github.ref }}' == 'refs/heads/${{ github.event.repository.default_branch }}' ]]
+          then
+            gh release --repo '${{ github.repository }}' create '${{ inputs.git-tag }}' --verify-tag --generate-notes --latest
+          else
+            gh release --repo '${{ github.repository }}' create '${{ inputs.git-tag }}' --verify-tag --generate-notes --latest=false
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
