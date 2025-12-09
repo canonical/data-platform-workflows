@@ -167,4 +167,5 @@ jobs:
           path: |
             ${{ inputs.path-to-charm-directory }}/*.charm
             .empty
+          include-hidden-files: true  # For `.empty`
           if-no-files-found: error

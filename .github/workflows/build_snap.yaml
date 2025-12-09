@@ -118,4 +118,5 @@ jobs:
           path: |
             ${{ inputs.path-to-snap-project-directory }}/*.snap
             .empty
+          include-hidden-files: true  # For `.empty`
           if-no-files-found: error
