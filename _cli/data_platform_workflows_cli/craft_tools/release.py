@@ -100,7 +100,7 @@ def rock():
             [
                 "skopeo",
                 "inspect",
-                f"oci-archive:{rock_file.name}",
+                f"oci-archive:{str(rock_file.absolute())}",
                 "--format",
                 "{{ .Digest }}",
             ]
@@ -110,7 +110,7 @@ def rock():
             [
                 "skopeo",
                 "copy",
-                f"oci-archive:{rock_file.name}",
+                f"oci-archive:{str(rock_file.absolute())}",
                 f"docker://ghcr.io/canonical/{yaml_data['name']}@{digest}",
             ]
         )
