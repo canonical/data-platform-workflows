@@ -70,6 +70,7 @@ jobs:
         with:
           pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
           merge-multiple: true
+          path: ${{ inputs.path-to-charm-directory }}
       - name: Upload & release charm
         id: release
         run: release-charm-pr --directory='${{ inputs.path-to-charm-directory }}' --track='${{ inputs.track }}' --pr='${{ github.event.pull_request.number }}'

@@ -75,6 +75,7 @@ jobs:
         with:
           pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
           merge-multiple: true
+          path: ${{ inputs.path-to-snap-project-directory }}
       - name: Upload & release snap
         id: release
         run: release-snap --directory='${{ inputs.path-to-snap-project-directory }}' --channel='${{ inputs.channel }}' --create-tags='${{ inputs.create-git-tags }}'

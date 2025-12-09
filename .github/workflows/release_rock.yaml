@@ -57,6 +57,7 @@ jobs:
         with:
           pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
           merge-multiple: true
+          path: ${{ inputs.path-to-rock-directory }}
       - name: Upload & release rock
         id: release
         run: release-rock --directory='${{ inputs.path-to-rock-directory }}' --create-tags='${{ inputs.create-git-tags }}'
