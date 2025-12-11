@@ -115,4 +115,5 @@ jobs:
           path: |
             ${{ inputs.path-to-rock-directory }}/*.rock
             .empty
+          include-hidden-files: true  # For `.empty`
           if-no-files-found: error
