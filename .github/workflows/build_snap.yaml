@@ -106,6 +106,7 @@ jobs:
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/snapcraft/log/*
       - name: lxc image list --all-projects
+        if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image list --all-projects
       - run: touch .empty
       - name: Compute path in artifact
