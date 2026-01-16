@@ -102,6 +102,10 @@ jobs:
         id: pack
         working-directory: ${{ inputs.path-to-snap-project-directory }}
         run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for='${{ matrix.platform.name }}'
+      - name: Pack snap x2
+        if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
+        working-directory: ${{ inputs.path-to-snap-project-directory }}
+        run: sleep 10 && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for='${{ matrix.platform.name }}'
       - name: Snapcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/snapcraft/log/*
