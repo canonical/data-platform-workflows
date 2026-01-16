@@ -108,9 +108,10 @@ jobs:
         run: |
           sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc list --project snapcraft
           sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image list --project snapcraft
-          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc start --project snapcraft $(sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc ls --all-projects --format json | jq .[0].name -r)
-          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc list --project snapcraft
+          #sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc start --project snapcraft $(sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc ls --all-projects --format json | jq .[0].name -r)
+          #sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc list --project snapcraft
           sleep 10
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc list --project snapcraft
           sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for='${{ matrix.platform.name }}'
       - name: Snapcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
