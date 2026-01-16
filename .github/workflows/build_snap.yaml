@@ -113,6 +113,8 @@ jobs:
           sleep 10
           sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc list --project snapcraft
           sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for='${{ matrix.platform.name }}'
+      - if: ${{ !cancelled() }}
+        uses: owenthereal/action-upterm@v1
       - name: Snapcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/snapcraft/log/*
