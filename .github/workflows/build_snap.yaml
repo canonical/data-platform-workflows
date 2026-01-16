@@ -102,10 +102,16 @@ jobs:
         id: pack
         working-directory: ${{ inputs.path-to-snap-project-directory }}
         run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for='${{ matrix.platform.name }}'
-      - name: Pack snap x2
-        if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
+      - name: debug
+        if: ${{ !cancelled() }}
         working-directory: ${{ inputs.path-to-snap-project-directory }}
-        run: sleep 10 && sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for='${{ matrix.platform.name }}'
+        run: |
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc list --project snapcraft
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image list --project snapcraft
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc start --project snapcraft base-instance-snapcraft-buildd-base-v71--f02c2da881cfba9d7924
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc list --project snapcraft
+          sleep 10
+          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for='${{ matrix.platform.name }}'
       - name: Snapcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/snapcraft/log/*
