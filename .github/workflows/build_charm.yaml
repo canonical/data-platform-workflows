@@ -152,6 +152,9 @@ jobs:
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*
+      - name: lxc image list --all-projects
+        if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image list --all-projects
       - name: Check charm refresh compatibility version tags were present
         run: check-charm-contains-valid-refresh-version --directory='${{ inputs.path-to-charm-directory }}'
       - run: touch .empty
