@@ -60,7 +60,7 @@ jobs:
     strategy:
       matrix:
         platform: ${{ fromJSON(needs.collect-platforms.outputs.platforms) }}
-    name: "Build snap | ${{ matrix.platform.name }}"
+    name: 'Build snap | ${{ matrix.platform.name }}'
     needs:
       - collect-platforms
     runs-on: ${{ matrix.platform.runner }}
@@ -123,5 +123,5 @@ jobs:
           path: |
             ${{ inputs.path-to-snap-project-directory }}/*.snap
             .empty
-          include-hidden-files: true # For `.empty`
+          include-hidden-files: true  # For `.empty`
           if-no-files-found: error
