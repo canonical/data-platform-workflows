@@ -25,6 +25,22 @@ on:
           Cannot be used if `rockcraft-snap-revision` input is passed
         required: false
         type: string
+      lxd-snap-revision:
+        description: |
+          LXD snap revision
+
+          LXD from base runner image will be used if neither `lxd-snap-revision` or `lxd-snap-channel` is passed
+        required: false
+        type: string
+      lxd-snap-channel:
+        description: |
+          LXD snap channel
+
+          Cannot be used if `lxd-snap-revision` input is passed
+
+          LXD from base runner image will be used if neither `lxd-snap-revision` or `lxd-snap-channel` is passed
+        required: false
+        type: string
     outputs:
       artifact-prefix:
         description: Rock packages are uploaded to GitHub artifacts beginning with this prefix
@@ -81,10 +97,20 @@ jobs:
       - name: Parse rockcraft version inputs
         id: rockcraft-snap-version
         run: parse-snap-version --revision='${{ inputs.rockcraft-snap-revision }}' --channel='${{ inputs.rockcraft-snap-channel }}' --revision-input-name=rockcraft-snap-revision --channel-input-name=rockcraft-snap-channel
+      - name: Parse LXD version inputs
+        id: lxd-snap-version
+        run: parse-snap-version --revision='${{ inputs.lxd-snap-revision }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revision --channel-input-name=lxd-snap-channel
       - name: Checkout
         uses: actions/checkout@v5
       - name: Set up environment
         run: |
+          sudo snap install lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
+          # shellcheck disable=SC2078
+          # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
+          if [[ '${{ steps.lxd-snap-version.outputs.install_flag }}' ]]
+          then
+            sudo snap refresh lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
+          fi
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
           sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd waitready
