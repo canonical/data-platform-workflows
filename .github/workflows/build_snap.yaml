@@ -102,6 +102,8 @@ jobs:
         id: pack
         working-directory: ${{ inputs.path-to-snap-project-directory }}
         run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for='${{ matrix.platform.name }}'
+        env:
+          SNAPCRAFT_BUILD_INFO: 1
       - name: Snapcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/snapcraft/log/*
