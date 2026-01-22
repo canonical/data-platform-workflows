@@ -12,7 +12,7 @@ name: Update bundle
 
 on:
   schedule:
-    - cron: '53 0 * * *'  # Daily at 00:53 UTC
+    - cron: '53 0 * * 2'  # Weekly at Tuesday 00:53 UTC
 
 jobs:
   update-bundle:
