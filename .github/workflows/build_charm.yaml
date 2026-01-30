@@ -139,13 +139,7 @@ jobs:
       - name: Pack charm
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
-        run: |
-          if '${{ inputs.cache }}'
-          then
-            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v --platform='${{ matrix.platform.name }}'
-          else
-            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v --command-name=charmcraft --platform='${{ matrix.platform.name }}'
-          fi
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v ${{ case(inputs.cache, '', '--command-name=charmcraft') }} --platform='${{ matrix.platform.name }}'
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
