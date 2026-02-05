@@ -28,13 +28,6 @@ jobs:
         # "v1.0.0.10")
         # Instead, determine if this is the latest version by whether this branch is the default
         # branch
-        run: |
-          # Check if this branch is the default branch for the GitHub repository
-          if [[ '${{ github.ref }}' == 'refs/heads/${{ github.event.repository.default_branch }}' ]]
-          then
-            gh release --repo '${{ github.repository }}' create '${{ inputs.git-tag }}' --verify-tag --generate-notes --latest
-          else
-            gh release --repo '${{ github.repository }}' create '${{ inputs.git-tag }}' --verify-tag --generate-notes --latest=false
-          fi
+        run: gh release --repo '${{ github.repository }}' create '${{ inputs.git-tag }}' --verify-tag --generate-notes ${{ case(github.ref_name == github.event.repository.default_branch && startsWith(github.ref, 'refs/heads/'), '--latest', '--latest=false') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
