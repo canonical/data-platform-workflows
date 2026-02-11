@@ -143,6 +143,7 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
 
+          sudo snap install craft-sd --channel latest/beta
           sudo snap install rockcraft --classic ${VAR_ROCKCRAFT_FLAG:+"${VAR_ROCKCRAFT_FLAG}"}
         env:
           VAR_LXD_FLAG: ${{ steps.lxd-snap-version.outputs.install_flag }}
@@ -151,7 +152,7 @@ jobs:
       - name: Pack rock
         id: pack
         working-directory: ${{ inputs.path-to-rock-directory }}
-        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- rockcraft pack -v --platform="${VAR_PLATFORM}"
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- CRAFT_SD_ENV=production rockcraft pack -v --platform="${VAR_PLATFORM}"
         env:
           VAR_PLATFORM: ${{ matrix.platform.name }}
       - name: Rockcraft logs

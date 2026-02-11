@@ -146,6 +146,7 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
 
+          sudo snap install craft-sd --channel latest/beta
           sudo snap install snapcraft --classic ${VAR_SNAPCRAFT_FLAG:+"${VAR_SNAPCRAFT_FLAG}"}
         env:
           VAR_LXD_FLAG: ${{ steps.lxd-snap-version.outputs.install_flag }}
@@ -154,7 +155,7 @@ jobs:
       - name: Pack snap
         id: pack
         working-directory: ${{ inputs.path-to-snap-project-directory }}
-        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for="${VAR_PLATFORM}"
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- CRAFT_SD_ENV=production snapcraft pack -v --build-for="${VAR_PLATFORM}"
         env:
           SNAPCRAFT_BUILD_INFO: 1
           VAR_PLATFORM: ${{ matrix.platform.name }}
