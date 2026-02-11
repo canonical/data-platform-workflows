@@ -132,7 +132,7 @@ jobs:
       - name: Pack snap
         id: pack
         working-directory: ${{ inputs.path-to-snap-project-directory }}
-        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- snapcraft pack -v --build-for='${{ matrix.platform.name }}'
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- CRAFT_SD_ENV=production snapcraft pack -v --build-for='${{ matrix.platform.name }}'
         env:
           SNAPCRAFT_BUILD_INFO: 1
       - name: Snapcraft logs
