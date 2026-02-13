@@ -18,31 +18,36 @@ on:
         description: Relative path to charm directory from repository directory
         default: .
         type: string
-      charmcraft-snap-revision:
-        description: charmcraft snap revision
+      charmcraft-snap-revisions:
+        description: |
+          JSON string with type dict[str, str] of architecture to charmcraft snap revision
+
+          Example: `{"amd64": "16585", "arm64": "16587"}`
         required: false
         type: string
       charmcraft-snap-channel:
         description: |
           charmcraft snap channel
 
-          Cannot be used if `charmcraft-snap-revision` input is passed
+          Cannot be used if `charmcraft-snap-revisions` input is passed
         required: false
         type: string
-      lxd-snap-revision:
+      lxd-snap-revisions:
         description: |
-          LXD snap revision
+          JSON string with type dict[str, str] of architecture to LXD snap revision
 
-          LXD from base runner image will be used if neither `lxd-snap-revision` or `lxd-snap-channel` is passed
+          Example: `{"amd64": "16585", "arm64": "16587"}`
+
+          LXD from base runner image will be used if neither `lxd-snap-revisions` or `lxd-snap-channel` is passed
         required: false
         type: string
       lxd-snap-channel:
         description: |
           LXD snap channel
 
-          Cannot be used if `lxd-snap-revision` input is passed
+          Cannot be used if `lxd-snap-revisions` input is passed
 
-          LXD from base runner image will be used if neither `lxd-snap-revision` or `lxd-snap-channel` is passed
+          LXD from base runner image will be used if neither `lxd-snap-revisions` or `lxd-snap-channel` is passed
         required: false
         type: string
     outputs:
@@ -100,10 +105,10 @@ jobs:
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
       - name: Parse charmcraft version inputs
         id: charmcraft-snap-version
-        run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
+        run: parse-snap-version --revisions='${{ inputs.charmcraft-snap-revisions }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revisions --channel-input-name=charmcraft-snap-channel
       - name: Parse LXD version inputs
         id: lxd-snap-version
-        run: parse-snap-version --revision='${{ inputs.lxd-snap-revision }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revision --channel-input-name=lxd-snap-channel
+        run: parse-snap-version --revisions='${{ inputs.lxd-snap-revisions }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revisions --channel-input-name=lxd-snap-channel
       - name: Checkout
         uses: actions/checkout@v5
         with:
