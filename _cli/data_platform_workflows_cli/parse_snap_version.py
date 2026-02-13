@@ -23,7 +23,8 @@ def main():
     if args.revisions is not None:
         if args.revisions:
             invalid_type_message = (
-                f"`{args.revision_input_name}` input must be JSON string with type dict[str, str]"
+                f"`{args.revision_input_name}` input must be JSON string with type "
+                f"dict[str, str], got {repr(args.revisions)}"
             )
             try:
                 revisions = json.loads(args.revisions)
