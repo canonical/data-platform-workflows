@@ -387,28 +387,6 @@ jobs:
           if-no-files-found: error
       - timeout-minutes: 1
         run: snap list
-      - name: Pre-download lxd image
-        timeout-minutes: 60
-        if: ${{ inputs.cloud == 'lxd' }}
-        # Temporary workaround for slow image downloads (https://portal.admin.canonical.com/C164453)
-        # Long-term solution: custom runner images
-        # Image fingerprint needs to be manually updated
-        # When this workaround is removed, revert
-        # https://github.com/canonical/self-hosted-runner-provisioner-azure/commit/a525d114065fda01f626a05bd87d0a6cf96e2a3d
-        run: |
-          if [[ '${{ inputs.architecture }}' == 'amd64' ]]
-          then
-            # shellcheck disable=SC2193
-            # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
-            if [[ '${{ steps.parse-versions.outputs.snap_channel }}' == 2.* ]]
-            then
-              sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image copy ubuntu:8de71f421b30 local: --alias 'juju/focal/amd64'
-            else
-              sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image copy ubuntu:82b997ec581b local: --alias 'juju/ubuntu@22.04/amd64'
-            fi
-          else
-            sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image copy ubuntu:60d56aa663ed local: --alias 'juju/ubuntu@22.04/arm64'
-          fi
       - name: Set up environment
         timeout-minutes: 15
         run: |
