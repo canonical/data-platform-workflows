@@ -17,31 +17,36 @@ on:
           The "snap project directory" is the directory that contains the `snap` directory, not the `snap` directory itself.
         default: .
         type: string
-      snapcraft-snap-revision:
-        description: snapcraft snap revision
+      snapcraft-snap-revisions:
+        description: |
+          JSON string with type dict[str, str] of architecture to snapcraft snap revision
+          
+          Example: `{"amd64": "16585", "arm64": "16587"}`
         required: false
         type: string
       snapcraft-snap-channel:
         description: |
           snapcraft snap channel
 
-          Cannot be used if `snapcraft-snap-revision` input is passed
+          Cannot be used if `snapcraft-snap-revisions` input is passed
         required: false
         type: string
-      lxd-snap-revision:
+      lxd-snap-revisions:
         description: |
-          LXD snap revision
+          JSON string with type dict[str, str] of architecture to LXD snap revision
 
-          LXD from base runner image will be used if neither `lxd-snap-revision` or `lxd-snap-channel` is passed
+          Example: `{"amd64": "16585", "arm64": "16587"}`
+
+          LXD from base runner image will be used if neither `lxd-snap-revisions` or `lxd-snap-channel` is passed
         required: false
         type: string
       lxd-snap-channel:
         description: |
           LXD snap channel
 
-          Cannot be used if `lxd-snap-revision` input is passed
+          Cannot be used if `lxd-snap-revisions` input is passed
 
-          LXD from base runner image will be used if neither `lxd-snap-revision` or `lxd-snap-channel` is passed
+          LXD from base runner image will be used if neither `lxd-snap-revisions` or `lxd-snap-channel` is passed
         required: false
         type: string
     outputs:
@@ -99,10 +104,10 @@ jobs:
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
       - name: Parse snapcraft version inputs
         id: snapcraft-snap-version
-        run: parse-snap-version --revision='${{ inputs.snapcraft-snap-revision }}' --channel='${{ inputs.snapcraft-snap-channel }}' --revision-input-name=snapcraft-snap-revision --channel-input-name=snapcraft-snap-channel
+        run: parse-snap-version --revisions='${{ inputs.snapcraft-snap-revisions }}' --channel='${{ inputs.snapcraft-snap-channel }}' --revision-input-name=snapcraft-snap-revisions --channel-input-name=snapcraft-snap-channel
       - name: Parse LXD version inputs
         id: lxd-snap-version
-        run: parse-snap-version --revision='${{ inputs.lxd-snap-revision }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revision --channel-input-name=lxd-snap-channel
+        run: parse-snap-version --revisions='${{ inputs.lxd-snap-revisions }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revisions --channel-input-name=lxd-snap-channel
       - name: Checkout
         uses: actions/checkout@v5
       - name: Set up environment
