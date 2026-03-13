@@ -21,3 +21,5 @@ jobs:
         # Use env variable to avoid script injection
         env:
           TITLE: ${{ github.event.pull_request.title }}
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)

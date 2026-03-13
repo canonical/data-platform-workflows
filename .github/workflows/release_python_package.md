@@ -44,6 +44,7 @@ jobs:
     name: Release to PyPI (part 1)
     uses: canonical/data-platform-workflows/.github/workflows/release_python_package_part1.yaml@v0.0.0
     permissions:
+      actions: read  # Needed for GitHub API call to get workflow version
       contents: write  # Needed to create git tag
 
   # Separate job needed to workaround https://github.com/pypi/warehouse/issues/11096
@@ -95,6 +96,8 @@ jobs:
   check-pr:
     name: Check pull request
     uses: canonical/data-platform-workflows/.github/workflows/check_python_package_pr.yaml@v0.0.0
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version
 ```
 
 ### Step 4: Configure GitHub repository settings
