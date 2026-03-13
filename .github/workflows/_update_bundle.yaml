@@ -51,6 +51,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
+          persist-credentials: true
           token: ${{ secrets.token }}
       - name: Update bundle file
         id: update-file

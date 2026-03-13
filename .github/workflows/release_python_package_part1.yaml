@@ -26,6 +26,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
+          persist-credentials: true
           fetch-depth: 0  # Checkout history with git tags
       - name: Create release tag
         id: create-tag
@@ -46,6 +47,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
+          persist-credentials: false
           fetch-depth: 0  # Checkout history with git tags
       - name: Install poetry
         run: |

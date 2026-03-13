@@ -62,6 +62,8 @@ jobs:
       - run: snap list
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - name: Compute path in artifact
         id: path-in-artifact
         run: compute-path-in-artifact '${{ inputs.path-to-charm-directory }}'

@@ -43,6 +43,8 @@ jobs:
           sudo apt-get install skopeo -y
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          persist-credentials: true
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
