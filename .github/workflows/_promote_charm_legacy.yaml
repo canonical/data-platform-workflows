@@ -72,6 +72,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           fetch-depth: 0  # Checkout history with git tags
       - name: Promote charm
         id: promote

@@ -16,6 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
+          persist-credentials: true
           fetch-depth: 0  # Checkout history with git tags
       - name: Install CLI
         run: pipx install ./_cli
