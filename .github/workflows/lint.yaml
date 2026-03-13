@@ -23,6 +23,8 @@ jobs:
       - name: Run actionlint
         run: |
           '${{ steps.install.outputs.executable }}' -color
+    permissions:
+      contents: read
 
   tox-lint:
     name: tox run -e lint
@@ -37,3 +39,5 @@ jobs:
           pipx install poetry
       - name: Run linters
         run: tox run -e lint
+    permissions:
+      contents: read

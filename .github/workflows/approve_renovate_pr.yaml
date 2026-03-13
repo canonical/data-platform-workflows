@@ -12,3 +12,5 @@ jobs:
         run: gh pr --repo '${{ github.repository }}' review '${{ github.event.pull_request.number }}' --approve
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      pull-requests: write  # Needed to approve PR

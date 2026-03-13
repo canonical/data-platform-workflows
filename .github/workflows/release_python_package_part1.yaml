@@ -32,6 +32,9 @@ jobs:
         run: create-semantic-version-tag
     outputs:
       tag: ${{ steps.create-tag.outputs.tag }}
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
+      contents: write  # Needed to create git tag
   
   build:
     name: Build package
@@ -55,3 +58,5 @@ jobs:
         with:
           name: python-package-distributions  # Keep in sync with `artifact-name` output
           path: dist/
+    permissions:
+      contents: read

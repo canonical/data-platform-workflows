@@ -8,6 +8,9 @@ jobs:
   build:
     name: Build charm
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v0.0.0
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version
+      contents: read
 ```
 
 Unless you disable caching (with `cache: false`), remember to add your charm's branch(es) to charmcraftcache: https://github.com/canonical/charmcraftcache?tab=readme-ov-file#usage

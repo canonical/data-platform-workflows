@@ -11,6 +11,9 @@ jobs:
   build:
     name: Build charm
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v0.0.0
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version
+      contents: read
 
   release:
     name: Release charm to Charmhub branch
@@ -22,6 +25,9 @@ jobs:
       artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
     secrets:
       charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version
+      contents: read
 ```
 
 ### metadata.yaml required

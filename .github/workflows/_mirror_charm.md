@@ -27,6 +27,8 @@ jobs:
       repository: ${{ matrix.charm.repo }}
     secrets:
       token: ${{ secrets.MIRROR_REPOS_PAT }}
+    permissions:
+      contents: read
 ```
 
 ### metadata.yaml required
