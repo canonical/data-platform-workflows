@@ -30,6 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
+          persist-credentials: true
           fetch-depth: 0  # Checkout history with git tags
           token: ${{ secrets.token }}  # Token used during `git push` in `charmcraftlocal mirror`
       - name: Mirror charm

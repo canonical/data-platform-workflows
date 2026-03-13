@@ -68,6 +68,8 @@ jobs:
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - name: Collect rock platforms to build from rockcraft.yaml
         id: collect
         run: collect-rock-platforms --directory='${{ inputs.path-to-rock-directory }}'
@@ -110,6 +112,8 @@ jobs:
         run: parse-snap-version --revisions='${{ inputs.lxd-snap-revisions }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revisions --channel-input-name=lxd-snap-channel
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - name: Set up environment
         run: |
           sudo snap install lxd ${{ steps.lxd-snap-version.outputs.install_flag }}

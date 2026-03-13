@@ -72,6 +72,8 @@ jobs:
         run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - name: Collect charm platforms to build from charmcraft.yaml
         id: collect
         run: collect-charm-platforms --directory='${{ inputs.path-to-charm-directory }}'
@@ -115,6 +117,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
+          persist-credentials: false
           fetch-depth: 0  # Checkout history with git tags
       # Needed to install poetry on s390x
       - name: (IS hosted) Install rust toolchain
