@@ -8,4 +8,6 @@ jobs:
   lint:
     name: Lint
     uses: canonical/data-platform-workflows/.github/workflows/lint.yaml@v0.0.0
+    permissions:
+      contents: read
 ```

@@ -35,3 +35,5 @@ jobs:
       - name: Mirror charm
         working-directory: ${{ inputs.path-to-charm-directory }}
         run: charmcraftlocal mirror '${{ inputs.repository }}' -v
+    permissions:
+      contents: read

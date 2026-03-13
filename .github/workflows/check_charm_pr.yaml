@@ -32,3 +32,4 @@ jobs:
         # Use env variable to avoid script injection & accept multi-line strings
         env:
           LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+    permissions: {}

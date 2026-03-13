@@ -62,3 +62,7 @@ jobs:
         run: release-rock --directory='${{ inputs.path-to-rock-directory }}' --create-tags='${{ inputs.create-git-tags }}'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
+      packages: write  # Needed to publish to GitHub Container Registry
+      contents: write  # Needed to create git tags

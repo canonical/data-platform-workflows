@@ -8,6 +8,9 @@ jobs:
   build:
     name: Build rock
     uses: canonical/data-platform-workflows/.github/workflows/build_rock.yaml@v0.0.0
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version
+      contents: read
 ```
 
 ### Supported `platforms` syntax in rockcraft.yaml
