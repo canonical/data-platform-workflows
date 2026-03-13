@@ -37,7 +37,12 @@ jobs:
 Example Renovate configuration:
 ```json5
 {
-  "enabledManagers": ["github-actions"]
+  "enabledManagers": ["github-actions"],
+  "packageRules": [
+    // Later rules override earlier rules
+
+    {"matchManagers": ["github-actions"], "groupName": "GitHub actions"},
+  ],
 }
 ```
 
