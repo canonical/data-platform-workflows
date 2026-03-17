@@ -40,8 +40,6 @@ jobs:
     name: Release charm to ${{ inputs.track }}/edge
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    # Use environment to track deployment history
-    # (https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/viewing-deployment-history)
     # TODO future improvement: when https://bugs.launchpad.net/snapstore-server/+bug/2097446 is
     # fixed, use isolated per-environment secrets for different risks
     environment: edge

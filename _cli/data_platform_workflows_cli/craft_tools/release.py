@@ -35,19 +35,23 @@ def run(command_: list, *, cwd=None):
     return process.stdout.strip()
 
 
-def snap():
+def _snap(*, pr: bool):
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
-    parser.add_argument("--channel", required=True)
-    parser.add_argument("--create-tags", required=True)
+    parser.add_argument("--track", required=True)
+    if pr:
+        parser.add_argument("--pr-number", required=True, type=int)
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
-    channel = args.channel
-
-    if channel == "":
-        raise ValueError("`channel` input must not be empty string")
 
     snap_name = yaml.safe_load((directory / "snap/snapcraft.yaml").read_text())["name"]
+
+    track = args.track
+    if track == "":
+        raise ValueError("`track` input must not be empty string")
+    channel = f"{track}/edge"
+    if pr:
+        channel += f"/pr-{args.pr_number}"
 
     @dataclasses.dataclass
     class Revision:
@@ -68,7 +72,7 @@ def snap():
         logging.info(f"Uploaded snap {revision=} {architecture=}")
         revisions.append(Revision(value=revision, architecture=architecture))
 
-    if json.loads(args.create_tags) is not True:
+    if pr:
         return
     if directory == pathlib.Path("."):
         tag_prefix = "rev"
@@ -85,11 +89,17 @@ def snap():
         subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
         subprocess.run(["git", "push", "origin", tag], check=True)
 
+def snap_edge():
+    _snap(pr=False)
+
+
+def snap_pr():
+    _snap(pr=True)
+
 
 def rock():
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", required=True)
-    parser.add_argument("--create-tags", required=True)
     args = parser.parse_args()
     directory = pathlib.Path(args.directory)
 
@@ -142,8 +152,6 @@ def rock():
         .removeprefix("sha256:")
     )
 
-    if json.loads(args.create_tags) is not True:
-        return
     logging.info("Pushing git tag")
     tag = f"image-{multi_arch_digest}"
     subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
