@@ -65,14 +65,18 @@ jobs:
           file-name: build_rock.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${DPW_SHA}"#subdirectory=_cli
+        env:
+          DPW_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Checkout
         uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Collect rock platforms to build from rockcraft.yaml
         id: collect
-        run: collect-rock-platforms --directory='${{ inputs.path-to-rock-directory }}'
+        run: collect-rock-platforms --directory="${DPW_DIRECTORY}"
+        env:
+          DPW_DIRECTORY: ${{ inputs.path-to-rock-directory }}
     outputs:
       platforms: ${{ steps.collect.outputs.platforms }}
     permissions:
@@ -103,25 +107,33 @@ jobs:
           file-name: build_rock.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${DPW_SHA}"#subdirectory=_cli
+        env:
+          DPW_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Parse rockcraft version inputs
         id: rockcraft-snap-version
-        run: parse-snap-version --revisions='${{ inputs.rockcraft-snap-revisions }}' --channel='${{ inputs.rockcraft-snap-channel }}' --revision-input-name=rockcraft-snap-revisions --channel-input-name=rockcraft-snap-channel
+        run: parse-snap-version --revisions="${DPW_REVISIONS}" --channel="${DPW_CHANNEL}" --revision-input-name=rockcraft-snap-revisions --channel-input-name=rockcraft-snap-channel
+        env:
+          DPW_REVISIONS: ${{ inputs.rockcraft-snap-revisions }}
+          DPW_CHANNEL: ${{ inputs.rockcraft-snap-channel }}
       - name: Parse LXD version inputs
         id: lxd-snap-version
-        run: parse-snap-version --revisions='${{ inputs.lxd-snap-revisions }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revisions --channel-input-name=lxd-snap-channel
+        run: parse-snap-version --revisions="${DPW_REVISIONS}" --channel="${DPW_CHANNEL}" --revision-input-name=lxd-snap-revisions --channel-input-name=lxd-snap-channel
+        env:
+          DPW_REVISIONS: ${{ inputs.lxd-snap-revisions }}
+          DPW_CHANNEL: ${{ inputs.lxd-snap-channel }}
       - name: Checkout
         uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up environment
         run: |
-          sudo snap install lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
+          sudo snap install lxd "${DPW_LXD_FLAG}"
           # shellcheck disable=SC2078
           # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
-          if [[ '${{ steps.lxd-snap-version.outputs.install_flag }}' ]]
+          if [[ "${DPW_LXD_FLAG}" ]]
           then
-            sudo snap refresh lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
+            sudo snap refresh lxd "${DPW_LXD_FLAG}"
           fi
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
@@ -131,12 +143,17 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
 
-          sudo snap install rockcraft --classic ${{ steps.rockcraft-snap-version.outputs.install_flag }}
+          sudo snap install rockcraft --classic "${DPW_ROCKCRAFT_FLAG}"
+        env:
+          DPW_LXD_FLAG: ${{ steps.lxd-snap-version.outputs.install_flag }}
+          DPW_ROCKCRAFT_FLAG: ${{ steps.rockcraft-snap-version.outputs.install_flag }}
       - run: snap list
       - name: Pack rock
         id: pack
         working-directory: ${{ inputs.path-to-rock-directory }}
-        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- rockcraft pack -v --platform='${{ matrix.platform.name }}'
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- rockcraft pack -v --platform="${DPW_PLATFORM}"
+        env:
+          DPW_PLATFORM: ${{ matrix.platform.name }}
       - name: Rockcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/rockcraft/log/*
@@ -146,7 +163,9 @@ jobs:
       - run: touch .empty
       - name: Compute path in artifact
         id: path-in-artifact
-        run: compute-path-in-artifact '${{ inputs.path-to-rock-directory }}'
+        run: compute-path-in-artifact "${DPW_DIRECTORY}"
+        env:
+          DPW_DIRECTORY: ${{ inputs.path-to-rock-directory }}
       - name: Upload rock package
         uses: actions/upload-artifact@v7
         with:

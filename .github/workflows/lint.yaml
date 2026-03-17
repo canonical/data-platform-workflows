@@ -24,7 +24,9 @@ jobs:
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
       - name: Run actionlint
         run: |
-          '${{ steps.install.outputs.executable }}' -color
+          "${ACTIONLINT_EXECUTABLE}" -color
+        env:
+          ACTIONLINT_EXECUTABLE: ${{ steps.install.outputs.executable }}
     permissions:
       contents: read
 

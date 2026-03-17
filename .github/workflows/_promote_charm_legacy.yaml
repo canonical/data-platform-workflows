@@ -62,12 +62,19 @@ jobs:
           file-name: _promote_charm_legacy.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${DPW_SHA}"#subdirectory=_cli
+        env:
+          DPW_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Parse charmcraft version inputs
         id: charmcraft-snap-version
-        run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
+        run: parse-snap-version --revision="${DPW_REVISION}" --channel="${DPW_CHANNEL}" --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
+        env:
+          DPW_REVISION: ${{ inputs.charmcraft-snap-revision }}
+          DPW_CHANNEL: ${{ inputs.charmcraft-snap-channel }}
       - name: Install charmcraft
-        run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+        run: sudo snap install charmcraft --classic "${DPW_INSTALL_FLAG}"
+        env:
+          DPW_INSTALL_FLAG: ${{ steps.charmcraft-snap-version.outputs.install_flag }}
       - run: snap list
       - name: Checkout
         uses: actions/checkout@v4
@@ -76,10 +83,15 @@ jobs:
           fetch-depth: 0  # Checkout history with git tags
       - name: Promote charm
         id: promote
-        run: promote-charm-legacy --track='${{ inputs.track }}' --from-risk='${{ inputs.from-risk }}' --to-risk='${{ inputs.to-risk }}' --ref='${{ github.ref }}' --default-branch='${{ github.event.repository.default_branch }}'
+        run: promote-charm-legacy --track="${DPW_TRACK}" --from-risk="${DPW_FROM_RISK}" --to-risk="${DPW_TO_RISK}" --ref="${DPW_REF}" --default-branch="${DPW_DEFAULT_BRANCH}"
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DPW_TRACK: ${{ inputs.track }}
+          DPW_FROM_RISK: ${{ inputs.from-risk }}
+          DPW_TO_RISK: ${{ inputs.to-risk }}
+          DPW_REF: ${{ github.ref }}
+          DPW_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.promote.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*

@@ -47,7 +47,9 @@ jobs:
           file-name: _update_bundle.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${DPW_SHA}"#subdirectory=_cli
+        env:
+          DPW_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Checkout
         uses: actions/checkout@v5
         with:
@@ -55,7 +57,9 @@ jobs:
           token: ${{ secrets.token }}
       - name: Update bundle file
         id: update-file
-        run: update-bundle '${{ inputs.path-to-bundle-file }}'
+        run: update-bundle "${DPW_FILE}"
+        env:
+          DPW_FILE: ${{ inputs.path-to-bundle-file }}
       - name: Push `update-bundle` branch
         if: ${{ fromJSON(steps.update-file.outputs.updates_available) }}
         run: |
@@ -76,9 +80,10 @@ jobs:
             echo Open pull request already exists
             exit 0
           fi
-          gh pr create --head update-bundle --title "Update bundle" --body "Update charm revisions in bundle YAML file" --reviewer '${{ inputs.reviewers }}'
+          gh pr create --head update-bundle --title "Update bundle" --body "Update charm revisions in bundle YAML file" --reviewer "${DPW_REVIEWERS}"
         env:
           GH_TOKEN: ${{ secrets.token }}
+          DPW_REVIEWERS: ${{ inputs.reviewers }}
     permissions:
       actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
       contents: write  # Needed to push branch

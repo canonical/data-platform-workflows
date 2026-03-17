@@ -51,12 +51,19 @@ jobs:
           file-name: release_charm_pr.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${DPW_SHA}"#subdirectory=_cli
+        env:
+          DPW_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Parse charmcraft version inputs
         id: charmcraft-snap-version
-        run: parse-snap-version --revision='${{ inputs.charmcraft-snap-revision }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
+        run: parse-snap-version --revision="${DPW_REVISION}" --channel="${DPW_CHANNEL}" --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
+        env:
+          DPW_REVISION: ${{ inputs.charmcraft-snap-revision }}
+          DPW_CHANNEL: ${{ inputs.charmcraft-snap-channel }}
       - name: Install charmcraft
-        run: sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+        run: sudo snap install charmcraft --classic "${DPW_INSTALL_FLAG}"
+        env:
+          DPW_INSTALL_FLAG: ${{ steps.charmcraft-snap-version.outputs.install_flag }}
       - name: Install noctua
         run: pipx install git+https://github.com/lucabello/noctua
       - run: snap list
@@ -66,7 +73,9 @@ jobs:
           persist-credentials: false
       - name: Compute path in artifact
         id: path-in-artifact
-        run: compute-path-in-artifact '${{ inputs.path-to-charm-directory }}'
+        run: compute-path-in-artifact "${DPW_DIRECTORY}"
+        env:
+          DPW_DIRECTORY: ${{ inputs.path-to-charm-directory }}
       - name: Download charm package(s)
         uses: actions/download-artifact@v6
         with:
@@ -74,10 +83,13 @@ jobs:
           merge-multiple: true
       - name: Upload & release charm
         id: release
-        run: release-charm-pr --directory='${{ inputs.path-to-charm-directory }}' --track='${{ inputs.track }}' --pr='${{ github.event.pull_request.number }}'
+        run: release-charm-pr --directory="${DPW_DIRECTORY}" --track="${DPW_TRACK}" --pr="${DPW_PR}"
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DPW_DIRECTORY: ${{ inputs.path-to-charm-directory }}
+          DPW_TRACK: ${{ inputs.track }}
+          DPW_PR: ${{ github.event.pull_request.number }}
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.release.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*

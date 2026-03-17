@@ -25,12 +25,15 @@ jobs:
         run: create-semantic-version-tag
       - name: Update major version tag
         run: |
-          git tag '${{ steps.create-tag.outputs.major_version_tag }}' --force
-          git push origin '${{ steps.create-tag.outputs.major_version_tag }}' --force
+          git tag "${MAJOR_TAG}" --force
+          git push origin "${MAJOR_TAG}" --force
+        env:
+          MAJOR_TAG: ${{ steps.create-tag.outputs.major_version_tag }}
       - name: Create release
         run: |
-          gh release create '${{ steps.create-tag.outputs.tag }}' --verify-tag --generate-notes
+          gh release create "${RELEASE_TAG}" --verify-tag --generate-notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.create-tag.outputs.tag }}
     permissions:
       contents: write  # Needed to create release
