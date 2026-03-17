@@ -35,6 +35,8 @@ jobs:
           token: ${{ secrets.token }}  # Token used during `git push` in `charmcraftlocal mirror`
       - name: Mirror charm
         working-directory: ${{ inputs.path-to-charm-directory }}
-        run: charmcraftlocal mirror '${{ inputs.repository }}' -v
+        run: charmcraftlocal mirror "${DPW_REPOSITORY}" -v
+        env:
+          DPW_REPOSITORY: ${{ inputs.repository }}
     permissions:
       contents: read

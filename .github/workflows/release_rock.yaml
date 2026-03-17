@@ -36,7 +36,9 @@ jobs:
           file-name: release_rock.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${DPW_SHA}"#subdirectory=_cli
+        env:
+          DPW_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Install skopeo
         run: |
           sudo apt-get update
@@ -53,7 +55,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Compute path in artifact
         id: path-in-artifact
-        run: compute-path-in-artifact '${{ inputs.path-to-rock-directory }}'
+        run: compute-path-in-artifact "${DPW_DIRECTORY}"
+        env:
+          DPW_DIRECTORY: ${{ inputs.path-to-rock-directory }}
       - name: Download rock package(s)
         uses: actions/download-artifact@v6
         with:
@@ -61,9 +65,11 @@ jobs:
           merge-multiple: true
       - name: Upload & release rock
         id: release
-        run: release-rock --directory='${{ inputs.path-to-rock-directory }}' --create-tags='${{ inputs.create-git-tags }}'
+        run: release-rock --directory="${DPW_DIRECTORY}" --create-tags="${DPW_CREATE_TAGS}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DPW_DIRECTORY: ${{ inputs.path-to-rock-directory }}
+          DPW_CREATE_TAGS: ${{ inputs.create-git-tags }}
     permissions:
       actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
       packages: write  # Needed to publish to GitHub Container Registry

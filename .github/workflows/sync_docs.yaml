@@ -24,7 +24,9 @@ jobs:
         file-name: sync_docs.yaml
         github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install CLI
-      run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
+      run: pipx install git+https://github.com/canonical/data-platform-workflows@"${DPW_SHA}"#subdirectory=_cli
+      env:
+        DPW_SHA: ${{ steps.workflow-version.outputs.sha }}
     - name: Checkout
       uses: actions/checkout@v5
       with:
@@ -59,9 +61,10 @@ jobs:
           echo Open pull request already exists
           exit 0
         fi
-        gh pr create --head sync-docs --title "Sync docs from Discourse" --body "Sync charm docs from https://discourse.charmhub.io" --label 'not bug or enhancement' --reviewer '${{ inputs.reviewers }}'
+        gh pr create --head sync-docs --title "Sync docs from Discourse" --body "Sync charm docs from https://discourse.charmhub.io" --label 'not bug or enhancement' --reviewer "${DPW_REVIEWERS}"
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DPW_REVIEWERS: ${{ inputs.reviewers }}
     permissions:
       actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
       contents: write  # Needed to push branch & tag
