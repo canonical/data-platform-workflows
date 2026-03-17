@@ -9,8 +9,9 @@
 | [build_charm.yaml](.github/workflows/build_charm.md)                         | Build charm                                                                                                       |
 | [release_python_package.yaml](.github/workflows/release_python_package.md)   | Release Python package to PyPI                                                                                    |
 | [check_python_package_pr.yaml](.github/workflows/check_python_package_pr.md) | Check Python package pull request has required semantic version prefix                                            |
-| [release_snap.yaml](.github/workflows/release_snap.md)                       | Release snap to Snap Store                                                                                        |
-| [release_rock.yaml](.github/workflows/release_rock.md)                       | Release rock to GitHub Container Registry                                                                         |
+| [release_snap_edge.yaml](.github/workflows/release_snap_edge.md)             | Release snap to Snap Store "edge" risk                                                                            |
+| [release_snap_pr.yaml](.github/workflows/release_snap_pr.md)                 | Release pull request snap to Snap Store branch                                                                    |
+| [release_rock_edge.yaml](.github/workflows/release_rock_edge.md)             | Release rock to GitHub Container Registry                                                                         |
 | [release_charm_edge.yaml](.github/workflows/release_charm_edge.md)           | Release charm to Charmhub "edge" risk                                                                             |
 | [release_charm_pr.yaml](.github/workflows/release_charm_pr.md)               | Release pull request charm to Charmhub branch                                                                     |
 | [_mirror_charm.yaml](.github/workflows/_mirror_charm.md)                     | **Experimental** Mirror subset of charm monorepo with local Python package to single-charm repo                   |
