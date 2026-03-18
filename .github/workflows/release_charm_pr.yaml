@@ -6,12 +6,6 @@ on:
         required: true
         type: string
       artifact-prefix:
-        description: |
-          Prefix for charm package GitHub artifact(s)
-
-          Use canonical/data-platform-workflows build_charm.yaml to build the charm(s)
-        required: true
-        type: string
       path-to-charm-directory:
         description: Relative path to charm directory from repository directory
         default: .
