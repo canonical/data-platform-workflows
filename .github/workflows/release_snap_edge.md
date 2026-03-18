@@ -39,7 +39,7 @@ jobs:
       contents: write  # Needed to create git tags
 ```
 
-Add `SNAP_STORE_TOKEN_EDGE` as an environment secret for the `edge` environment: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
+Add `SNAP_STORE_TOKEN_EDGE` as an environment secret for the `edge` environment: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment. **Do not** add it as a repository secret.
 
 `SNAP_STORE_TOKEN_EDGE` should be generated with `SNAPCRAFT_STORE_AUTH=candid`—e.g.:
 ```

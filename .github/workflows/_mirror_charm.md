@@ -31,7 +31,7 @@ jobs:
       contents: read
 ```
 
-Add `MIRROR_REPOS_PAT` as an environment secret for the `mirror-repos` environment: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment
+Add `MIRROR_REPOS_PAT` as an environment secret for the `mirror-repos` environment: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment. **Do not** add it as a repository secret.
 
 ### metadata.yaml required
 This workflow requires the charm directory (directory with charmcraft.yaml) to contain a metadata.yaml file with the `name` key.
