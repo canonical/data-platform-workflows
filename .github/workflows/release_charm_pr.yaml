@@ -61,7 +61,7 @@ jobs:
           DPW_REVISION: ${{ inputs.charmcraft-snap-revision }}
           DPW_CHANNEL: ${{ inputs.charmcraft-snap-channel }}
       - name: Install charmcraft
-        run: sudo snap install charmcraft --classic "${DPW_INSTALL_FLAG}"
+        run: sudo snap install charmcraft --classic ${DPW_INSTALL_FLAG:+"${DPW_INSTALL_FLAG}"}
         env:
           DPW_INSTALL_FLAG: ${{ steps.charmcraft-snap-version.outputs.install_flag }}
       - name: Install noctua

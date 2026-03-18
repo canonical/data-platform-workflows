@@ -68,7 +68,7 @@ jobs:
           DPW_REVISION: ${{ inputs.snapcraft-snap-revision }}
           DPW_CHANNEL: ${{ inputs.snapcraft-snap-channel }}
       - name: Install snapcraft
-        run: sudo snap install snapcraft --classic "${DPW_INSTALL_FLAG}"
+        run: sudo snap install snapcraft --classic ${DPW_INSTALL_FLAG:+"${DPW_INSTALL_FLAG}"}
         env:
           DPW_INSTALL_FLAG: ${{ steps.snapcraft-snap-version.outputs.install_flag }}
       - run: snap list

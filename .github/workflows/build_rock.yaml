@@ -128,12 +128,12 @@ jobs:
           persist-credentials: false
       - name: Set up environment
         run: |
-          sudo snap install lxd "${DPW_LXD_FLAG}"
+          sudo snap install lxd ${DPW_LXD_FLAG:+"${DPW_LXD_FLAG}"}
           # shellcheck disable=SC2078
           # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
           if [[ "${DPW_LXD_FLAG}" ]]
           then
-            sudo snap refresh lxd "${DPW_LXD_FLAG}"
+            sudo snap refresh lxd ${DPW_LXD_FLAG:+"${DPW_LXD_FLAG}"}
           fi
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
@@ -143,7 +143,7 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
 
-          sudo snap install rockcraft --classic "${DPW_ROCKCRAFT_FLAG}"
+          sudo snap install rockcraft --classic ${DPW_ROCKCRAFT_FLAG:+"${DPW_ROCKCRAFT_FLAG}"}
         env:
           DPW_LXD_FLAG: ${{ steps.lxd-snap-version.outputs.install_flag }}
           DPW_ROCKCRAFT_FLAG: ${{ steps.rockcraft-snap-version.outputs.install_flag }}
