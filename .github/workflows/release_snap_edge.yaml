@@ -89,7 +89,6 @@ jobs:
         id: release
         run: release-snap-edge --directory="${VAR_DIRECTORY}" --track="${VAR_TRACK}"
         env:
-          SNAPCRAFT_STORE_AUTH: candid
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snap-store-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VAR_DIRECTORY: ${{ inputs.path-to-snap-project-directory }}
