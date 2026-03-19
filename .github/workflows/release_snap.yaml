@@ -58,19 +58,19 @@ jobs:
           file-name: release_snap.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${DPW_SHA}"#subdirectory=_cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${VAR_SHA}"#subdirectory=_cli
         env:
-          DPW_SHA: ${{ steps.workflow-version.outputs.sha }}
+          VAR_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Parse snapcraft version inputs
         id: snapcraft-snap-version
-        run: parse-snap-version --revision="${DPW_REVISION}" --channel="${DPW_CHANNEL}" --revision-input-name=snapcraft-snap-revision --channel-input-name=snapcraft-snap-channel
+        run: parse-snap-version --revision="${VAR_REVISION}" --channel="${VAR_CHANNEL}" --revision-input-name=snapcraft-snap-revision --channel-input-name=snapcraft-snap-channel
         env:
-          DPW_REVISION: ${{ inputs.snapcraft-snap-revision }}
-          DPW_CHANNEL: ${{ inputs.snapcraft-snap-channel }}
+          VAR_REVISION: ${{ inputs.snapcraft-snap-revision }}
+          VAR_CHANNEL: ${{ inputs.snapcraft-snap-channel }}
       - name: Install snapcraft
-        run: sudo snap install snapcraft --classic ${DPW_INSTALL_FLAG:+"${DPW_INSTALL_FLAG}"}
+        run: sudo snap install snapcraft --classic ${VAR_INSTALL_FLAG:+"${VAR_INSTALL_FLAG}"}
         env:
-          DPW_INSTALL_FLAG: ${{ steps.snapcraft-snap-version.outputs.install_flag }}
+          VAR_INSTALL_FLAG: ${{ steps.snapcraft-snap-version.outputs.install_flag }}
       - run: snap list
       - name: Checkout
         uses: actions/checkout@v5
@@ -78,9 +78,9 @@ jobs:
           persist-credentials: true
       - name: Compute path in artifact
         id: path-in-artifact
-        run: compute-path-in-artifact "${DPW_DIRECTORY}"
+        run: compute-path-in-artifact "${VAR_DIRECTORY}"
         env:
-          DPW_DIRECTORY: ${{ inputs.path-to-snap-project-directory }}
+          VAR_DIRECTORY: ${{ inputs.path-to-snap-project-directory }}
       - name: Download snap package(s)
         uses: actions/download-artifact@v6
         with:
@@ -88,14 +88,14 @@ jobs:
           merge-multiple: true
       - name: Upload & release snap
         id: release
-        run: release-snap --directory="${DPW_DIRECTORY}" --channel="${DPW_CHANNEL}" --create-tags="${DPW_CREATE_TAGS}"
+        run: release-snap --directory="${VAR_DIRECTORY}" --channel="${VAR_CHANNEL}" --create-tags="${VAR_CREATE_TAGS}"
         env:
           SNAPCRAFT_STORE_AUTH: candid
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snap-store-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DPW_DIRECTORY: ${{ inputs.path-to-snap-project-directory }}
-          DPW_CHANNEL: ${{ inputs.channel }}
-          DPW_CREATE_TAGS: ${{ inputs.create-git-tags }}
+          VAR_DIRECTORY: ${{ inputs.path-to-snap-project-directory }}
+          VAR_CHANNEL: ${{ inputs.channel }}
+          VAR_CREATE_TAGS: ${{ inputs.create-git-tags }}
       - name: Snapcraft logs
         if: ${{ success() || (failure() && steps.release.outcome == 'failure') }}
         run: cat ~/.local/state/snapcraft/log/*

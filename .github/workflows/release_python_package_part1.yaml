@@ -22,9 +22,9 @@ jobs:
           file-name: release_python_package_part1.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${DPW_SHA}"#subdirectory=_cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${VAR_SHA}"#subdirectory=_cli
         env:
-          DPW_SHA: ${{ steps.workflow-version.outputs.sha }}
+          VAR_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Checkout
         uses: actions/checkout@v5
         with:

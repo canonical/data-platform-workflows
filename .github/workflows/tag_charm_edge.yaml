@@ -24,18 +24,18 @@ jobs:
           file-name: tag_charm_edge.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${DPW_SHA}"#subdirectory=_cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${VAR_SHA}"#subdirectory=_cli
         env:
-          DPW_SHA: ${{ steps.workflow-version.outputs.sha }}
+          VAR_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Checkout
         uses: actions/checkout@v5
         with:
           persist-credentials: true
           fetch-depth: 0  # Checkout history with git tags
       - name: Create git tag
-        run: create-charm-version-tag-edge --track="${DPW_TRACK}"
+        run: create-charm-version-tag-edge --track="${VAR_TRACK}"
         env:
-          DPW_TRACK: ${{ inputs.track }}
+          VAR_TRACK: ${{ inputs.track }}
     permissions:
       actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
       contents: write  # Needed to create git tag

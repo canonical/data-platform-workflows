@@ -28,11 +28,11 @@ jobs:
         # "v1.0.0.10")
         # Instead, determine if this is the latest version by whether this branch is the default
         # branch
-        run: gh release --repo "${DPW_REPOSITORY}" create "${DPW_TAG}" --verify-tag --generate-notes "${DPW_LATEST}"
+        run: gh release --repo "${VAR_REPOSITORY}" create "${VAR_TAG}" --verify-tag --generate-notes "${VAR_LATEST}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DPW_REPOSITORY: ${{ github.repository }}
-          DPW_TAG: ${{ inputs.git-tag }}
-          DPW_LATEST: ${{ case(github.ref_name == github.event.repository.default_branch && startsWith(github.ref, 'refs/heads/'), '--latest', '--latest=false') }}
+          VAR_REPOSITORY: ${{ github.repository }}
+          VAR_TAG: ${{ inputs.git-tag }}
+          VAR_LATEST: ${{ case(github.ref_name == github.event.repository.default_branch && startsWith(github.ref, 'refs/heads/'), '--latest', '--latest=false') }}
     permissions:
       contents: write  # Needed to create GitHub release
