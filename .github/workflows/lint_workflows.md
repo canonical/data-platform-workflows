@@ -30,6 +30,7 @@ rules:
         - canonical/*
         - actions/*
         - docker/login-action
+        - tiobe/tics-github-action
   # Pinning actions to a commit SHA has a security tradeoff—pinned actions cannot be later
   # compromised, but they also cannot be security patched.
   # Above (in `forbidden-uses`), we restrict actions usage to organizations that we trust to have
@@ -44,4 +45,5 @@ rules:
         canonical/*: ref-pin
         actions/*: ref-pin
         docker/login-action: ref-pin
+        tiobe/tics-github-action: ref-pin
 ```
