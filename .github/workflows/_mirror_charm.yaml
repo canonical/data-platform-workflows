@@ -24,7 +24,9 @@ jobs:
     name: Mirror charm to ${{ inputs.repository }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: mirror-repos
+    environment:
+      name: mirror-repos
+      deployment: false
     steps:
       - name: Set up environment
         run: pipx install git-filter-repo charmcraftlocal

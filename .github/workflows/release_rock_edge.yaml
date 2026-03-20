@@ -23,7 +23,9 @@ jobs:
     name: Release rock
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: edge
+    environment:
+      name: edge
+      deployment: true
     steps:
       - name: Get workflow version
         id: workflow-version

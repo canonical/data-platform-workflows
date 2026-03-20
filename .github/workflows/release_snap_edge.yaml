@@ -45,7 +45,9 @@ jobs:
     name: Release snap to ${{ inputs.track }}/edge
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    environment: edge
+    environment:
+      name: edge
+      deployment: true
     steps:
       - name: Get workflow version
         id: workflow-version

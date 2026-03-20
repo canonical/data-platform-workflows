@@ -39,7 +39,9 @@ jobs:
     timeout-minutes: 60
     # TODO future improvement: when https://bugs.launchpad.net/snapstore-server/+bug/2097446 is
     # fixed, use isolated per-environment secrets for different risks
-    environment: edge-pr
+    environment:
+      name: edge-pr
+      deployment: false
     steps:
       - name: Get workflow version
         id: workflow-version

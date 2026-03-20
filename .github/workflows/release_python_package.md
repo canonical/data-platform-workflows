@@ -54,7 +54,9 @@ jobs:
       - release-part1
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    environment: production
+    environment:
+      name: production
+      deployment: true
     steps:
       - name: Download all the dists
         uses: actions/download-artifact@v6

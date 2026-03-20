@@ -40,7 +40,9 @@ jobs:
     name: Release snap to ${{ inputs.track }}/edge/pr-${{ github.event.pull_request.number }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    environment: edge-pr
+    environment:
+      name: edge-pr
+      deployment: false
     steps:
       - name: Get workflow version
         id: workflow-version
