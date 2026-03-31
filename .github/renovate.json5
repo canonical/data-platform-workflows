@@ -1,4 +1,4 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>canonical/data-platform//renovate_presets/preset_name.json5"],
+  "extends": ["github>canonical/data-platform//renovate_presets/base.json5"],
 }
