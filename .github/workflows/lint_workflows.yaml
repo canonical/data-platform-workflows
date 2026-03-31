@@ -7,7 +7,7 @@ on:
   workflow_call:
 
 jobs:
-  actionlint:
+  lint:
     name: Lint .github/workflows/
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -22,10 +22,14 @@ jobs:
           curl -O https://raw.githubusercontent.com/rhysd/actionlint/main/.github/actionlint-matcher.json
           echo "::add-matcher::actionlint-matcher.json"
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+      - name: Install zizmor
+        run: pipx install zizmor
       - name: Run actionlint
         run: |
           "${ACTIONLINT_EXECUTABLE}" -color
         env:
           ACTIONLINT_EXECUTABLE: ${{ steps.install.outputs.executable }}
+      - name: Run zizmor
+        run: zizmor .
     permissions:
       contents: read

@@ -1,20 +1,3 @@
-Workflow file: [lint_workflows.yaml](lint_workflows.yaml)
-
-## Usage
-### Step 1: Call lint_workflows.yaml
-```yaml
-# Copyright 2023 Canonical Ltd.
-# See LICENSE file for licensing details.
-jobs:
-  lint-workflows:
-    name: Lint .github/workflows/
-    uses: canonical/data-platform-workflows/.github/workflows/lint_workflows.yaml@v0.0.0
-    permissions:
-      contents: read
-```
-
-### Step 2: Add `.github/zizmor.yaml` file
-```yaml
 rules:
   # Allowlist trusted actions
   forbidden-uses:
@@ -30,7 +13,6 @@ rules:
         - canonical/*
         - actions/*
         - docker/login-action
-        - tiobe/tics-github-action
   # Pinning actions to a commit SHA has a security tradeoff—pinned actions cannot be later
   # compromised, but they also cannot be security patched.
   # Above (in `forbidden-uses`), we restrict actions usage to organizations that we trust to have
@@ -45,5 +27,3 @@ rules:
         canonical/*: ref-pin
         actions/*: ref-pin
         docker/login-action: ref-pin
-        tiobe/tics-github-action: ref-pin
-```
