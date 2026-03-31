@@ -78,3 +78,7 @@ jobs:
           gh pr create --head update-bundle --title "Update bundle" --body "Update charm revisions in bundle YAML file" --reviewer '${{ inputs.reviewers }}'
         env:
           GH_TOKEN: ${{ secrets.token }}
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
+      contents: write  # Needed to push branch
+      pull-requests: write  # Needed to create PR

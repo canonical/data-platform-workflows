@@ -77,6 +77,9 @@ jobs:
         run: collect-charm-platforms --directory='${{ inputs.path-to-charm-directory }}'
     outputs:
       platforms: ${{ steps.collect.outputs.platforms }}
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
+      contents: read
 
   build:
     strategy:
@@ -171,3 +174,6 @@ jobs:
             .empty
           include-hidden-files: true  # For `.empty`
           if-no-files-found: error
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
+      contents: read

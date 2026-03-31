@@ -31,3 +31,6 @@ jobs:
           fetch-depth: 0  # Checkout history with git tags
       - name: Create git tag
         run: create-charm-version-tag-edge --track='${{ inputs.track }}'
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
+      contents: write  # Needed to create git tag

@@ -82,3 +82,6 @@ jobs:
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.promote.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
+      contents: write  # Needed to edit GitHub releases

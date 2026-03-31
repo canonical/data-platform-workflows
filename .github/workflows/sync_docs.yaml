@@ -60,3 +60,7 @@ jobs:
         gh pr create --head sync-docs --title "Sync docs from Discourse" --body "Sync charm docs from https://discourse.charmhub.io" --label 'not bug or enhancement' --reviewer '${{ inputs.reviewers }}'
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
+      contents: write  # Needed to push branch & tag
+      pull-requests: write  # Needed to create PR
