@@ -19,7 +19,6 @@
 | [check_charm_pr.yaml](.github/workflows/check_charm_pr.md)                   | Check charm pull request has required labels for release notes                                                    |
 | [approve_renovate_pr.yaml](.github/workflows/approve_renovate_pr.md)         | Reduce required approvals on [Renovate](https://docs.renovatebot.com/) pull requests by 1                         |
 | [_update_bundle.yaml](.github/workflows/_update_bundle.md)                   | **Experimental** Update charm revisions in bundle                                                                 |
-| [integration_test_charm.yaml](.github/workflows/integration_test_charm.md)   | **Deprecated** Integration test charm                                                                             |
 | [sync_docs.yaml](.github/workflows/sync_docs.md)                             | **Deprecated** Sync Discourse documentation to GitHub                                                             |
 
 ### Version
@@ -38,28 +37,13 @@ jobs:
 Example Renovate configuration:
 ```json5
 {
-  "enabledManagers": ["poetry", "github-actions"],
+  "enabledManagers": ["github-actions"],
   "packageRules": [
     // Later rules override earlier rules
 
-    // Group data-platform-workflows Python package & workflow updates into the same PR
-    {
-      "matchManagers": ["poetry"],
-      "matchPackageNames": ["canonical/data-platform-workflows"],
-      // Ensure Renovate prefers vX.0.0 tag (e.g. "v24.0.0") over vX tag (e.g. "v24") if vX.X.X tag
-      // currently in use
-      // (Matches default versioning of "github-actions" manager)
-      "versioning": "docker",
-      "groupName": "data-platform-workflows"
-    },
-    {
-      "matchManagers": ["github-actions"],
-      "matchPackageNames": ["canonical/data-platform-workflows"],
-      "groupName": "data-platform-workflows"
-    },
-  ]
+    {"matchManagers": ["github-actions"], "groupName": "GitHub actions"},
+  ],
 }
-
 ```
 
 Note: all workflows in this repository share a version number. If a breaking change is made to the public interface of one workflow, all workflows will have a new major version even if they have no breaking changes.
