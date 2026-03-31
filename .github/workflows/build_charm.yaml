@@ -165,7 +165,7 @@ jobs:
       - name: Pack charm
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
-        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v "${VAR_NO_CACHE_ARG}" --platform="${VAR_PLATFORM}"
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v ${VAR_NO_CACHE_ARG:+"${VAR_NO_CACHE_ARG}"} --platform="${VAR_PLATFORM}"
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
