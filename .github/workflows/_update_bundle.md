@@ -28,3 +28,5 @@ jobs:
       contents: write  # Needed to push branch
       pull-requests: write  # Needed to create PR
 ```
+
+Add `CREATE_PR_APP_TOKEN` as an environment secret for the `update-bundle` environment: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment. **Do not** add it as a repository secret.

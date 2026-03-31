@@ -38,6 +38,9 @@ jobs:
     name: Update bundle
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment:
+      name: update-bundle
+      deployment: false
     steps:
       - name: Get workflow version
         id: workflow-version

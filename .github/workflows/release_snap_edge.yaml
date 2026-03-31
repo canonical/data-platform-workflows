@@ -1,13 +1,13 @@
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Usage documentation: release_snap.md
+# Usage documentation: release_snap_edge.md
 
 on:
   workflow_call:
     inputs:
-      channel:
-        description: Snap Store channel to release to
+      track:
+        description: Snap Store track to release to
         required: true
         type: string
       artifact-prefix:
@@ -24,10 +24,6 @@ on:
           The "snap project directory" is the directory that contains the `snap` directory, not the `snap` directory itself.
         default: .
         type: string
-      create-git-tags:
-        description: Create git tag(s)
-        default: true
-        type: boolean
       snapcraft-snap-revision:
         description: snapcraft snap revision
         required: false
@@ -46,16 +42,19 @@ on:
 
 jobs:
   release-snap:
-    name: Release snap
+    name: Release snap to ${{ inputs.track }}/edge
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    environment:
+      name: edge
+      deployment: true
     steps:
       - name: Get workflow version
         id: workflow-version
         uses: canonical/get-workflow-version-action@v1
         with:
           repository-name: canonical/data-platform-workflows
-          file-name: release_snap.yaml
+          file-name: release_snap_edge.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@"${VAR_SHA}"#subdirectory=_cli
@@ -88,14 +87,13 @@ jobs:
           merge-multiple: true
       - name: Upload & release snap
         id: release
-        run: release-snap --directory="${VAR_DIRECTORY}" --channel="${VAR_CHANNEL}" --create-tags="${VAR_CREATE_TAGS}"
+        run: release-snap-edge --directory="${VAR_DIRECTORY}" --track="${VAR_TRACK}"
         env:
           SNAPCRAFT_STORE_AUTH: candid
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snap-store-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VAR_DIRECTORY: ${{ inputs.path-to-snap-project-directory }}
-          VAR_CHANNEL: ${{ inputs.channel }}
-          VAR_CREATE_TAGS: ${{ inputs.create-git-tags }}
+          VAR_TRACK: ${{ inputs.track }}
       - name: Snapcraft logs
         if: ${{ success() || (failure() && steps.release.outcome == 'failure') }}
         run: cat ~/.local/state/snapcraft/log/*

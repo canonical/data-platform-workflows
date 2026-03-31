@@ -1,7 +1,7 @@
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Usage documentation: release_rock.md
+# Usage documentation: release_rock_edge.md
 
 on:
   workflow_call:
@@ -17,23 +17,22 @@ on:
         description: Relative path to rock directory from repository directory
         default: .
         type: string
-      create-git-tags:
-        description: Create git tag(s)
-        default: true
-        type: boolean
 
 jobs:
   release-rock:
     name: Release rock
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment:
+      name: edge
+      deployment: true
     steps:
       - name: Get workflow version
         id: workflow-version
         uses: canonical/get-workflow-version-action@v1
         with:
           repository-name: canonical/data-platform-workflows
-          file-name: release_rock.yaml
+          file-name: release_rock_edge.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@"${VAR_SHA}"#subdirectory=_cli
@@ -65,11 +64,10 @@ jobs:
           merge-multiple: true
       - name: Upload & release rock
         id: release
-        run: release-rock --directory="${VAR_DIRECTORY}" --create-tags="${VAR_CREATE_TAGS}"
+        run: release-rock --directory="${VAR_DIRECTORY}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VAR_DIRECTORY: ${{ inputs.path-to-rock-directory }}
-          VAR_CREATE_TAGS: ${{ inputs.create-git-tags }}
     permissions:
       actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
       packages: write  # Needed to publish to GitHub Container Registry

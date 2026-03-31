@@ -1,4 +1,4 @@
-Workflow file: [release_rock.yaml](release_rock.yaml)
+Workflow file: [release_rock_edge.yaml](release_rock_edge.yaml)
 
 ## Usage
 Add `release.yaml` file to `.github/workflows/`
@@ -28,7 +28,7 @@ jobs:
     name: Release rock
     needs:
       - build
-    uses: canonical/data-platform-workflows/.github/workflows/release_rock.yaml@v0.0.0
+    uses: canonical/data-platform-workflows/.github/workflows/release_rock_edge.yaml@v0.0.0
     with:
       artifact-prefix: ${{ needs.build.outputs.artifact-prefix }}
     permissions:
