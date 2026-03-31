@@ -1,7 +1,7 @@
 Workflow file: [release_snap_pr.yaml](release_snap_pr.yaml)
 
 ## Usage
-Add `release.yaml` file to `.github/workflows/`
+### Step 1: Add `release.yaml` file to `.github/workflows/`
 ```yaml
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
@@ -31,9 +31,14 @@ jobs:
       contents: read
 ```
 
+### Step 2: Add Snap Store token
 Add `SNAP_STORE_TOKEN_EDGE_PR` as an environment secret for the `edge-pr` environment: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment. **Do not** add it as a repository secret.
 
-`SNAP_STORE_TOKEN_EDGE_PR` should be generated with `SNAPCRAFT_STORE_AUTH=candid`—e.g.:
+`SNAP_STORE_TOKEN_EDGE_PR` generation:
 ```
-SNAPCRAFT_STORE_AUTH=candid snapcraft export-login --snaps foo --channels latest/edge/pr-* --expires 1970-01-01 -
+snapcraft export-login --snaps foo --channels latest/edge/pr-*,foo/edge/pr-* --expires 1970-01-01 -
 ```
+Replace:
+- `foo` with snap name
+- `latest` and `foo` with snap track(s)
+- `1970-01-01` with expiration date (that complies with https://library.canonical.com/corporate-policies/information-security-policies/secrets-management-policy)
