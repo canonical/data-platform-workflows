@@ -69,14 +69,18 @@ jobs:
           file-name: build_charm.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${VAR_SHA}"#subdirectory=_cli
+        env:
+          VAR_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Checkout
         uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Collect charm platforms to build from charmcraft.yaml
         id: collect
-        run: collect-charm-platforms --directory='${{ inputs.path-to-charm-directory }}'
+        run: collect-charm-platforms --directory="${VAR_DIRECTORY}"
+        env:
+          VAR_DIRECTORY: ${{ inputs.path-to-charm-directory }}
     outputs:
       platforms: ${{ steps.collect.outputs.platforms }}
     permissions:
@@ -107,13 +111,21 @@ jobs:
           file-name: build_charm.yaml
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
-        run: pipx install git+https://github.com/canonical/data-platform-workflows@'${{ steps.workflow-version.outputs.sha }}'#subdirectory=_cli
+        run: pipx install git+https://github.com/canonical/data-platform-workflows@"${VAR_SHA}"#subdirectory=_cli
+        env:
+          VAR_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Parse charmcraft version inputs
         id: charmcraft-snap-version
-        run: parse-snap-version --revisions='${{ inputs.charmcraft-snap-revisions }}' --channel='${{ inputs.charmcraft-snap-channel }}' --revision-input-name=charmcraft-snap-revisions --channel-input-name=charmcraft-snap-channel
+        run: parse-snap-version --revisions="${VAR_REVISIONS}" --channel="${VAR_CHANNEL}" --revision-input-name=charmcraft-snap-revisions --channel-input-name=charmcraft-snap-channel
+        env:
+          VAR_REVISIONS: ${{ inputs.charmcraft-snap-revisions }}
+          VAR_CHANNEL: ${{ inputs.charmcraft-snap-channel }}
       - name: Parse LXD version inputs
         id: lxd-snap-version
-        run: parse-snap-version --revisions='${{ inputs.lxd-snap-revisions }}' --channel='${{ inputs.lxd-snap-channel }}' --revision-input-name=lxd-snap-revisions --channel-input-name=lxd-snap-channel
+        run: parse-snap-version --revisions="${VAR_REVISIONS}" --channel="${VAR_CHANNEL}" --revision-input-name=lxd-snap-revisions --channel-input-name=lxd-snap-channel
+        env:
+          VAR_REVISIONS: ${{ inputs.lxd-snap-revisions }}
+          VAR_CHANNEL: ${{ inputs.lxd-snap-channel }}
       - name: Checkout
         uses: actions/checkout@v5
         with:
@@ -129,12 +141,12 @@ jobs:
           rustup default stable
       - name: Set up environment
         run: |
-          sudo snap install lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
+          sudo snap install lxd ${VAR_LXD_FLAG:+"${VAR_LXD_FLAG}"}
           # shellcheck disable=SC2078
           # (shellcheck sees it as constant, but GitHub Actions expression is not constant between workflow runs)
-          if [[ '${{ steps.lxd-snap-version.outputs.install_flag }}' ]]
+          if [[ "${VAR_LXD_FLAG}" ]]
           then
-            sudo snap refresh lxd ${{ steps.lxd-snap-version.outputs.install_flag }}
+            sudo snap refresh lxd ${VAR_LXD_FLAG:+"${VAR_LXD_FLAG}"}
           fi
           sudo adduser "$USER" lxd
           # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
@@ -144,16 +156,21 @@ jobs:
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
 
-          sudo snap install charmcraft --classic ${{ steps.charmcraft-snap-version.outputs.install_flag }}
+          sudo snap install charmcraft --classic ${VAR_CHARMCRAFT_FLAG:+"${VAR_CHARMCRAFT_FLAG}"}
           pipx install charmcraftcache poetry charmcraftlocal
+        env:
+          VAR_LXD_FLAG: ${{ steps.lxd-snap-version.outputs.install_flag }}
+          VAR_CHARMCRAFT_FLAG: ${{ steps.charmcraft-snap-version.outputs.install_flag }}
       - run: snap list
       - name: Pack charm
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
-        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v ${{ case(inputs.cache, '', '--command-name=charmcraft') }} --platform='${{ matrix.platform.name }}'
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v "${VAR_NO_CACHE_ARG}" --platform="${VAR_PLATFORM}"
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VAR_NO_CACHE_ARG: ${{ case(inputs.cache, '', '--command-name=charmcraft') }}
+          VAR_PLATFORM: ${{ matrix.platform.name }}
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*
@@ -161,11 +178,15 @@ jobs:
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image list --all-projects
       - name: Check charm refresh compatibility version tags were present
-        run: check-charm-contains-valid-refresh-version --directory='${{ inputs.path-to-charm-directory }}'
+        run: check-charm-contains-valid-refresh-version --directory="${VAR_DIRECTORY}"
+        env:
+          VAR_DIRECTORY: ${{ inputs.path-to-charm-directory }}
       - run: touch .empty
       - name: Compute path in artifact
         id: path-in-artifact
-        run: compute-path-in-artifact '${{ inputs.path-to-charm-directory }}'
+        run: compute-path-in-artifact "${VAR_DIRECTORY}"
+        env:
+          VAR_DIRECTORY: ${{ inputs.path-to-charm-directory }}
       - name: Upload charm package
         uses: actions/upload-artifact@v7
         with:

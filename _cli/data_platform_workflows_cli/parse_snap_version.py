@@ -56,9 +56,9 @@ def main():
             f"`{args.channel_input_name}` input cannot be used if `{args.revision_input_name}` "
             "input is passed"
         )
-        install_flag = f"'--revision={revision}'"
+        install_flag = f"--revision={revision}"
     elif args.channel:
-        install_flag = f"'--channel={args.channel}'"
+        install_flag = f"--channel={args.channel}"
     else:
         install_flag = None
     github_actions.output["install_flag"] = install_flag

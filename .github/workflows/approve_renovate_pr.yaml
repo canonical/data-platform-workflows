@@ -9,8 +9,10 @@ jobs:
     if: ${{ github.event.pull_request.user.id == 29139614 && github.event.pull_request.user.login == 'renovate[bot]' }}
     steps:
       - name: Approve pull request
-        run: gh pr --repo '${{ github.repository }}' review '${{ github.event.pull_request.number }}' --approve
+        run: gh pr --repo "${VAR_REPOSITORY}" review "${VAR_PR_NUMBER}" --approve
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VAR_REPOSITORY: ${{ github.repository }}
+          VAR_PR_NUMBER: ${{ github.event.pull_request.number }}
     permissions:
       pull-requests: write  # Needed to approve PR
