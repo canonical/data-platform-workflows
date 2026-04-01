@@ -62,7 +62,7 @@ jobs:
           VAR_REVISION: ${{ inputs.snapcraft-snap-revision }}
           VAR_CHANNEL: ${{ inputs.snapcraft-snap-channel }}
       - name: Install snapcraft
-        run: sudo snap install snapcraft --classic "${VAR_INSTALL_FLAG}"
+        run: sudo snap install snapcraft --classic ${VAR_INSTALL_FLAG:+"${VAR_INSTALL_FLAG}"}
         env:
           VAR_INSTALL_FLAG: ${{ steps.snapcraft-snap-version.outputs.install_flag }}
       - run: snap list
