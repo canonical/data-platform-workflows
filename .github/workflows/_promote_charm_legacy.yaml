@@ -77,7 +77,7 @@ jobs:
           VAR_INSTALL_FLAG: ${{ steps.charmcraft-snap-version.outputs.install_flag }}
       - run: snap list
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0  # Checkout history with git tags

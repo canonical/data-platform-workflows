@@ -71,7 +71,7 @@ jobs:
         run: pipx install git+https://github.com/lucabello/noctua
       - run: snap list
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: true
       - name: Compute path in artifact
@@ -80,7 +80,7 @@ jobs:
         env:
           VAR_DIRECTORY: ${{ inputs.path-to-charm-directory }}
       - name: Download charm package(s)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
           merge-multiple: true

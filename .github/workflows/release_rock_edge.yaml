@@ -43,11 +43,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install skopeo -y
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: true
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: unused  # Required input—but not used
@@ -58,7 +58,7 @@ jobs:
         env:
           VAR_DIRECTORY: ${{ inputs.path-to-rock-directory }}
       - name: Download rock package(s)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
           merge-multiple: true
