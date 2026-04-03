@@ -73,7 +73,7 @@ jobs:
         env:
           VAR_SHA: ${{ steps.workflow-version.outputs.sha }}
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Collect charm platforms to build from charmcraft.yaml
@@ -127,7 +127,7 @@ jobs:
           VAR_REVISIONS: ${{ inputs.lxd-snap-revisions }}
           VAR_CHANNEL: ${{ inputs.lxd-snap-channel }}
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0  # Checkout history with git tags

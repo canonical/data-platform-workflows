@@ -72,7 +72,7 @@ jobs:
           VAR_INSTALL_FLAG: ${{ steps.snapcraft-snap-version.outputs.install_flag }}
       - run: snap list
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: true
       - name: Compute path in artifact
@@ -81,7 +81,7 @@ jobs:
         env:
           VAR_DIRECTORY: ${{ inputs.path-to-snap-project-directory }}
       - name: Download snap package(s)
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
           merge-multiple: true
