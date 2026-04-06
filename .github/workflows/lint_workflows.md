@@ -29,6 +29,7 @@ rules:
       allow:  # Get approval from your manager before adding actions to this list.
         - canonical/*
         - actions/*
+        - pypa/gh-action-pypi-publish
         - docker/login-action
         - tiobe/tics-github-action
   # Pinning actions to a commit SHA has a security tradeoff—pinned actions cannot be later
@@ -44,6 +45,7 @@ rules:
       policies:
         canonical/*: ref-pin
         actions/*: ref-pin
+        pypa/gh-action-pypi-publish: ref-pin
         docker/login-action: ref-pin
         tiobe/tics-github-action: ref-pin
 ```
