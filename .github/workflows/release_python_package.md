@@ -59,7 +59,7 @@ jobs:
       deployment: true
     steps:
       - name: Download all the dists
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.release-part1.outputs.artifact-name }}
           path: dist/
