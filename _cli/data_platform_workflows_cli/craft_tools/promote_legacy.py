@@ -161,6 +161,12 @@ def charm():
             f"{repr(from_risk.value)} to 'candidate' first"
         )
 
+    ref = args.ref
+    if not ref.startswith("refs/heads/"):
+        raise ValueError(
+            "This workflow must be run on `workflow_dispatch` from the branch that contains track "
+            f"{repr(track)}"
+        )
     default_branch = args.default_branch
 
     if not pathlib.Path(".github/release.yaml").exists():
