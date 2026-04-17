@@ -1,6 +1,7 @@
 import argparse
 import dataclasses
 import enum
+import json
 import logging
 import pathlib
 import subprocess
@@ -442,6 +443,170 @@ def charms():
                 "--to-channel",
                 charm_to_channel,
                 "--yes",
+            ],
+            check=True,
+        )
+
+    _validate_promotion_and_create_release(
+        dry_run=False,
+        charms_=charms_,
+        track=track,
+        channel=to_channel,
+        to_risk=to_risk,
+        ref=ref,
+        default_branch=default_branch,
+    )
+
+
+def charms_by_revision():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--revisions", required=True)
+    parser.add_argument("--track", required=True)
+    parser.add_argument("--to-risk", required=True)
+    parser.add_argument("--ref", required=True)
+    parser.add_argument("--default-branch", required=True)
+    args = parser.parse_args()
+
+    try:
+        revisions_input: dict[str, int] = json.loads(args.revisions)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"`revisions` input is not valid JSON: {e}") from e
+    if not isinstance(revisions_input, dict) or not all(
+        isinstance(k, str) and isinstance(v, int) for k, v in revisions_input.items()
+    ):
+        raise ValueError(
+            "`revisions` input must be a JSON object mapping charm name to integer revision "
+            f"number, got: {repr(args.revisions)}"
+        )
+
+    track = args.track
+    if track == "":
+        raise ValueError("`track` input must not be empty string")
+    if "/" in track:
+        raise ValueError(f"`track` input cannot contain '/' character: {repr(track)}")
+    to_risk = Risk.get(args.to_risk, direction=Direction.TO)
+
+    ref = args.ref
+    if not ref.startswith("refs/heads/"):
+        raise ValueError(
+            "This workflow must be run on `workflow_dispatch` from the branch that contains track "
+            f"{repr(track)}"
+        )
+    default_branch = args.default_branch
+
+    if not pathlib.Path(".github/release.yaml").exists():
+        raise FileNotFoundError(
+            "Repository must contain `.github/release.yaml` to automatically generate release "
+            "notes in the correct format."
+        )
+
+    charms_: list[Charm] = []
+    for path in pathlib.Path().glob("**/charmcraft.yaml"):
+        if "tests" in path.parts:
+            logging.info(f"Ignoring charm inside a 'tests' directory: {repr(path.parent)}")
+            continue
+        charms_.append(Charm.from_directory(path.parent))
+
+    if len({charm.name for charm in charms_}) != len(charms_):
+        raise ValueError(
+            f"Duplicate charms with same 'name' in metadata.yaml not supported: {repr(charms_)}"
+        )
+    charms_ = sorted(charms_, key=lambda charm: charm.name)
+
+    # Cross-reference repo charms against provided revisions
+    repo_charm_names = {charm.name for charm in charms_}
+    input_charm_names = set(revisions_input.keys())
+    if missing := repo_charm_names - input_charm_names:
+        raise ValueError(
+            f"Missing revision(s) for charm(s) found in repository: {repr(missing)}. "
+            "Provide a revision for every charm in the repo."
+        )
+    if unknown := input_charm_names - repo_charm_names:
+        raise ValueError(
+            f"Unknown charm name(s) in `revisions` input (not found in repository): {repr(unknown)}"
+        )
+
+    # Pre-promotion: verify all provided revisions point to the same git commit
+    logging.info("Checking that all provided revisions were built from the same git commit")
+    commit_shas: set[str] = set()
+    for charm in charms_:
+        revision = revisions_input[charm.name]
+        tag = f"{charm.tag_prefix}{revision}"
+        try:
+            sha = subprocess.run(
+                ["git", "rev-list", "-n", "1", tag],
+                capture_output=True,
+                check=True,
+                text=True,
+            ).stdout.strip()
+        except subprocess.CalledProcessError:
+            logging.error(
+                f"Unable to find git tag {repr(tag)}. Was {repr(charm.name)} revision "
+                f"{revision} released with data-platform-workflows release_charm_edge.yaml?"
+            )
+            raise
+        commit_shas.add(sha)
+
+    if len(commit_shas) != 1:
+        raise ValueError(
+            f"Provided revisions {repr(revisions_input)} were built from different git commits: "
+            f"{repr(commit_shas)}. All revisions must be built from the same git commit."
+        )
+    commit_sha = commit_shas.pop()
+    logging.info(f"All provided revisions were built from git commit {repr(commit_sha)}")
+
+    subprocess.run(["git", "checkout", commit_sha], check=True)
+
+    # Validate charm metadata on the target commit
+    for charm in charms_:
+        try:
+            promoted_charm = Charm.from_directory(charm.directory)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"Charm at {repr(charm.directory)} does not exist on commit {repr(commit_sha)}"
+            )
+        if promoted_charm.name != charm.name:
+            raise ValueError(
+                f"Charm 'name' in metadata.yaml on commit {repr(commit_sha)} "
+                f"({repr(promoted_charm.name)}) does not match expected name {repr(charm.name)}"
+            )
+
+    if to_risk is Risk.CANDIDATE:
+        logging.info(
+            "Checking that the last stable release revisions are from the same git commit and "
+            "that we can determine the GitHub release tag"
+        )
+        get_last_stable_release_tag(track=track, charms_=charms_)
+
+    to_channel = f"{track}/{to_risk}"
+
+    # Promote: use `charmcraft release` to place specific revisions onto the target channel
+    logging.info(f"Releasing revisions {repr(revisions_input)} to {repr(to_channel)}")
+    for charm in charms_:
+        revision = revisions_input[charm.name]
+        # FIXME: Keep, remove?
+        # One-time exception for mysql-router-k8s on track 'dpe'
+        if charm.name == "mysql-router-k8s" and track == "dpe":
+            logging.warning(
+                "Exception for mysql-router-k8s on track 'dpe': using track '8.0' instead for "
+                "Charmhub operations"
+            )
+            charm_to_channel = to_channel.replace("dpe/", "8.0/")
+        else:
+            charm_to_channel = to_channel
+
+        logging.info(
+            f"Releasing {repr(charm.name)} revision {revision} to {repr(charm_to_channel)}"
+        )
+        subprocess.run(
+            [
+                "charmcraft",
+                "release",
+                charm.name,
+                "--revision",
+                str(revision),
+                "--channel",
+                charm_to_channel,
             ],
             check=True,
         )
