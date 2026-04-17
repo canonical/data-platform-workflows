@@ -88,7 +88,9 @@ class Charm:
             return f"{self.name}/rev"
 
 
-def get_commit_sha_and_release_title(*, channel: str, charms_: list[Charm], channel_missing_ok=False):
+def get_commit_sha_and_release_title(
+    *, channel: str, charms_: list[Charm], channel_missing_ok=False
+):
     """Get (& verify) commit sha that all charm revisions on a Charmhub channel name were built from
 
     Checks revisions across all Charmhub channels (each charm has a Charmhub channel) with name
@@ -458,6 +460,29 @@ def charms():
     )
 
 
+def upload_resources(charm_name: str, resources: tuple[tuple[str, str]]) -> dict[str, str]:
+    """Uploads the resources and returns the mapping of resource to revision."""
+    resource_revisions: dict[str, str] = {}
+    for resource, upstream in resources:
+        result = json.loads(
+            subprocess.run(
+                [
+                    "charmcraft",
+                    "upload-resource",
+                    charm_name,
+                    resource,
+                    "--image",
+                    f"docker://{upstream}",
+                    "--format",
+                    "json",
+                ],
+                check=True,
+            ).stdout
+        )
+        resource_revisions[resource] = result["revision"]
+    return resource_revisions
+
+
 def charms_by_revision():
     parser = argparse.ArgumentParser()
     parser.add_argument("--revisions", required=True)
@@ -583,6 +608,11 @@ def charms_by_revision():
     # Promote: use `charmcraft release` to place specific revisions onto the target channel
     logging.info(f"Releasing revisions {repr(revisions_input)} to {repr(to_channel)}")
     for charm in charms_:
+        # Proceed to try to upload the resources so we get their revision back.
+        resources = Charm.from_directory(charm.directory).oci_resources
+        resource_revisions = upload_resources(charm.name, resources)
+        logging.info(f"Resource revisions for {charm.name} are {resource_revisions}.")
+
         revision = revisions_input[charm.name]
         # FIXME: Keep, remove?
         # One-time exception for mysql-router-k8s on track 'dpe'
@@ -598,16 +628,20 @@ def charms_by_revision():
         logging.info(
             f"Releasing {repr(charm.name)} revision {revision} to {repr(charm_to_channel)}"
         )
+        command = [
+            "charmcraft",
+            "release",
+            charm.name,
+            "--revision",
+            str(revision),
+            "--channel",
+            charm_to_channel,
+        ]
+        for resource_name, revision in resource_revisions.items():
+            command.extend(["--resource", f"{resource_name}:{revision}"])
+
         subprocess.run(
-            [
-                "charmcraft",
-                "release",
-                charm.name,
-                "--revision",
-                str(revision),
-                "--channel",
-                charm_to_channel,
-            ],
+            command,
             check=True,
         )
 
