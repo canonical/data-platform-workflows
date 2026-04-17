@@ -34,6 +34,10 @@ on:
       snap-store-token:
         description: Snap Store login token
         required: true
+    outputs:
+      snap-revisions:
+        description: A JSON encoded string containing the snap revisions per architecture
+        value: ${{ jobs.release-snap.outputs.snap-revisions }}
 
 jobs:
   release-snap:
@@ -43,6 +47,8 @@ jobs:
     environment:
       name: edge-pr
       deployment: false
+    outputs:
+      snap-revisions: ${{ steps.release.outputs.snap-revisions }}
     steps:
       - name: Get workflow version
         id: workflow-version
@@ -93,5 +99,5 @@ jobs:
         if: ${{ success() || (failure() && steps.release.outcome == 'failure') }}
         run: cat ~/.local/state/snapcraft/log/*
     permissions:
-      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
+      actions: read # Needed for GitHub API call to get workflow version (for private repositories)
       contents: read

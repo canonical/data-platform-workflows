@@ -31,6 +31,10 @@ on:
       charmhub-token:
         description: Charmhub login token
         required: true
+    outputs:
+      charm-revisions:
+        description: A JSON encoded string containing the charm revisions per architecture
+        value: ${{ jobs.release-charm.outputs.charm-revisions }}
 
 jobs:
   release-charm:
@@ -42,6 +46,8 @@ jobs:
     environment:
       name: edge-pr
       deployment: false
+    outputs:
+      charm-revisions: ${{ steps.release.outputs.charm-revisions }}
     steps:
       - name: Get workflow version
         id: workflow-version
@@ -94,5 +100,5 @@ jobs:
         if: ${{ success() || (failure() && steps.release.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*
     permissions:
-      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
+      actions: read # Needed for GitHub API call to get workflow version (for private repositories)
       contents: read

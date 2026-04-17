@@ -2,6 +2,7 @@ import argparse
 import dataclasses
 import json
 import logging
+import os
 import pathlib
 import re
 import subprocess
@@ -18,6 +19,12 @@ class OCIResource:
 
     resource_name: str
     revision: int
+
+
+@dataclasses.dataclass
+class Revision:
+    value: str
+    architecture: str
 
 
 def run(command_: list, *, cwd=None):
@@ -53,12 +60,7 @@ def _snap(*, pr: bool):
     if pr:
         channel += f"/pr-{args.pr_number}"
 
-    @dataclasses.dataclass
-    class Revision:
-        value: int
-        architecture: str
-
-    revisions = []
+    revisions: list[Revision] = []
     for snap_file in directory.glob("*.snap"):
         # Example `snap_file.name`: "charmed-postgresql_14.11_amd64.snap"
         # Example: "amd64"
@@ -68,7 +70,7 @@ def _snap(*, pr: bool):
         # Example `output`: "Revision 3 created for 'charmed-postgresql' and released to 'latest/edge'"
         match = re.match("Revision ([0-9]+) created for ", output)
         assert match, "Unable to parse revision"
-        revision = int(match.group(1))
+        revision = str(match.group(1))
         logging.info(f"Uploaded snap {revision=} {architecture=}")
         revisions.append(Revision(value=revision, architecture=architecture))
 
@@ -89,6 +91,12 @@ def _snap(*, pr: bool):
         subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
         subprocess.run(["git", "push", "origin", tag], check=True)
 
+    revisions_dict = {rev.architecture: rev.value for rev in revisions}
+    output: str = f"snap-revisions={json.dumps(revisions_dict)}"
+    with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+        file.write(output)
+
+
 def snap_edge():
     _snap(pr=False)
 
@@ -104,8 +112,9 @@ def rock():
     directory = pathlib.Path(args.directory)
 
     yaml_data = yaml.safe_load((directory / "rockcraft.yaml").read_text())
-    digests = []
+    digests: list[Revision] = []
     for rock_file in directory.glob("*.rock"):
+        architecture = rock_file.name.removesuffix(".rock").split("_")[-1]
         digest = run(
             [
                 "skopeo",
@@ -125,14 +134,14 @@ def rock():
             ]
         )
         logging.info(f"Uploaded rock {digest=}")
-        digests.append(digest)
+        digests.append(Revision(value=digest, architecture=architecture))
     logging.info("Creating multi-architecture image")
     # Example: "14.10-22.04_edge"
     tag = f"{yaml_data['version']}-{yaml_data['base'].split('@')[-1]}_edge"
     multi_arch_image_name = f"ghcr.io/canonical/{yaml_data['name']}:{tag}"
     command = ["docker", "manifest", "create", multi_arch_image_name]
     for digest in digests:
-        command.extend(("--amend", f"ghcr.io/canonical/{yaml_data['name']}@{digest}"))
+        command.extend(("--amend", f"ghcr.io/canonical/{yaml_data['name']}@{digest.value}"))
     run(command)
     logging.info("Created multi-architecture image. Uploading")
     run(["docker", "manifest", "push", multi_arch_image_name])
@@ -151,6 +160,7 @@ def rock():
         .strip()
         .removeprefix("sha256:")
     )
+    digests.append(Revision(value=multi_arch_digest, architecture="all"))
 
     logging.info("Pushing git tag")
     tag = f"image-{multi_arch_digest}"
@@ -161,6 +171,11 @@ def rock():
     )
     subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
     subprocess.run(["git", "push", "origin", tag], check=True)
+
+    revisions_dict = {rev.architecture: rev.value for rev in digests}
+    output: str = f"rock-digests={json.dumps(revisions_dict)}"
+    with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+        file.write(output)
 
 
 def _charm(*, pr: bool):
@@ -183,9 +198,10 @@ def _charm(*, pr: bool):
         channel += f"/pr-{args.pr_number}"
 
     # Release charm file(s) & store revision
-    charm_revisions: list[int] = []
+    charm_revisions: list[Revision] = []
     for charm_file in directory.glob("*.charm"):
         logging.info(f"Releasing {charm_file=}")
+        architecture = charm_file.name.removesuffix(".charm").split("_")[-1]
         output = run(
             [
                 "noctua",
@@ -200,9 +216,9 @@ def _charm(*, pr: bool):
             ],
             cwd=directory,
         )
-        revision: int = json.loads(output)["revision"]
+        revision: str = json.loads(output)["revision"]
         logging.info(f"Released charm {revision=}")
-        charm_revisions.append(revision)
+        charm_revisions.append(Revision(value=revision, architecture=architecture))
     assert len(charm_revisions) > 0, "No charm packages found"
 
     if pr:
@@ -212,7 +228,7 @@ def _charm(*, pr: bool):
     else:
         tag_prefix = f"{charm_name}/rev"
     logging.info("Pushing git tag(s)")
-    tags = [f"{tag_prefix}{revision}" for revision in charm_revisions]
+    tags = [f"{tag_prefix}{revision.value}" for revision in charm_revisions]
     subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
     subprocess.run(
         ["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"],
@@ -221,6 +237,11 @@ def _charm(*, pr: bool):
     for tag in tags:
         subprocess.run(["git", "tag", tag, "--annotate", "-m", tag], check=True)
         subprocess.run(["git", "push", "origin", tag], check=True)
+
+    revisions_dict = {rev.architecture: rev.value for rev in charm_revisions}
+    output: str = f"charm-revisions={json.dumps(revisions_dict)}"
+    with open(os.environ["GITHUB_OUTPUT"], "a") as file:
+        file.write(output)
 
 
 def charm_edge():
