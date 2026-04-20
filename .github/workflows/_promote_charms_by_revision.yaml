@@ -3,9 +3,11 @@ on:
     inputs:
       revisions:
         description: |
-          JSON object mapping charm name to integer revision number to promote
+          Comma-separated list of git revision tags to promote.
+          These must match the tags pushed by the release workflow.
 
-          Example: '{"postgresql": 42, "postgresql-k8s": 17}'
+          Single-charm repo example: 'rev123,rev124'
+          Monorepo example: 'mysql/rev123,mysql-k8s/rev124'
         required: true
         type: string
       track:
