@@ -530,19 +530,18 @@ def _parse_revision_tags(revisions_str: str, charm_names: list[str]) -> dict[str
         )
     if unknown := input_charm_names - repo_charm_names:
         raise ValueError(
-            f"Unknown charm name(s) in revision tags (not found in repository): "
-            f"{repr(unknown)}"
+            f"Unknown charm name(s) in revision tags (not found in repository): {repr(unknown)}"
         )
     return result
 
 
 def charms_by_revision():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--revisions", required=True)
-    parser.add_argument("--track", required=True)
-    parser.add_argument("--to-risk", required=True)
-    parser.add_argument("--ref", required=True)
-    parser.add_argument("--default-branch", required=True)
+    parser.add_argument("--revisions", required=True, type=str)
+    parser.add_argument("--track", required=True, type=str)
+    parser.add_argument("--to-risk", required=True, type=str)
+    parser.add_argument("--ref", required=True, type=str)
+    parser.add_argument("--default-branch", required=True, type=str)
     args = parser.parse_args()
 
     track = args.track
@@ -582,7 +581,7 @@ def charms_by_revision():
     charm_by_name = {charm.name: charm for charm in charms_}
     parsed_tags = _parse_revision_tags(args.revisions, [charm.name for charm in charms_])
     charm_revisions_map: dict[Charm, list[int]] = {
-        charm_by_name[name]: revisions for name, revisions in parsed_tags.items()
+        charm_by_name[name]: sorted(revisions) for name, revisions in parsed_tags.items()
     }
 
     # Pre-promotion: verify all provided revisions point to the same git commit
