@@ -216,7 +216,7 @@ def _charm(*, pr: bool):
             ],
             cwd=directory,
         )
-        revision: str = json.loads(output)["revision"]
+        revision: str = str(json.loads(output)["revision"])
         logging.info(f"Released charm {revision=}")
         charm_revisions.append(Revision(value=revision, architecture=architecture))
     assert len(charm_revisions) > 0, "No charm packages found"
