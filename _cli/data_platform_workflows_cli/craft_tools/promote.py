@@ -209,6 +209,30 @@ def get_github_release_tag(*, commit_sha: str) -> str:
     return charm_refresh_compatibility_version_tags[0]
 
 
+def get_legacy_release_tag_for_commit(*, commit_sha: str, charms_: list[Charm]) -> str:
+    """Get alphabetically-first revision tag on commit as the GitHub release tag.
+
+    Used when refresh_versions.toml does not exist (no v*/* tags).
+    """
+    all_tags = []
+    for charm in charms_:
+        tags = subprocess.run(
+            ["git", "tag", "--list", f"{charm.tag_prefix}*", "--points-at", commit_sha],
+            capture_output=True,
+            check=True,
+            text=True,
+        ).stdout.splitlines()
+        all_tags.extend(tags)
+    if not all_tags:
+        raise ValueError(
+            f"No revision tags found on commit {commit_sha} for charms "
+            f"{[c.name for c in charms_]}"
+        )
+    # Pick alphabetically first tag because of
+    # https://github.com/orgs/community/discussions/149281#discussioncomment-12071170
+    return sorted(all_tags)[0]
+
+
 def get_last_stable_release_tag(*, track: str, charms_: list[Charm]) -> str | None:
     """Get GitHub release tag for last stable release (if it exists) on `track`"""
     channel = f"{track}/{Risk.STABLE.value}"
@@ -223,6 +247,27 @@ def get_last_stable_release_tag(*, track: str, charms_: list[Charm]) -> str | No
         return None
     commit_sha, _ = output
     tag = get_github_release_tag(commit_sha=commit_sha)
+    logging.info(f"GitHub release tag for last {repr(channel)} release: {repr(tag)}")
+    return tag
+
+
+def get_legacy_last_stable_release_tag(*, track: str, charms_: list[Charm]) -> str | None:
+    """Get GitHub release tag for last stable release using revision tags.
+
+    Used when refresh_versions.toml does not exist (no v*/* tags).
+    """
+    channel = f"{track}/{Risk.STABLE.value}"
+    logging.info(f"Getting GitHub release tag for last {repr(channel)} release")
+    output = get_commit_sha_and_release_title(
+        channel=channel,
+        charms_=charms_,
+        channel_missing_ok=True,  # In case no previous stable release
+    )
+    if output is None:
+        logging.warning(f"No existing release found on {repr(channel)}")
+        return None
+    commit_sha, _ = output
+    tag = get_legacy_release_tag_for_commit(commit_sha=commit_sha, charms_=charms_)
     logging.info(f"GitHub release tag for last {repr(channel)} release: {repr(tag)}")
     return tag
 
@@ -248,6 +293,7 @@ def _validate_promotion_and_create_release(
     to_risk: Risk,
     ref: str,
     default_branch: str,
+    has_refresh_versions: bool = True,
 ):
     if dry_run:
         logging.info("Checking that revisions that will be promoted are from the same git commit")
@@ -291,7 +337,12 @@ def _validate_promotion_and_create_release(
                 )
             raise ValueError(message)
 
-    github_release_tag = get_github_release_tag(commit_sha=promoted_commit_sha)
+    if has_refresh_versions:
+        github_release_tag = get_github_release_tag(commit_sha=promoted_commit_sha)
+    else:
+        github_release_tag = get_legacy_release_tag_for_commit(
+            commit_sha=promoted_commit_sha, charms_=charms_
+        )
 
     if to_risk is Risk.CANDIDATE:
         if dry_run:
@@ -299,7 +350,12 @@ def _validate_promotion_and_create_release(
                 "Checking that the last stable release revisions are from the same git commit and "
                 "that we can determine the GitHub release tag"
             )
-        previous_github_release_tag = get_last_stable_release_tag(track=track, charms_=charms_)
+        if has_refresh_versions:
+            previous_github_release_tag = get_last_stable_release_tag(track=track, charms_=charms_)
+        else:
+            previous_github_release_tag = get_legacy_last_stable_release_tag(
+                track=track, charms_=charms_
+            )
 
     if dry_run:
         return
@@ -578,6 +634,8 @@ def charms_by_revision():
         )
     charms_ = sorted(charms_, key=lambda charm: charm.name)
 
+    has_refresh_versions = bool(next(pathlib.Path().glob("**/refresh_versions.toml"), False))
+
     charm_by_name = {charm.name: charm for charm in charms_}
     parsed_tags = _parse_revision_tags(args.revisions, [charm.name for charm in charms_])
     charm_revisions_map: dict[Charm, list[int]] = {
@@ -630,15 +688,19 @@ def charms_by_revision():
                 f"({repr(promoted_charm.name)}). Unable to promote charm"
             )
 
-    # Verify the charm refresh compatibility version tag exists on this commit
-    get_github_release_tag(commit_sha=commit_sha)
+    if has_refresh_versions:
+        # Verify the charm refresh compatibility version tag exists on this commit
+        get_github_release_tag(commit_sha=commit_sha)
 
     if to_risk is Risk.CANDIDATE:
         logging.info(
             "Checking that the last stable release revisions are from the same git commit and "
             "that we can determine the GitHub release tag"
         )
-        get_last_stable_release_tag(track=track, charms_=charms_)
+        if has_refresh_versions:
+            get_last_stable_release_tag(track=track, charms_=charms_)
+        else:
+            get_legacy_last_stable_release_tag(track=track, charms_=charms_)
 
     to_channel = f"{track}/{to_risk}"
 
@@ -690,4 +752,5 @@ def charms_by_revision():
         to_risk=to_risk,
         ref=ref,
         default_branch=default_branch,
+        has_refresh_versions=has_refresh_versions,
     )
