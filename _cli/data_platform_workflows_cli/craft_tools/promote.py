@@ -484,13 +484,10 @@ def upload_resources(charm_name: str, resources: tuple[tuple[str, str]]) -> dict
     return resource_revisions
 
 
-def _parse_revision_tags(revisions_str: str) -> dict[str | None, list[int]]:
-    """Parse comma-separated revision tags.
+def _parse_revision_tags(revisions_str: str, charm_names: list[str]) -> dict[str, list[int]]:
+    """Parse comma-separated revision tags and validate against known charms.
 
-    Single-charm repo tags: {None: [42, 43]}
-    Monorepo tags: {"mysql": [10], "mysql-k8s": [11]}
-
-    Returns dict mapping charm name (or None for root-level) to list of revision ints.
+    Returns dict mapping charm name to list of revision ints.
     """
     revision_tag_re = re.compile(r"^(?:(?P<charm>[a-z][a-z0-9-]*)/)?rev(?P<revision>[0-9]+)$")
     tags = [t.strip() for t in revisions_str.split(",") if t.strip()]
@@ -505,7 +502,7 @@ def _parse_revision_tags(revisions_str: str) -> dict[str | None, list[int]]:
                 f"Unable to parse revision tag {repr(tag)}. Expected format: "
                 "'<charm-name>/rev<N>' or 'rev<N>'"
             )
-        charm_name = match.group("charm")
+        charm_name = match.group("charm")  # Tags without charm prefix will have `None` here
         revision = int(match.group("revision"))
         result.setdefault(charm_name, []).append(revision)
 
@@ -513,6 +510,28 @@ def _parse_revision_tags(revisions_str: str) -> dict[str | None, list[int]]:
         raise ValueError(
             "Cannot mix root-level tags (e.g. 'rev42') with prefixed tags "
             "(e.g. 'mysql/rev10') in the same input"
+        )
+
+    if None in result:
+        if len(charm_names) != 1:
+            raise ValueError(
+                "Root-level revision tags (e.g. 'rev42') require exactly one charm in the "
+                f"repository, found: {repr(charm_names)}"
+            )
+        return {charm_names[0]: result[None]}
+
+    # validate against known charms on the repo
+    input_charm_names = set(result.keys())
+    repo_charm_names = set(charm_names)
+    if missing := repo_charm_names - input_charm_names:
+        raise ValueError(
+            f"Missing revision tag(s) for charm(s) found in repository: {repr(missing)}. "
+            "Provide at least one revision tag for every charm in the repo."
+        )
+    if unknown := input_charm_names - repo_charm_names:
+        raise ValueError(
+            f"Unknown charm name(s) in revision tags (not found in repository): "
+            f"{repr(unknown)}"
         )
     return result
 
@@ -525,9 +544,6 @@ def charms_by_revision():
     parser.add_argument("--ref", required=True)
     parser.add_argument("--default-branch", required=True)
     args = parser.parse_args()
-
-    parsed_tags = _parse_revision_tags(args.revisions)
-    all_tags = [t.strip() for t in args.revisions.split(",") if t.strip()]
 
     track = args.track
     if track == "":
@@ -563,58 +579,36 @@ def charms_by_revision():
         )
     charms_ = sorted(charms_, key=lambda charm: charm.name)
 
-    # Check parsed tags against repo charms
-    is_root = None in parsed_tags
-    if is_root:
-        root_charms = [c for c in charms_ if c.directory == pathlib.Path(".")]
-        if len(root_charms) != 1:
-            raise ValueError(
-                "Root-level revision tags (e.g. 'rev42') require exactly one charm at the "
-                f"repository root, found: {repr([c.name for c in root_charms])}"
-            )
-        charm_revisions_map: dict[Charm, list[int]] = {root_charms[0]: parsed_tags[None]}
-    else:
-        # Prefixed tags
-        charm_by_name = {charm.name: charm for charm in charms_}
-        input_charm_names = set(parsed_tags.keys())
-        repo_charm_names = set(charm_by_name.keys())
-        if missing := repo_charm_names - input_charm_names:
-            raise ValueError(
-                f"Missing revision tag(s) for charm(s) found in repository: {repr(missing)}. "
-                "Provide at least one revision tag for every charm in the repo."
-            )
-        if unknown := input_charm_names - repo_charm_names:
-            raise ValueError(
-                f"Unknown charm name(s) in revision tags (not found in repository): "
-                f"{repr(unknown)}"
-            )
-        charm_revisions_map = {
-            charm_by_name[name]: revisions
-            for name, revisions in parsed_tags.items()
-        }
+    charm_by_name = {charm.name: charm for charm in charms_}
+    parsed_tags = _parse_revision_tags(args.revisions, [charm.name for charm in charms_])
+    charm_revisions_map: dict[Charm, list[int]] = {
+        charm_by_name[name]: revisions for name, revisions in parsed_tags.items()
+    }
 
     # Pre-promotion: verify all provided revisions point to the same git commit
     logging.info("Checking that all provided revisions were built from the same git commit")
     commit_shas: set[str] = set()
-    for tag in all_tags:
-        try:
-            sha = subprocess.run(
-                ["git", "rev-list", "-n", "1", tag],
-                capture_output=True,
-                check=True,
-                text=True,
-            ).stdout.strip()
-        except subprocess.CalledProcessError:
-            logging.error(
-                f"Unable to find git tag {repr(tag)}. Was this revision released with "
-                "data-platform-workflows release_charm_edge.yaml?"
-            )
-            raise
-        commit_shas.add(sha)
+    for charm, revisions in charm_revisions_map.items():
+        for revision in revisions:
+            tag = f"{charm.tag_prefix}{revision}"
+            try:
+                sha = subprocess.run(
+                    ["git", "rev-list", "-n", "1", tag],
+                    capture_output=True,
+                    check=True,
+                    text=True,
+                ).stdout.strip()
+            except subprocess.CalledProcessError:
+                logging.error(
+                    f"Unable to find git tag {repr(tag)}. Was this revision released with "
+                    "data-platform-workflows release_charm_edge.yaml?"
+                )
+                raise
+            commit_shas.add(sha)
 
     if len(commit_shas) != 1:
         raise ValueError(
-            f"Provided revision tags {repr(all_tags)} were built from different git commits: "
+            f"Provided revision tags {repr(parsed_tags)} were built from different git commits: "
             f"{repr(commit_shas)}. All revisions must be built from the same git commit."
         )
     commit_sha = commit_shas.pop()
@@ -650,7 +644,7 @@ def charms_by_revision():
     to_channel = f"{track}/{to_risk}"
 
     # Promote: use `charmcraft release` to place specific revisions onto the target channel
-    logging.info(f"Releasing revision tags {repr(all_tags)} to {repr(to_channel)}")
+    logging.info(f"Releasing revision tags {repr(parsed_tags)} to {repr(to_channel)}")
     for charm, revisions in charm_revisions_map.items():
         # Proceed to try to upload the resources so we get their revision back.
         resources = Charm.from_directory(charm.directory).oci_resources
