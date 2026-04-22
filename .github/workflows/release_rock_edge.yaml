@@ -17,6 +17,10 @@ on:
         description: Relative path to rock directory from repository directory
         default: .
         type: string
+    outputs:
+      rock-digests:
+        description: A JSON encoded string containing the rock digests per architecture
+        value: ${{ jobs.release-rock.outputs.rock-digests }}
 
 jobs:
   release-rock:
@@ -26,6 +30,8 @@ jobs:
     environment:
       name: edge
       deployment: true
+    outputs:
+      rock-digests: ${{ steps.release.outputs.rock-digests }}
     steps:
       - name: Get workflow version
         id: workflow-version
@@ -50,7 +56,7 @@ jobs:
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
-          username: unused  # Required input—but not used
+          username: unused # Required input—but not used
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Compute path in artifact
         id: path-in-artifact
@@ -69,6 +75,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VAR_DIRECTORY: ${{ inputs.path-to-rock-directory }}
     permissions:
-      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
-      packages: write  # Needed to publish to GitHub Container Registry
-      contents: write  # Needed to create git tags
+      actions: read # Needed for GitHub API call to get workflow version (for private repositories)
+      packages: write # Needed to publish to GitHub Container Registry
+      contents: write # Needed to create git tags
