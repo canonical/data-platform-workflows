@@ -37,6 +37,10 @@ on:
           Cannot be used if `charmcraft-snap-revision` input is passed
         required: false
         type: string
+      path-to-charm-directory:
+        description: Relative path to charm directory from repository directory
+        default: .
+        type: string
     secrets:
       charmhub-token:
         description: Charmhub login token
@@ -87,7 +91,7 @@ jobs:
           fetch-depth: 0  # Checkout history with git tags
       - name: Promote charms
         id: promote
-        run: promote-charms-legacy-2 --track="${VAR_TRACK}" --from-risk="${VAR_FROM_RISK}" --to-risk="${VAR_TO_RISK}" --ref="${VAR_REF}" --default-branch="${VAR_DEFAULT_BRANCH}"
+        run: promote-charms-legacy-2 --track="${VAR_TRACK}" --from-risk="${VAR_FROM_RISK}" --to-risk="${VAR_TO_RISK}" --ref="${VAR_REF}" --directory="${VAR_DIRECTORY}" --default-branch="${VAR_DEFAULT_BRANCH}"
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -95,6 +99,7 @@ jobs:
           VAR_FROM_RISK: ${{ inputs.from-risk }}
           VAR_TO_RISK: ${{ inputs.to-risk }}
           VAR_REF: ${{ github.ref }}
+          VAR_DIRECTORY: ${{ inputs.path-to-charm-directory }}
           VAR_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.promote.outcome == 'failure') }}
