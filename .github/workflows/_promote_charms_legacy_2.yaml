@@ -9,7 +9,7 @@ on:
         required: true
         type: string
       from-risk:
-        description:
+        description: |
           Promote from `track` input and this Charmhub risk
 
           https://juju.is/docs/juju/channel#heading--risk
@@ -18,7 +18,7 @@ on:
         required: true
         type: string
       to-risk:
-        description:
+        description: |
           Promote to `track` input and this Charmhub risk
 
           https://juju.is/docs/juju/channel#heading--risk
