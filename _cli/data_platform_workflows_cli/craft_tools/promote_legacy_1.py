@@ -130,9 +130,10 @@ def charm():
     parser.add_argument("--from-risk", required=True)
     parser.add_argument("--to-risk", required=True)
     parser.add_argument("--ref", required=True)
+    parser.add_argument("--directory", required=True)
     parser.add_argument("--default-branch", required=True)
     args = parser.parse_args()
-    directory = pathlib.Path(".")
+    directory = pathlib.Path(args.directory)
 
     # Check if a refresh_versions.toml file exists anywhere in the repository
     if next(pathlib.Path().glob("**/refresh_versions.toml"), False):
