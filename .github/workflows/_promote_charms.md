@@ -20,7 +20,11 @@ on:
     inputs:
       revisions:
         description: |
-         Comma-separated list of git revision tags to promote (e.g. 'rev12,rev124')
+          Comma-separated list of git revision tags to promote.
+          These must match the tags pushed by the release workflow.
+
+          Single-charm repo example: 'rev123,rev124'
+          Monorepo example: 'mysql/rev123,mysql-k8s/rev124'
         required: true
         type: string
       track:

@@ -46,7 +46,7 @@ jobs:
   promote-charms:
     name: Promote charms (revisions ${{ inputs.revisions }}) to ${{ inputs.track }}/${{ inputs.to-risk }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     environment:
       name: ${{ inputs.to-risk }}
       deployment: true
