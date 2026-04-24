@@ -1,9 +1,9 @@
-Workflow file: [_promote_charm_legacy.yaml](_promote_charm_legacy.yaml)
+Workflow file: [_promote_charm_legacy_1.yaml](_promote_charm_legacy_1.yaml)
 
 > [!WARNING]
 > This workflow is **deprecated** and should only be used for existing legacy tracks that do not have charm refresh compatibility version tags. For new tracks, [_promote_charms.yaml](_promote_charms.md) and [tag_charm_edge.yaml](release_charm_edge.md) should be used instead.
 >
-> Also, subject to **breaking changes on patch release**. `_promote_charm_legacy.yaml` is experimental & not part of the public interface.
+> Also, subject to **breaking changes on patch release**. `_promote_charm_legacy_1.yaml` is experimental & not part of the public interface.
 
 ## Limitations
 Currently, this workflow can only be used on repositories that contain a single charm (that needs to be promoted; additional unreleased test charms are okay). That charm must be located at the root of the repository directory (i.e. `charmcraft.yaml` is present in the root of the repository)
@@ -38,7 +38,7 @@ on:
 jobs:
   promote:
     name: Promote charm
-    uses: canonical/data-platform-workflows/.github/workflows/_promote_charm_legacy.yaml@v0.0.0
+    uses: canonical/data-platform-workflows/.github/workflows/_promote_charm_legacy_1.yaml@v0.0.0
     with:
       track: 'latest'
       from-risk: ${{ inputs.from-risk }}

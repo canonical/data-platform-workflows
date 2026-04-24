@@ -15,8 +15,9 @@
 | [release_charm_edge.yaml](.github/workflows/release_charm_edge.md)           | Release charm to Charmhub "edge" risk                                                                            |
 | [release_charm_pr.yaml](.github/workflows/release_charm_pr.md)               | Release pull request charm to Charmhub branch                                                                    |
 | [_mirror_charm.yaml](.github/workflows/_mirror_charm.md)                     | **Experimental** Mirror subset of charm monorepo with local Python package to single-charm repo                  |
-| [_promote_charms.yaml](.github/workflows/_promote_charms.md)                 | **Experimental** `charmcraft promote` & generate release notes                                                   |
-| [_promote_charm_legacy.yaml](.github/workflows/_promote_charm_legacy.md)     | **Deprecated** `charmcraft promote` & generate release notes for charm without refresh compatibility version tags |
+| [_promote_charms.yaml](.github/workflows/_promote_charms.md)                 | **Experimental** `charmcraft release` by revision & generate release notes                                       |
+| [_promote_charms_legacy.yaml](.github/workflows/_promote_charms_legacy.md)   | **Deprecated** `charmcraft promote` & generate release notes                                                     |
+| [_promote_charm_legacy_1.yaml](.github/workflows/_promote_charm_legacy_1.md) | **Deprecated** `charmcraft promote` & generate release notes for charm without refresh compatibility version tags |
 | [check_charm_pr.yaml](.github/workflows/check_charm_pr.md)                   | Check charm pull request has required labels for release notes                                                   |
 | [approve_renovate_pr.yaml](.github/workflows/approve_renovate_pr.md)         | Reduce required approvals on [Renovate](https://docs.renovatebot.com/) pull requests by 1                        |
 | [_update_bundle.yaml](.github/workflows/_update_bundle.md)                   | **Experimental** Update charm revisions in bundle                                                                |

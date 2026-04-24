@@ -1,24 +1,24 @@
 on:
   workflow_call:
     inputs:
+      revisions:
+        description: |
+          Comma-separated list of git revision tags to promote.
+          These must match the tags pushed by the release workflow.
+
+          Single-charm repo example: 'rev123,rev124'
+          Monorepo example: 'mysql/rev123,mysql-k8s/rev124'
+        required: true
+        type: string
       track:
         description: |
-          Charmhub track
+          Charmhub track to promote to
 
           https://juju.is/docs/juju/channel#heading--track
         required: true
         type: string
-      from-risk:
-        description:
-          Promote from `track` input and this Charmhub risk
-
-          https://juju.is/docs/juju/channel#heading--risk
-
-          Must be one of "edge", "beta", "candidate"
-        required: true
-        type: string
       to-risk:
-        description:
+        description: |
           Promote to `track` input and this Charmhub risk
 
           https://juju.is/docs/juju/channel#heading--risk
@@ -44,12 +44,9 @@ on:
 
 jobs:
   promote-charms:
-    name: Promote charms from ${{ inputs.track }}/${{ inputs.from-risk }} to ${{ inputs.track }}/${{ inputs.to-risk }}
+    name: Promote charms (revisions ${{ inputs.revisions }}) to ${{ inputs.track }}/${{ inputs.to-risk }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    # TODO future improvement: when https://bugs.launchpad.net/snapstore-server/+bug/2097446 is
-    # fixed, use isolated per-environment secrets for different risks & require manual approval to
-    # access stable secret in order to improve security posture & avoid mistakes
     environment:
       name: ${{ inputs.to-risk }}
       deployment: true
@@ -83,12 +80,12 @@ jobs:
           fetch-depth: 0  # Checkout history with git tags
       - name: Promote charms
         id: promote
-        run: promote-charms --track="${VAR_TRACK}" --from-risk="${VAR_FROM_RISK}" --to-risk="${VAR_TO_RISK}" --ref="${VAR_REF}" --default-branch="${VAR_DEFAULT_BRANCH}"
+        run: promote-charms --revisions="${VAR_REVISIONS}" --track="${VAR_TRACK}" --to-risk="${VAR_TO_RISK}" --ref="${VAR_REF}" --default-branch="${VAR_DEFAULT_BRANCH}"
         env:
           CHARMCRAFT_AUTH: ${{ secrets.charmhub-token }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VAR_REVISIONS: ${{ inputs.revisions }}
           VAR_TRACK: ${{ inputs.track }}
-          VAR_FROM_RISK: ${{ inputs.from-risk }}
           VAR_TO_RISK: ${{ inputs.to-risk }}
           VAR_REF: ${{ github.ref }}
           VAR_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
