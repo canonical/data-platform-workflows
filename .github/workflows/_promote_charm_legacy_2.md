@@ -1,21 +1,19 @@
-Workflow file: [_promote_charms_legacy.yaml](_promote_charms_legacy.yaml)
+Workflow file: [_promote_charm_legacy_2.yaml](_promote_charm_legacy_2.yaml)
 
 > [!WARNING]
-> This workflow is **deprecated**. For new tracks, use [_promote_charms.yaml](_promote_charms.md) instead.
+> This workflow is **deprecated** and should only be used for existing legacy tracks that do not have charm refresh compatibility version tags. For new tracks, [_promote_charms.yaml](_promote_charms.md) and [tag_charm_edge.yaml](release_charm_edge.md) should be used instead.
 >
-> Subject to **breaking changes on patch release**. `_promote_charms_legacy.yaml` is experimental & not part of the public interface.
+> Also, subject to **breaking changes on patch release**. `_promote_charm_legacy_2.yaml` is experimental & not part of the public interface.
 
 ## Limitations
-This workflow currently only supports charms that implement in-place upgrades & rollbacks with [charm-refresh](https://github.com/canonical/charm-refresh) and, thus, use [tag_charm_edge.yaml](release_charm_edge.md).
-
-All charms must be released to the same track. All charms must share an identical charm refresh compatibility version tag.
+Currently, this workflow can only be used on repositories that contain a single charm (that needs to be promoted; additional unreleased test charms are okay). That charm must be located at the root of the repository directory (i.e. `charmcraft.yaml` is present in the root of the repository)
 
 ## Usage
 ### Step 1: Add `promote.yaml` file to `.github/workflows/`
 ```yaml
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
-name: Promote charms
+name: Promote charm
 
 on:
   workflow_dispatch:
@@ -39,8 +37,8 @@ on:
 
 jobs:
   promote:
-    name: Promote charms
-    uses: canonical/data-platform-workflows/.github/workflows/_promote_charms_legacy.yaml@v0.0.0
+    name: Promote charm
+    uses: canonical/data-platform-workflows/.github/workflows/_promote_charm_legacy_2.yaml@v0.0.0
     with:
       track: 'latest'
       from-risk: ${{ inputs.from-risk }}
@@ -63,6 +61,7 @@ on:
       - opened
       - labeled
       - unlabeled
+      - edited
     branches:
       - main
 
