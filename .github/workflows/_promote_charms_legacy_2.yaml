@@ -44,7 +44,7 @@ on:
 
 jobs:
   promote-charms:
-    name: Promote charms from ${{ inputs.track }}/${{ inputs.from-risk }} to ${{ inputs.track }}/${{ inputs.to-risk }}
+    name: (deprecated) Promote charms from ${{ inputs.track }}/${{ inputs.from-risk }} to ${{ inputs.track }}/${{ inputs.to-risk }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     # TODO future improvement: when https://bugs.launchpad.net/snapstore-server/+bug/2097446 is
@@ -54,6 +54,10 @@ jobs:
       name: ${{ inputs.to-risk }}
       deployment: true
     steps:
+      - name: Deprecation notice
+        run: |
+          # shellcheck disable=SC2016
+          echo '::warning::The `_promote_charms_legacy_2.yaml` workflow is deprecated & will be removed in a future release.'
       - name: Get workflow version
         id: workflow-version
         uses: canonical/get-workflow-version-action@v1

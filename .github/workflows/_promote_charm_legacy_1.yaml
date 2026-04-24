@@ -54,6 +54,10 @@ jobs:
       name: ${{ inputs.to-risk }}
       deployment: true
     steps:
+      - name: Deprecation notice
+        run: |
+          # shellcheck disable=SC2016
+          echo '::warning::The `_promote_charm_legacy_1.yaml` workflow is deprecated & will be removed in a future release.'
       - name: Get workflow version
         id: workflow-version
         uses: canonical/get-workflow-version-action@v1

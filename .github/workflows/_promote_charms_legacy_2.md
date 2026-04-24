@@ -1,9 +1,9 @@
 Workflow file: [_promote_charms_legacy_2.yaml](_promote_charms_legacy_2.yaml)
 
 > [!WARNING]
-> This workflow is **deprecated**. For new tracks, use [_promote_charms.yaml](_promote_charms.md) instead.
+> This workflow is **deprecated**. Use [_promote_charms.yaml](_promote_charms.md) instead.
 >
-> Subject to **breaking changes on patch release**. `_promote_charms_legacy_2.yaml` is experimental & not part of the public interface.
+> Also, subject to **breaking changes on patch release**. `_promote_charms_legacy_2.yaml` is experimental & not part of the public interface.
 
 ## Limitations
 This workflow currently only supports charms that implement in-place upgrades & rollbacks with [charm-refresh](https://github.com/canonical/charm-refresh) and, thus, use [tag_charm_edge.yaml](release_charm_edge.md).
