@@ -87,9 +87,7 @@ class Charm:
             return f"{self.name}/rev"
 
 
-def get_commit_sha_and_release_title(
-    *, channel: str, charms_: list[Charm], channel_missing_ok=False
-):
+def get_commit_sha_and_release_title(*, channel: str, charms_: list[Charm], channel_missing_ok=False):
     """Get (& verify) commit sha that all charm revisions on a Charmhub channel name were built from
 
     Checks revisions across all Charmhub channels (each charm has a Charmhub channel) with name
@@ -207,30 +205,6 @@ def get_github_release_tag(*, commit_sha: str) -> str:
     return charm_refresh_compatibility_version_tags[0]
 
 
-def get_legacy_release_tag_for_commit(*, commit_sha: str, charms_: list[Charm]) -> str:
-    """Get alphabetically-first revision tag on commit as the GitHub release tag.
-
-    Used when refresh_versions.toml does not exist (no v*/* tags).
-    """
-    all_tags = []
-    for charm in charms_:
-        tags = subprocess.run(
-            ["git", "tag", "--list", f"{charm.tag_prefix}*", "--points-at", commit_sha],
-            capture_output=True,
-            check=True,
-            text=True,
-        ).stdout.splitlines()
-        all_tags.extend(tags)
-    if not all_tags:
-        raise ValueError(
-            f"No revision tags found on commit {commit_sha} for charms "
-            f"{[c.name for c in charms_]}"
-        )
-    # Pick alphabetically first tag because of
-    # https://github.com/orgs/community/discussions/149281#discussioncomment-12071170
-    return sorted(all_tags)[0]
-
-
 def get_last_stable_release_tag(*, track: str, charms_: list[Charm]) -> str | None:
     """Get GitHub release tag for last stable release (if it exists) on `track`"""
     channel = f"{track}/{Risk.STABLE.value}"
@@ -245,27 +219,6 @@ def get_last_stable_release_tag(*, track: str, charms_: list[Charm]) -> str | No
         return None
     commit_sha, _ = output
     tag = get_github_release_tag(commit_sha=commit_sha)
-    logging.info(f"GitHub release tag for last {repr(channel)} release: {repr(tag)}")
-    return tag
-
-
-def get_legacy_last_stable_release_tag(*, track: str, charms_: list[Charm]) -> str | None:
-    """Get GitHub release tag for last stable release using revision tags.
-
-    Used when refresh_versions.toml does not exist (no v*/* tags).
-    """
-    channel = f"{track}/{Risk.STABLE.value}"
-    logging.info(f"Getting GitHub release tag for last {repr(channel)} release")
-    output = get_commit_sha_and_release_title(
-        channel=channel,
-        charms_=charms_,
-        channel_missing_ok=True,  # In case no previous stable release
-    )
-    if output is None:
-        logging.warning(f"No existing release found on {repr(channel)}")
-        return None
-    commit_sha, _ = output
-    tag = get_legacy_release_tag_for_commit(commit_sha=commit_sha, charms_=charms_)
     logging.info(f"GitHub release tag for last {repr(channel)} release: {repr(tag)}")
     return tag
 
