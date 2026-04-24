@@ -1,27 +1,27 @@
 ## Usage
 ### Workflows
-| Name                                                                         | Description                                                                                                      |
-|------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
-| [lint_workflows.yaml](.github/workflows/lint_workflows.md)                   | Lint GitHub Actions workflows (`.github/workflows/`)                                      |
-| [tag_charm_edge.yaml](.github/workflows/tag_charm_edge.md)                   | Create charm refresh compatibility version git tag before edge build & release                                   |
-| [build_snap.yaml](.github/workflows/build_snap.md)                           | Build snap                                                                                                       |
-| [build_rock.yaml](.github/workflows/build_rock.md)                           | Build rock                                                                                                       |
-| [build_charm.yaml](.github/workflows/build_charm.md)                         | Build charm                                                                                                      |
-| [release_python_package.yaml](.github/workflows/release_python_package.md)   | Release Python package to PyPI                                                                                   |
-| [check_python_package_pr.yaml](.github/workflows/check_python_package_pr.md) | Check Python package pull request has required semantic version prefix                                           |
-| [release_snap_edge.yaml](.github/workflows/release_snap_edge.md)             | Release snap to Snap Store "edge" risk                                                                           |
-| [release_snap_pr.yaml](.github/workflows/release_snap_pr.md)                 | Release pull request snap to Snap Store branch                                                                   |
-| [release_rock_edge.yaml](.github/workflows/release_rock_edge.md)             | Release rock to GitHub Container Registry                                                                        |
-| [release_charm_edge.yaml](.github/workflows/release_charm_edge.md)           | Release charm to Charmhub "edge" risk                                                                            |
-| [release_charm_pr.yaml](.github/workflows/release_charm_pr.md)               | Release pull request charm to Charmhub branch                                                                    |
-| [_mirror_charm.yaml](.github/workflows/_mirror_charm.md)                     | **Experimental** Mirror subset of charm monorepo with local Python package to single-charm repo                  |
-| [_promote_charms.yaml](.github/workflows/_promote_charms.md)                 | **Experimental** `charmcraft release` by revision & generate release notes                                       |
+| Name                                                                           | Description                                                                                                       |
+|--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| [lint_workflows.yaml](.github/workflows/lint_workflows.md)                     | Lint GitHub Actions workflows (`.github/workflows/`)                                                              |
+| [tag_charm_edge.yaml](.github/workflows/tag_charm_edge.md)                     | Create charm refresh compatibility version git tag before edge build & release                                    |
+| [build_snap.yaml](.github/workflows/build_snap.md)                             | Build snap                                                                                                        |
+| [build_rock.yaml](.github/workflows/build_rock.md)                             | Build rock                                                                                                        |
+| [build_charm.yaml](.github/workflows/build_charm.md)                           | Build charm                                                                                                       |
+| [release_python_package.yaml](.github/workflows/release_python_package.md)     | Release Python package to PyPI                                                                                    |
+| [check_python_package_pr.yaml](.github/workflows/check_python_package_pr.md)   | Check Python package pull request has required semantic version prefix                                            |
+| [release_snap_edge.yaml](.github/workflows/release_snap_edge.md)               | Release snap to Snap Store "edge" risk                                                                            |
+| [release_snap_pr.yaml](.github/workflows/release_snap_pr.md)                   | Release pull request snap to Snap Store branch                                                                    |
+| [release_rock_edge.yaml](.github/workflows/release_rock_edge.md)               | Release rock to GitHub Container Registry                                                                         |
+| [release_charm_edge.yaml](.github/workflows/release_charm_edge.md)             | Release charm to Charmhub "edge" risk                                                                             |
+| [release_charm_pr.yaml](.github/workflows/release_charm_pr.md)                 | Release pull request charm to Charmhub branch                                                                     |
+| [_mirror_charm.yaml](.github/workflows/_mirror_charm.md)                       | **Experimental** Mirror subset of charm monorepo with local Python package to single-charm repo                   |
+| [_promote_charms.yaml](.github/workflows/_promote_charms.md)                   | **Experimental** Promote charms by revision & generate release notes                                              |
 | [_promote_charm_legacy_1.yaml](.github/workflows/_promote_charm_legacy_1.md)   | **Deprecated** `charmcraft promote` & generate release notes for charm without refresh compatibility version tags |
-| [_promote_charms_legacy_2.yaml](.github/workflows/_promote_charms_legacy_2.md) | **Deprecated** `charmcraft promote` & generate release notes                                                     |
-| [check_charm_pr.yaml](.github/workflows/check_charm_pr.md)                   | Check charm pull request has required labels for release notes                                                   |
-| [approve_renovate_pr.yaml](.github/workflows/approve_renovate_pr.md)         | Reduce required approvals on [Renovate](https://docs.renovatebot.com/) pull requests by 1                        |
-| [_update_bundle.yaml](.github/workflows/_update_bundle.md)                   | **Experimental** Update charm revisions in bundle                                                                |
-| [sync_docs.yaml](.github/workflows/sync_docs.md)                             | **Deprecated** Sync Discourse documentation to GitHub                                                            |
+| [_promote_charms_legacy_2.yaml](.github/workflows/_promote_charms_legacy_2.md) | **Deprecated** `charmcraft promote` & generate release notes                                                      |
+| [check_charm_pr.yaml](.github/workflows/check_charm_pr.md)                     | Check charm pull request has required labels for release notes                                                    |
+| [approve_renovate_pr.yaml](.github/workflows/approve_renovate_pr.md)           | Reduce required approvals on [Renovate](https://docs.renovatebot.com/) pull requests by 1                         |
+| [_update_bundle.yaml](.github/workflows/_update_bundle.md)                     | **Experimental** Update charm revisions in bundle                                                                 |
+| [sync_docs.yaml](.github/workflows/sync_docs.md)                               | **Deprecated** Sync Discourse documentation to GitHub                                                             |
 
 ### Version
 Recommendation: pin the latest version (e.g. `v1.0.0`) and use [Renovate](https://docs.renovatebot.com/) to stay up-to-date.
