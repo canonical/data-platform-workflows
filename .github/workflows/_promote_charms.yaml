@@ -12,7 +12,7 @@ on:
         type: string
       track:
         description: |
-          Charmhub track to promote to
+          Charmhub track to promote to.
 
           https://juju.is/docs/juju/channel#heading--track
         required: true
@@ -47,6 +47,9 @@ jobs:
     name: Promote charms (revisions ${{ inputs.revisions }}) to ${{ inputs.track }}/${{ inputs.to-risk }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # TODO future improvement: when https://bugs.launchpad.net/snapstore-server/+bug/2097446 is
+    # fixed, use isolated per-environment secrets for different risks & require manual approval to
+    # access stable secret in order to improve security posture & avoid mistakes
     environment:
       name: ${{ inputs.to-risk }}
       deployment: true

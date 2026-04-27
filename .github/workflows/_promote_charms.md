@@ -27,11 +27,6 @@ on:
           Monorepo example: 'mysql/rev123,mysql-k8s/rev124'
         required: true
         type: string
-      track:
-        description: Charmhub track to promote to
-        required: true
-        type: string
-        default: 'latest'
       to-risk:
         description: Promote to this Charmhub risk
         required: true
@@ -47,7 +42,7 @@ jobs:
     uses: canonical/data-platform-workflows/.github/workflows/_promote_charms.yaml@v0.0.0
     with:
       revisions: ${{ inputs.revisions }}
-      track: ${{ inputs.track }}
+      track: 'latest'
       to-risk: ${{ inputs.to-risk }}
     secrets:
       charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
