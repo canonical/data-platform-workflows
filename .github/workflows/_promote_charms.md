@@ -6,7 +6,7 @@ Workflow file: [_promote_charms.yaml](_promote_charms.yaml)
 ## Limitations
 
 - All charms must be released to the same track.
-- [If using refresh tags] All charms must share an identical charm refresh compatibility version tag.
+- (If using [charm-refresh](https://github.com/canonical/charm-refresh)) All charms must share an identical charm refresh compatibility version tag.
 
 ## Usage
 ### Step 1: Add `promote.yaml` file to `.github/workflows/`
@@ -21,7 +21,7 @@ on:
       revisions:
         description: |
           Comma-separated list of git revision tags to promote.
-          These must match the tags pushed by the release workflow.
+          These must match the tags created by canonical/data-platform-workflows release_charm_edge.yaml
 
           Single-charm repo example: 'rev123,rev124'
           Monorepo example: 'mysql/rev123,mysql-k8s/rev124'
