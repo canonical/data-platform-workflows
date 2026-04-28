@@ -1,32 +1,33 @@
-Workflow file: [_promote_charms.yaml](_promote_charms.yaml)
+Workflow file: [_promote_charms_legacy_2.yaml](_promote_charms_legacy_2.yaml)
 
 > [!WARNING]
-> Subject to **breaking changes on patch release**. `_promote_charms.yaml` is experimental & not part of the public interface.
+> This workflow is **deprecated**. Use [_promote_charms.yaml](_promote_charms.md) instead.
+>
+> Also, subject to **breaking changes on patch release**. `_promote_charms_legacy_2.yaml` is experimental & not part of the public interface.
 
 ## Limitations
+This workflow currently only supports charms that implement in-place upgrades & rollbacks with [charm-refresh](https://github.com/canonical/charm-refresh) and, thus, use [tag_charm_edge.yaml](release_charm_edge.md).
 
-- All charms must be released to the same track.
-- (If using [charm-refresh](https://github.com/canonical/charm-refresh)) All charms must share an identical charm refresh compatibility version tag.
+All charms must be released to the same track. All charms must share an identical charm refresh compatibility version tag.
 
 ## Usage
 ### Step 1: Add `promote.yaml` file to `.github/workflows/`
 ```yaml
-# Copyright 2026 Canonical Ltd.
+# Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
-name: Promote charms by revision
+name: Promote charms
 
 on:
   workflow_dispatch:
     inputs:
-      revisions:
-        description: |
-          Comma-separated list of git revision tags to promote.
-          These must match the tags created by canonical/data-platform-workflows release_charm_edge.yaml
-
-          Single-charm repo example: 'rev123,rev124'
-          Monorepo example: 'mysql/rev123,mysql-k8s/rev124'
+      from-risk:
+        description: Promote from this Charmhub risk
         required: true
-        type: string
+        type: choice
+        options:
+          - edge
+          - beta
+          - candidate
       to-risk:
         description: Promote to this Charmhub risk
         required: true
@@ -39,10 +40,10 @@ on:
 jobs:
   promote:
     name: Promote charms
-    uses: canonical/data-platform-workflows/.github/workflows/_promote_charms.yaml@v0.0.0
+    uses: canonical/data-platform-workflows/.github/workflows/_promote_charms_legacy_2.yaml@v0.0.0
     with:
-      revisions: ${{ inputs.revisions }}
       track: 'latest'
+      from-risk: ${{ inputs.from-risk }}
       to-risk: ${{ inputs.to-risk }}
     secrets:
       charmhub-token: ${{ secrets.CHARMHUB_TOKEN }}
@@ -50,10 +51,9 @@ jobs:
       actions: read  # Needed for GitHub API call to get workflow version
       contents: write  # Needed to edit GitHub releases
 ```
-
 ### Step 2: Add `check_pr.yaml` file to `.github/workflows/`
 ```yaml
-# Copyright 2026 Canonical Ltd.
+# Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 name: Check pull request
 

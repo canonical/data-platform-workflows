@@ -1,10 +1,8 @@
 import argparse
 import dataclasses
 import enum
-import json
 import logging
 import pathlib
-import re
 import subprocess
 import sys
 
@@ -89,9 +87,7 @@ class Charm:
             return f"{self.name}/rev"
 
 
-def get_commit_sha_and_release_title(
-    *, channel: str, charms_: list[Charm], channel_missing_ok=False
-):
+def get_commit_sha_and_release_title(*, channel: str, charms_: list[Charm], channel_missing_ok=False):
     """Get (& verify) commit sha that all charm revisions on a Charmhub channel name were built from
 
     Checks revisions across all Charmhub channels (each charm has a Charmhub channel) with name
@@ -192,51 +188,24 @@ def get_commit_sha_and_release_title(
     return commit_sha, release_title
 
 
-def get_release_tag_for_commit(
-    *, commit_sha: str, has_refresh_versions: bool, charms_: list[Charm]
-) -> str:
-    """Get GitHub release tag from commit.
-
-    If has_refresh_versions, looks for a v*/* charm refresh compatibility version tag.
-    Otherwise, returns the alphabetically-first revision tag on the commit.
-    """
-    if has_refresh_versions:
-        charm_refresh_compatibility_version_tags = subprocess.run(
-            ["git", "tag", "--list", "v*/*", "--points-at", commit_sha],
-            capture_output=True,
-            check=True,
-            text=True,
-        ).stdout.splitlines()
-        if len(charm_refresh_compatibility_version_tags) != 1:
-            raise ValueError(
-                f"Expected 1 charm refresh compatibility version tags on commit {commit_sha}, got "
-                f"{len(charm_refresh_compatibility_version_tags)} tags: "
-                f"{repr(charm_refresh_compatibility_version_tags)}"
-            )
-        return charm_refresh_compatibility_version_tags[0]
-    else:
-        all_tags = []
-        for charm in charms_:
-            tags = subprocess.run(
-                ["git", "tag", "--list", f"{charm.tag_prefix}*", "--points-at", commit_sha],
-                capture_output=True,
-                check=True,
-                text=True,
-            ).stdout.splitlines()
-            all_tags.extend(tags)
-        if not all_tags:
-            raise ValueError(
-                f"No revision tags found on commit {commit_sha} for charms "
-                f"{[c.name for c in charms_]}"
-            )
-        # Pick alphabetically first tag because of
-        # https://github.com/orgs/community/discussions/149281#discussioncomment-12071170
-        return sorted(all_tags)[0]
+def get_github_release_tag(*, commit_sha: str) -> str:
+    """Get GitHub release tag from commit"""
+    charm_refresh_compatibility_version_tags = subprocess.run(
+        ["git", "tag", "--list", "v*/*", "--points-at", commit_sha],
+        capture_output=True,
+        check=True,
+        text=True,
+    ).stdout.splitlines()
+    if len(charm_refresh_compatibility_version_tags) != 1:
+        raise ValueError(
+            f"Expected 1 charm refresh compatibility version tags on commit {commit_sha}, got "
+            f"{len(charm_refresh_compatibility_version_tags)} tags: "
+            f"{repr(charm_refresh_compatibility_version_tags)}"
+        )
+    return charm_refresh_compatibility_version_tags[0]
 
 
-def get_last_stable_release_tag(
-    *, track: str, charms_: list[Charm], has_refresh_versions: bool
-) -> str | None:
+def get_last_stable_release_tag(*, track: str, charms_: list[Charm]) -> str | None:
     """Get GitHub release tag for last stable release (if it exists) on `track`"""
     channel = f"{track}/{Risk.STABLE.value}"
     logging.info(f"Getting GitHub release tag for last {repr(channel)} release")
@@ -249,9 +218,7 @@ def get_last_stable_release_tag(
         logging.warning(f"No existing release found on {repr(channel)}")
         return None
     commit_sha, _ = output
-    tag = get_release_tag_for_commit(
-        commit_sha=commit_sha, has_refresh_versions=has_refresh_versions, charms_=charms_
-    )
+    tag = get_github_release_tag(commit_sha=commit_sha)
     logging.info(f"GitHub release tag for last {repr(channel)} release: {repr(tag)}")
     return tag
 
@@ -277,7 +244,6 @@ def _validate_promotion_and_create_release(
     to_risk: Risk,
     ref: str,
     default_branch: str,
-    has_refresh_versions: bool = True,
 ):
     if dry_run:
         logging.info("Checking that revisions that will be promoted are from the same git commit")
@@ -321,11 +287,7 @@ def _validate_promotion_and_create_release(
                 )
             raise ValueError(message)
 
-    github_release_tag = get_release_tag_for_commit(
-        commit_sha=promoted_commit_sha,
-        has_refresh_versions=has_refresh_versions,
-        charms_=charms_,
-    )
+    github_release_tag = get_github_release_tag(commit_sha=promoted_commit_sha)
 
     if to_risk is Risk.CANDIDATE:
         if dry_run:
@@ -333,9 +295,7 @@ def _validate_promotion_and_create_release(
                 "Checking that the last stable release revisions are from the same git commit and "
                 "that we can determine the GitHub release tag"
             )
-        previous_github_release_tag = get_last_stable_release_tag(
-            track=track, charms_=charms_, has_refresh_versions=has_refresh_versions
-        )
+        previous_github_release_tag = get_last_stable_release_tag(track=track, charms_=charms_)
 
     if dry_run:
         return
@@ -383,111 +343,14 @@ def _validate_promotion_and_create_release(
         subprocess.run(command, check=True)
 
 
-def upload_resources(charm_name: str, resources: tuple[tuple[str, str]]) -> dict[str, str]:
-    """Uploads the resources and returns the mapping of resource to revision."""
-    resource_revisions: dict[str, str] = {}
-    for resource, upstream in resources:
-        result = json.loads(
-            subprocess.run(
-                [
-                    "charmcraft",
-                    "upload-resource",
-                    charm_name,
-                    resource,
-                    "--image",
-                    f"docker://{upstream}",
-                    "--format",
-                    "json",
-                ],
-                capture_output=True,
-                check=True,
-                text=True,
-            ).stdout
-        )
-        resource_revisions[resource] = result["revision"]
-    return resource_revisions
-
-
-def _parse_revision_tags(revisions_str: str, charm_names: list[str]) -> dict[str, list[int]]:
-    """Parse comma-separated revision tags and validate against known charms.
-
-    Returns dict mapping charm name to list of revision ints.
-    """
-    revision_tag_re = re.compile(r"^(?:(?P<charm>[a-z][a-z0-9-]*)/)?rev(?P<revision>[0-9]+)$")
-    tags = [t.strip() for t in revisions_str.split(",") if t.strip()]
-    if not tags:
-        raise ValueError("`revisions` input must not be empty")
-
-    result = {}
-    for tag in tags:
-        match = revision_tag_re.match(tag)
-        if not match:
-            raise ValueError(
-                f"Unable to parse revision tag {repr(tag)}. Expected format: "
-                "'<charm-name>/rev<N>' or 'rev<N>'"
-            )
-        charm_name = match.group("charm")  # Tags without charm prefix will have `None` here
-        revision = int(match.group("revision"))
-        result.setdefault(charm_name, []).append(revision)
-
-    if None in result and len(result) > 1:
-        raise ValueError(
-            "Cannot mix root-level tags (e.g. 'rev42') with prefixed tags "
-            "(e.g. 'mysql/rev10') in the same input"
-        )
-
-    if None in result:
-        if len(charm_names) != 1:
-            raise ValueError(
-                "Root-level revision tags (e.g. 'rev42') require exactly one charm in the "
-                f"repository, found: {repr(charm_names)}"
-            )
-        return {charm_names[0]: result[None]}
-
-    # validate against known charms on the repo
-    input_charm_names = set(result.keys())
-    repo_charm_names = set(charm_names)
-    if missing := repo_charm_names - input_charm_names:
-        raise ValueError(
-            f"Missing revision tag(s) for charm(s) found in repository: {repr(missing)}. "
-            "Provide at least one revision tag for every charm in the repo."
-        )
-    if unknown := input_charm_names - repo_charm_names:
-        raise ValueError(
-            f"Unknown charm name(s) in revision tags (not found in repository): {repr(unknown)}"
-        )
-    return result
-
-
 def charms():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--revisions", required=True, type=str)
-    parser.add_argument("--track", required=True, type=str)
-    parser.add_argument("--to-risk", required=True, type=str)
-    parser.add_argument("--ref", required=True, type=str)
-    parser.add_argument("--default-branch", required=True, type=str)
+    parser.add_argument("--track", required=True)
+    parser.add_argument("--from-risk", required=True)
+    parser.add_argument("--to-risk", required=True)
+    parser.add_argument("--ref", required=True)
+    parser.add_argument("--default-branch", required=True)
     args = parser.parse_args()
-
-    track = args.track
-    if track == "":
-        raise ValueError("`track` input must not be empty string")
-    if "/" in track:
-        raise ValueError(f"`track` input cannot contain '/' character: {repr(track)}")
-    to_risk = Risk.get(args.to_risk, direction=Direction.TO)
-
-    ref = args.ref
-    if not ref.startswith("refs/heads/"):
-        raise ValueError(
-            "This workflow must be run on `workflow_dispatch` from the branch that contains track "
-            f"{repr(track)}"
-        )
-    default_branch = args.default_branch
-
-    if not pathlib.Path(".github/release.yaml").exists():
-        raise FileNotFoundError(
-            "Repository must contain `.github/release.yaml` to automatically generate release "
-            "notes in the correct format."
-        )
 
     charms_: list[Charm] = []
     for path in pathlib.Path().glob("**/charmcraft.yaml"):
@@ -502,116 +365,86 @@ def charms():
         )
     charms_ = sorted(charms_, key=lambda charm: charm.name)
 
-    has_refresh_versions = bool(next(pathlib.Path().glob("**/refresh_versions.toml"), False))
-
-    charm_by_name = {charm.name: charm for charm in charms_}
-    parsed_tags = _parse_revision_tags(args.revisions, [charm.name for charm in charms_])
-    charm_revisions_map: dict[Charm, list[int]] = {
-        charm_by_name[name]: sorted(revisions) for name, revisions in parsed_tags.items()
-    }
-
-    # Pre-promotion: verify all provided revisions point to the same git commit
-    logging.info("Checking that all provided revisions were built from the same git commit")
-    commit_shas: set[str] = set()
-    for charm, revisions in charm_revisions_map.items():
-        for revision in revisions:
-            tag = f"{charm.tag_prefix}{revision}"
-            try:
-                sha = subprocess.run(
-                    ["git", "rev-list", "-n", "1", tag],
-                    capture_output=True,
-                    check=True,
-                    text=True,
-                ).stdout.strip()
-            except subprocess.CalledProcessError:
-                logging.error(
-                    f"Unable to find git tag {repr(tag)}. Was this revision released with "
-                    "data-platform-workflows release_charm_edge.yaml?"
-                )
-                raise
-            commit_shas.add(sha)
-
-    if len(commit_shas) != 1:
+    track = args.track
+    if track == "":
+        raise ValueError("`track` input must not be empty string")
+    if "/" in track:
+        raise ValueError(f"`track` input cannot contain '/' character: {repr(track)}")
+    from_risk = Risk.get(args.from_risk, direction=Direction.FROM)
+    to_risk = Risk.get(args.to_risk, direction=Direction.TO)
+    if not to_risk < from_risk:
         raise ValueError(
-            f"Provided revision tags {repr(parsed_tags)} were built from different git commits: "
-            f"{repr(commit_shas)}. All revisions must be built from the same git commit."
+            f"`to-risk` input ({repr(to_risk.value)}) must be lower risk than `from-risk` input "
+            f"({repr(from_risk.value)})"
         )
-    commit_sha = commit_shas.pop()
-    logging.info(f"All provided revisions were built from git commit {repr(commit_sha)}")
-
-    subprocess.run(["git", "checkout", commit_sha], check=True)
-
-    for charm in charms_:
-        try:
-            promoted_charm = Charm.from_directory(charm.directory)
-        except FileNotFoundError:
-            raise FileNotFoundError(
-                f"Charm at {repr(charm.directory)} exists on latest commit on branch but does "
-                f"not exist on commit pointed to by the provided revision tags"
-            )
-        if promoted_charm.name != charm.name:
-            raise ValueError(
-                f"Charm 'name' in metadata.yaml changed between latest commit on branch "
-                f"({repr(charm.name)}) and commit pointed to by the provided revision tags "
-                f"({repr(promoted_charm.name)}). Unable to promote charm"
-            )
-
-    if has_refresh_versions:
-        # Verify the charm refresh compatibility version tag exists on this commit
-        get_release_tag_for_commit(
-            commit_sha=commit_sha, has_refresh_versions=True, charms_=charms_
+    if to_risk is Risk.STABLE and from_risk is not Risk.CANDIDATE:
+        raise ValueError(
+            "Only the 'candidate' risk can be promoted to 'stable'. Promote "
+            f"{repr(from_risk.value)} to 'candidate' first"
         )
 
-    if to_risk is Risk.CANDIDATE:
-        logging.info(
-            "Checking that the last stable release revisions are from the same git commit and "
-            "that we can determine the GitHub release tag"
+    ref = args.ref
+    if not ref.startswith("refs/heads/"):
+        raise ValueError(
+            "This workflow must be run on `workflow_dispatch` from the branch that contains track "
+            f"{repr(track)}"
         )
-        get_last_stable_release_tag(
-            track=track, charms_=charms_, has_refresh_versions=has_refresh_versions
+    default_branch = args.default_branch
+
+    if not pathlib.Path(".github/release.yaml").exists():
+        raise FileNotFoundError(
+            "Repository must contain `.github/release.yaml` to automatically generate release "
+            "notes in the correct format. See "
+            "https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/_promote_charms_legacy_2.md#step-3-add-githubreleaseyaml-file"
         )
 
+    from_channel = f"{track}/{from_risk}"
     to_channel = f"{track}/{to_risk}"
 
-    # Promote: use `charmcraft release` to place specific revisions onto the target channel
-    logging.info(f"Releasing revision tags {repr(parsed_tags)} to {repr(to_channel)}")
-    for charm, revisions in charm_revisions_map.items():
-        # Proceed to try to upload the resources so we get their revision back.
-        resources = Charm.from_directory(charm.directory).oci_resources
-        resource_revisions = upload_resources(charm.name, resources)
-        logging.info(f"Resource revisions for {charm.name} are {resource_revisions}.")
+    _validate_promotion_and_create_release(
+        dry_run=True,
+        charms_=charms_,
+        track=track,
+        channel=from_channel,
+        to_risk=to_risk,
+        ref=ref,
+        default_branch=default_branch,
+    )
 
-        # FIXME: Keep, remove?
-        # One-time exception for mysql-router-k8s on track 'dpe'
+    logging.info(f"Promoting charms from {repr(from_channel)} to {repr(to_channel)}")
+    for charm in charms_:
+        # One-time exception to requirement that charms in monorepo have the same track—to enable
+        # MySQL Router charms to use monorepo. (VM 8.0 track is managed by another team for
+        # historical reasons.) Refresh compatibility tag will still use "dpe".
         if charm.name == "mysql-router-k8s" and track == "dpe":
             logging.warning(
                 "Exception for mysql-router-k8s on track 'dpe': using track '8.0' instead for "
                 "Charmhub operations"
             )
+            charm_from_channel = from_channel.replace("dpe/", "8.0/")
             charm_to_channel = to_channel.replace("dpe/", "8.0/")
         else:
+            charm_from_channel = from_channel
             charm_to_channel = to_channel
 
-        for revision in revisions:
-            logging.info(
-                f"Releasing {repr(charm.name)} revision {revision} to {repr(charm_to_channel)}"
-            )
-            command = [
+        logging.info(
+            f"Promoting {repr(charm.name)} charm from {repr(charm_from_channel)} to "
+            f"{repr(charm_to_channel)}"
+        )
+        subprocess.run(
+            [
                 "charmcraft",
-                "release",
+                "promote",
+                "--name",
                 charm.name,
-                "--revision",
-                str(revision),
-                "--channel",
+                "--from-channel",
+                charm_from_channel,
+                "--to-channel",
                 charm_to_channel,
-            ]
-            for resource_name, resource_rev in resource_revisions.items():
-                command.extend(["--resource", f"{resource_name}:{resource_rev}"])
-
-            subprocess.run(
-                command,
-                check=True,
-            )
+                "--yes",
+            ],
+            check=True,
+        )
 
     _validate_promotion_and_create_release(
         dry_run=False,
@@ -621,5 +454,4 @@ def charms():
         to_risk=to_risk,
         ref=ref,
         default_branch=default_branch,
-        has_refresh_versions=has_refresh_versions,
     )

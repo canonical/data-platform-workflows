@@ -1,1 +1,3 @@
 * @delgod @taurus-forever @Mehdi-Bendriss @marcoppenheimer @paulomach @carlcsaposs-canonical @akram09 @reneradoi
+/.github/workflows/_promote_charms.* @zmraul
+/_cli/data_platform_workflows_cli/craft_tools/promote.py @zmraul

@@ -138,7 +138,7 @@ def charm():
     # Check if a refresh_versions.toml file exists anywhere in the repository
     if next(pathlib.Path().glob("**/refresh_versions.toml"), False):
         raise ValueError(
-            "The `_promote_charm_legacy.yaml` workflow does not support tracks with charm refresh "
+            "The `_promote_charm_legacy_1.yaml` workflow does not support tracks with charm refresh "
             "compatibility version tags. Use `_promote_charms.yaml` instead: "
             "https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/_promote_charms.md"
         )
@@ -173,7 +173,7 @@ def charm():
         raise FileNotFoundError(
             "Repository must contain `.github/release.yaml` to automatically generate release "
             "notes in the correct format. See "
-            "https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/_promote_charm_legacy.md#step-3-add-githubreleaseyaml-file"
+            "https://github.com/canonical/data-platform-workflows/blob/main/.github/workflows/_promote_charm_legacy_1.md#step-3-add-githubreleaseyaml-file"
         )
 
     from_channel = f"{track}/{from_risk}"
