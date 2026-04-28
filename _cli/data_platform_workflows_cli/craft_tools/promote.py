@@ -399,7 +399,9 @@ def upload_resources(charm_name: str, resources: tuple[tuple[str, str]]) -> dict
                     "--format",
                     "json",
                 ],
+                capture_output=True,
                 check=True,
+                text=True,
             ).stdout
         )
         resource_revisions[resource] = result["revision"]
