@@ -70,7 +70,7 @@ def main():
             text=True,
         ).stdout.strip()
     except subprocess.CalledProcessError as e:
-        if "no names found" in e.stderr.lower():
+        if "no names found" in e.stderr.lower() or "no tags can describe" in e.stderr.lower():
             files_added_in_last_commit = subprocess.run(
                 [
                     "git",
