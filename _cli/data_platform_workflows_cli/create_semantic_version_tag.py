@@ -24,7 +24,11 @@ def main():
             text=True,
         ).stdout.strip()
     except subprocess.CalledProcessError as e:
-        if "no names found" or "no annotated tags can describe" in e.stderr.lower():
+        if (
+            "no names found" in e.stderr.lower()
+            or "no tags can describe" in e.stderr.lower()
+            or "no annotated tags can describe" in e.stderr.lower()
+        ):
             raise Exception(
                 "Unable to find previous annotated git tag. If this repository is using the "
                 "`release_python_package.yaml` workflow for the first time, see the instructions "
