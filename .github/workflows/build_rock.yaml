@@ -91,7 +91,7 @@ jobs:
     needs:
       - collect-platforms
     runs-on: ${{ matrix.platform.runner }}
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
       - name: (IS hosted) Install pipx
         if: ${{ contains(matrix.platform.runner, 'self-hosted') }}
