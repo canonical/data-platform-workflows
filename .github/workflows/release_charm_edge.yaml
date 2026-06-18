@@ -90,6 +90,12 @@ jobs:
         with:
           pattern: ${{ inputs.artifact-prefix }}-${{ steps.path-in-artifact.outputs.path }}--platform-*
           merge-multiple: true
+      - name: (charmhub debug) start tcpdump capture
+        id: start-tcpdump
+        timeout-minutes: 1
+        run: |
+          touch mycapturefile1.pcap
+          sudo tcpdump -nn -i any -w mycapturefile1.cap -s 128 port 443 &
       - name: Upload & release charm
         id: release
         run: release-charm-edge --directory="${VAR_DIRECTORY}" --track="${VAR_TRACK}"
@@ -98,6 +104,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VAR_DIRECTORY: ${{ inputs.path-to-charm-directory }}
           VAR_TRACK: ${{ inputs.track }}
+      - name: (charmhub debug) stop tcpdump capture
+        timeout-minutes: 1
+        if: ${{ !cancelled() && steps.start-tcpdump.outcome == 'success' }}
+        run: sudo pkill tcpdump
+      - name: (charmhub debug) upload tcpdump capture
+        timeout-minutes: 5
+        if: ${{ failure() && steps.release.outcome == 'failure' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: tcpdump-release-charm-${{ steps.path-in-artifact.outputs.path }}
+          path: mycapturefile1.cap
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.release.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*
