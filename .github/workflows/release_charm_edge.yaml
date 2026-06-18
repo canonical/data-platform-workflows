@@ -113,7 +113,7 @@ jobs:
         if: ${{ failure() && steps.release.outcome == 'failure' }}
         uses: actions/upload-artifact@v7
         with:
-          name: tcpdump-release-charm-${{ steps.path-in-artifact.outputs.path }}
+          name: tcpdump-release-charm-edge-${{ steps.path-in-artifact.outputs.path }}
           path: mycapturefile1.cap
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.release.outcome == 'failure') }}
