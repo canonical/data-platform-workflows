@@ -23,7 +23,6 @@ jobs:
     with:
       reviewers: canonical/data-platform-technical-authors,octocat
     permissions:
-      actions: read  # Needed for GitHub API call to get workflow version
       contents: write  # Needed to push branch & tag
       pull-requests: write  # Needed to create PR
 ```

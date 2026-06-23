@@ -54,17 +54,10 @@ jobs:
       name: ${{ inputs.to-risk }}
       deployment: true
     steps:
-      - name: Get workflow version
-        id: workflow-version
-        uses: canonical/get-workflow-version-action@v1
-        with:
-          repository-name: canonical/data-platform-workflows
-          file-name: _promote_charms.yaml
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@"${VAR_SHA}"#subdirectory=_cli
         env:
-          VAR_SHA: ${{ steps.workflow-version.outputs.sha }}
+          VAR_SHA: ${{ job.workflow_sha }}
       - name: Parse charmcraft version inputs
         id: charmcraft-snap-version
         run: parse-snap-version --revision="${VAR_REVISION}" --channel="${VAR_CHANNEL}" --revision-input-name=charmcraft-snap-revision --channel-input-name=charmcraft-snap-channel
@@ -96,5 +89,4 @@ jobs:
         if: ${{ success() || (failure() && steps.promote.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*
     permissions:
-      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
       contents: write  # Needed to edit GitHub releases

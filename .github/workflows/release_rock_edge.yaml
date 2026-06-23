@@ -33,17 +33,10 @@ jobs:
     outputs:
       rock-digests: ${{ steps.release.outputs.rock-digests }}
     steps:
-      - name: Get workflow version
-        id: workflow-version
-        uses: canonical/get-workflow-version-action@v1
-        with:
-          repository-name: canonical/data-platform-workflows
-          file-name: release_rock_edge.yaml
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@"${VAR_SHA}"#subdirectory=_cli
         env:
-          VAR_SHA: ${{ steps.workflow-version.outputs.sha }}
+          VAR_SHA: ${{ job.workflow_sha }}
       - name: Install skopeo
         run: |
           sudo apt-get update
@@ -56,7 +49,7 @@ jobs:
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
-          username: unused # Required input—but not used
+          username: unused  # Required input—but not used
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Compute path in artifact
         id: path-in-artifact
@@ -75,6 +68,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VAR_DIRECTORY: ${{ inputs.path-to-rock-directory }}
     permissions:
-      actions: read # Needed for GitHub API call to get workflow version (for private repositories)
-      packages: write # Needed to publish to GitHub Container Registry
-      contents: write # Needed to create git tags
+      packages: write  # Needed to publish to GitHub Container Registry
+      contents: write  # Needed to create git tags

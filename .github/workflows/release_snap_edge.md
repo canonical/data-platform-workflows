@@ -21,7 +21,6 @@ jobs:
     name: Build snap
     uses: canonical/data-platform-workflows/.github/workflows/build_snap.yaml@v0.0.0
     permissions:
-      actions: read  # Needed for GitHub API call to get workflow version
       contents: read
 
   release:
@@ -35,7 +34,6 @@ jobs:
     secrets:
       snap-store-token: ${{ secrets.SNAP_STORE_TOKEN_EDGE }}
     permissions:
-      actions: read  # Needed for GitHub API call to get workflow version
       contents: write  # Needed to create git tags
 ```
 

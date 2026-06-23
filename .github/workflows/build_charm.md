@@ -9,7 +9,6 @@ jobs:
     name: Build charm
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v0.0.0
     permissions:
-      actions: read  # Needed for GitHub API call to get workflow version
       contents: read
 ```
 
