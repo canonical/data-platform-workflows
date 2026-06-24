@@ -28,7 +28,7 @@ jobs:
       env:
         VAR_SHA: ${{ steps.workflow-version.outputs.sha }}
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         persist-credentials: true
     - name: Update Discourse docs
