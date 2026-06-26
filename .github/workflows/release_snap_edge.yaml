@@ -55,17 +55,10 @@ jobs:
     outputs:
       snap-revisions: ${{ steps.release.outputs.snap-revisions }}
     steps:
-      - name: Get workflow version
-        id: workflow-version
-        uses: canonical/get-workflow-version-action@v1
-        with:
-          repository-name: canonical/data-platform-workflows
-          file-name: release_snap_edge.yaml
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CLI
         run: pipx install git+https://github.com/canonical/data-platform-workflows@"${VAR_SHA}"#subdirectory=_cli
         env:
-          VAR_SHA: ${{ steps.workflow-version.outputs.sha }}
+          VAR_SHA: ${{ job.workflow_sha }}
       - name: Parse snapcraft version inputs
         id: snapcraft-snap-version
         run: parse-snap-version --revision="${VAR_REVISION}" --channel="${VAR_CHANNEL}" --revision-input-name=snapcraft-snap-revision --channel-input-name=snapcraft-snap-channel
@@ -103,5 +96,4 @@ jobs:
         if: ${{ success() || (failure() && steps.release.outcome == 'failure') }}
         run: cat ~/.local/state/snapcraft/log/*
     permissions:
-      actions: read # Needed for GitHub API call to get workflow version (for private repositories)
-      contents: write # Needed to create git tags
+      contents: write  # Needed to create git tags

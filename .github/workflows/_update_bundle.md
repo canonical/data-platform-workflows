@@ -24,7 +24,6 @@ jobs:
     secrets:
       token: ${{ secrets.CREATE_PR_APP_TOKEN }}
     permissions:
-      actions: read  # Needed for GitHub API call to get workflow version
       contents: write  # Needed to push branch
       pull-requests: write  # Needed to create PR
 ```

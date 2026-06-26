@@ -16,17 +16,10 @@ jobs:
       run: |
         # shellcheck disable=SC2016
         echo '::warning::The `sync_docs.yaml` workflow is deprecated & will be removed in a future release.'
-    - name: Get workflow version
-      id: workflow-version
-      uses: canonical/get-workflow-version-action@v1
-      with:
-        repository-name: canonical/data-platform-workflows
-        file-name: sync_docs.yaml
-        github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install CLI
       run: pipx install git+https://github.com/canonical/data-platform-workflows@"${VAR_SHA}"#subdirectory=_cli
       env:
-        VAR_SHA: ${{ steps.workflow-version.outputs.sha }}
+        VAR_SHA: ${{ job.workflow_sha }}
     - name: Checkout
       uses: actions/checkout@v7
       with:
@@ -66,6 +59,5 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VAR_REVIEWERS: ${{ inputs.reviewers }}
     permissions:
-      actions: read  # Needed for GitHub API call to get workflow version (for private repositories)
       contents: write  # Needed to push branch & tag
       pull-requests: write  # Needed to create PR
