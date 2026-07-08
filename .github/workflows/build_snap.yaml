@@ -49,6 +49,11 @@ on:
           LXD from base runner image will be used if neither `lxd-snap-revisions` or `lxd-snap-channel` is passed
         required: false
         type: string
+      build-timeout:
+        description: |
+          Timeout in minutes for the build job
+        default: 30
+        type: number
     outputs:
       artifact-prefix:
         description: Snap packages are uploaded to GitHub artifacts beginning with this prefix
@@ -86,7 +91,7 @@ jobs:
     needs:
       - collect-platforms
     runs-on: ${{ matrix.platform.runner }}
-    timeout-minutes: 30
+    timeout-minutes: ${{ inputs.build-timeout }}
     steps:
       - name: (IS hosted) Install pipx
         if: ${{ contains(matrix.platform.runner, 'self-hosted') }}
