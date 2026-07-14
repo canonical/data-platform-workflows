@@ -8,4 +8,5 @@ self-hosted-runner:
 paths:
   .github/workflows/**/*.{yml,yaml}:
     ignore:
+      # TODO: Remove when https://github.com/rhysd/actionlint/issues/647 is fixed
       - 'property "workflow_sha" is not defined in object type'
