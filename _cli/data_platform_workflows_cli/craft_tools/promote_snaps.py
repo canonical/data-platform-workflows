@@ -124,12 +124,11 @@ def snaps():
         )
 
     ref = args.ref
-    # Remove safety precaution just to validate it on CI.
-    # if not ref.startswith("refs/heads/"):
-    #     raise ValueError(
-    #         "This workflow must be run on `workflow_dispatch` from the branch that contains track "
-    #         f"{repr(track)}"
-    #     )
+    if not ref.startswith("refs/heads/"):
+        raise ValueError(
+            "This workflow must be run on `workflow_dispatch` from the branch that contains track "
+            f"{repr(track)}"
+        )
 
     if not pathlib.Path(".github/release.yaml").exists():
         raise FileNotFoundError(
