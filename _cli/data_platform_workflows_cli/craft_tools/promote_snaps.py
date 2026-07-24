@@ -41,6 +41,12 @@ class Risk(enum.StrEnum):
             )
         return cls(value)
 
+    def __lt__(self, other):
+        if not isinstance(other, Risk):
+            raise TypeError
+        order = list(Risk)
+        return order.index(self) < order.index(other)
+
 
 def get_snap_revisions(channel_name: str, snap_name: str, tag_prefix: str, raise_missing: bool):
     """Get the current snap revisions in the target channel."""
