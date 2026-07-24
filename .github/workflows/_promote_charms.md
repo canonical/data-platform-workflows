@@ -93,7 +93,7 @@ Add `CHARMHUB_TOKEN_PROMOTION` as an environment secret for the `beta` environme
 
 `CHARMHUB_TOKEN_PROMOTION` generation (requires charmcraft >=4.4.0):
 ```
-charmcraft login --quiet --charm foo --channel latest/beta --channel bar/beta --ttl 3600 --permission package-manage-releases --export /dev/stdout
+charmcraft login --quiet --charm foo --channel latest/beta --channel bar/beta --ttl 3600 --permission package-manage-releases --permission package-manage-revisions --permission package-view-revisions --export /dev/stdout
 ```
 Replace:
 - `foo` with charm name
