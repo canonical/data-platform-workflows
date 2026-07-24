@@ -18,6 +18,7 @@
 | [_promote_charms.yaml](.github/workflows/_promote_charms.md)                   | **Experimental** Promote charms by revision & generate release notes                                              |
 | [_promote_charm_legacy_1.yaml](.github/workflows/_promote_charm_legacy_1.md)   | **Deprecated** `charmcraft promote` & generate release notes for charm without refresh compatibility version tags |
 | [_promote_charms_legacy_2.yaml](.github/workflows/_promote_charms_legacy_2.md) | **Deprecated** `charmcraft promote` & generate release notes                                                      |
+| [_promote_snaps.yaml](.github/workflows/_promote_snaps.md)                     | **Experimental** `snapcraft promote` & generate release notes                                                     |
 | [check_charm_pr.yaml](.github/workflows/check_charm_pr.md)                     | Check charm pull request has required labels for release notes                                                    |
 | [approve_renovate_pr.yaml](.github/workflows/approve_renovate_pr.md)           | Reduce required approvals on [Renovate](https://docs.renovatebot.com/) pull requests by 1                         |
 | [_update_bundle.yaml](.github/workflows/_update_bundle.md)                     | **Experimental** Update charm revisions in bundle                                                                 |
@@ -71,4 +72,3 @@ Workflows that begin with two underscores (e.g. `__foo.yaml`) are for this repos
 
 Data Platform Workflows is covered by the [Ubuntu Code of
 Conduct](https://ubuntu.com/community/ethos/code-of-conduct).
-
