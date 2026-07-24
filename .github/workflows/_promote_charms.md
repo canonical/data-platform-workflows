@@ -86,7 +86,7 @@ changelog:
 ```
 
 ### Step 4: Require approval for `stable` environment
-Add the relevant team (e.g. canonical/data-postgresql) as a required reviewer before a workflow run with access to the `stable` GitHub environment can start: https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-required-reviews-in-workflows. This prevents an attacker who has compromised our workflows (e.g. via a supply chain attack) from (immediately) compromising our stable release artifacts.
+Add the relevant team (e.g. canonical/data-postgresql) as a required reviewer before a job with access to the `stable` GitHub environment can start: https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/control-deployments#using-required-reviews-in-workflows. This prevents an attacker who has compromised our workflows (e.g. via a supply chain attack) from (immediately) compromising our stable release artifacts.
 
 ### Step 5: Add Charmhub tokens
 Add `CHARMHUB_TOKEN_PROMOTION` as an environment secret for the `beta` environment: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment. **Do not** add it as a repository secret.
