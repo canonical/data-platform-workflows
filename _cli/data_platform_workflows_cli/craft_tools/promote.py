@@ -539,6 +539,28 @@ def charms():
     commit_sha = commit_shas.pop()
     logging.info(f"All provided revisions were built from git commit {repr(commit_sha)}")
 
+    # Verify that no revision tags pointing at this commit were left out of the `revisions` input
+    # (e.g. an amd64 revision tag provided but the arm64 revision tag for the same commit is not),
+    # so that a partial promotion cannot be triggered by mistake
+    logging.info("Checking that all revision tags on the target commit were provided")
+    missing_tags: list[str] = []
+    for charm, revisions in charm_revisions_map.items():
+        tags_on_commit = subprocess.run(
+            ["git", "tag", "--list", f"{charm.tag_prefix}*", "--points-at", commit_sha],
+            capture_output=True,
+            check=True,
+            text=True,
+        ).stdout.splitlines()
+        provided_tags = {f"{charm.tag_prefix}{revision}" for revision in revisions}
+        missing_tags.extend(sorted(set(tags_on_commit) - provided_tags))
+    if missing_tags:
+        raise ValueError(
+            f"Revision tag(s) {repr(sorted(missing_tags))} point to the same git commit "
+            f"({repr(commit_sha)}) as the provided `revisions` input but were not included in it. "
+            "Include all revision tags for this commit so that no revision is left behind when "
+            "promoting."
+        )
+
     subprocess.run(["git", "checkout", commit_sha], check=True)
 
     for charm in charms_:
