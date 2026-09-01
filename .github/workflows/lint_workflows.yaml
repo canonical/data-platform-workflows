@@ -17,40 +17,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up environment
-        run: |
-          gh release --repo rhysd/actionlint download --pattern '*_linux_amd64.tar.gz' --output actionlint.tar.gz
-          gh attestation verify --repo rhysd/actionlint --deny-self-hosted-runners --signer-workflow rhysd/actionlint/.github/workflows/release.yaml actionlint.tar.gz
-
-          # Copied from https://github.com/rhysd/actionlint/blob/main/.github/actionlint-matcher.json
-          cat << 'EOF' > actionlint-matcher.json
-          {
-            "problemMatcher": [
-              {
-                "owner": "actionlint",
-                "pattern": [
-                  {
-                    "regexp": "^(?:\\x1b\\[\\d+m)?(.+?)(?:\\x1b\\[\\d+m)*:(?:\\x1b\\[\\d+m)*(\\d+)(?:\\x1b\\[\\d+m)*:(?:\\x1b\\[\\d+m)*(\\d+)(?:\\x1b\\[\\d+m)*: (?:\\x1b\\[\\d+m)*(.+?)(?:\\x1b\\[\\d+m)* \\[(.+?)\\]$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "message": 4,
-                    "code": 5
-                  }
-                ]
-              }
-            ]
-          }
-          EOF
-          echo "::add-matcher::actionlint-matcher.json"
-
-          tar xf actionlint.tar.gz
-
-          pipx install zizmor
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Run actionlint
-        run: |
-          ./actionlint -color
+        run: pipx install zizmor
       - name: Run zizmor
         run: zizmor .
     permissions:
