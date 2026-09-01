@@ -8,6 +8,6 @@ on:
 jobs:
   lint-workflows:
     name: Lint .github/workflows/
-    uses: ./.github/workflows/lint_workflows.yaml
+    uses: $/.github/workflows/lint_workflows.yaml
     permissions:
       contents: read
