@@ -111,3 +111,4 @@ jobs:
         run: cat ~/.local/state/charmcraft/log/*
     permissions:
       contents: write  # Needed to create git tags
+    cache-mode: none

@@ -16,3 +16,4 @@ jobs:
           VAR_PR_NUMBER: ${{ github.event.pull_request.number }}
     permissions:
       pull-requests: write  # Needed to approve PR
+    cache-mode: none

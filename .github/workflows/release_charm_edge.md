@@ -22,6 +22,7 @@ jobs:
       track: 'latest'
     permissions:
       contents: write  # Needed to create git tag
+    cache-mode: none
   
   build:
     name: Build charm
@@ -30,6 +31,7 @@ jobs:
     uses: canonical/data-platform-workflows/.github/workflows/build_charm.yaml@v0.0.0
     permissions:
       contents: read
+    cache-mode: none
 
   release:
     name: Release charm
@@ -44,6 +46,7 @@ jobs:
       charmhub-token: ${{ secrets.CHARMHUB_TOKEN_EDGE }}
     permissions:
       contents: write  # Needed to create git tags
+    cache-mode: none
 ```
 
 ### Step 2: Add Charmhub token

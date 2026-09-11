@@ -25,6 +25,7 @@ jobs:
     permissions:
       contents: write  # Needed to push branch & tag
       pull-requests: write  # Needed to create PR
+    cache-mode: none
 ```
 
 ### metadata.yaml required

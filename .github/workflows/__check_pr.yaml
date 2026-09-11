@@ -15,3 +15,4 @@ jobs:
     name: Check pull request
     uses: $/.github/workflows/check_python_package_pr.yaml
     permissions: {}
+    cache-mode: none

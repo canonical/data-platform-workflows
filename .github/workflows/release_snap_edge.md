@@ -22,6 +22,7 @@ jobs:
     uses: canonical/data-platform-workflows/.github/workflows/build_snap.yaml@v0.0.0
     permissions:
       contents: read
+    cache-mode: none
 
   release:
     name: Release snap
@@ -35,6 +36,7 @@ jobs:
       snap-store-token: ${{ secrets.SNAP_STORE_TOKEN_EDGE }}
     permissions:
       contents: write  # Needed to create git tags
+    cache-mode: none
 ```
 
 ### Step 2: Add Snap Store token

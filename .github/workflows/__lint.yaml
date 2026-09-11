@@ -11,3 +11,4 @@ jobs:
     uses: $/.github/workflows/lint_workflows.yaml
     permissions:
       contents: read
+    cache-mode: none
