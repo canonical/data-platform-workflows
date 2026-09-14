@@ -18,6 +18,10 @@ on:
         description: Relative path to charm directory from repository directory
         default: .
         type: string
+      monorepo:
+        description: Whether the charm is using the charmcraft monorepo feature
+        default: false
+        type: boolean
       charmcraft-snap-revisions:
         description: |
           JSON string with type dict[str, str] of architecture to charmcraft snap revision
@@ -156,6 +160,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VAR_NO_CACHE_ARG: ${{ case(inputs.cache, '', '--command-name=charmcraft') }}
           VAR_PLATFORM: ${{ matrix.platform.name }}
+          CHARMCRAFT_EXPERIMENTAL_MONOREPO: ${{ case(inputs.monorepo, '1', '0') }}
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*
