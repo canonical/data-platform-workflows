@@ -154,12 +154,13 @@ jobs:
       - name: Pack charm
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
-        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v ${VAR_NO_CACHE_ARG:+"${VAR_NO_CACHE_ARG}"} --platform="${VAR_PLATFORM}"
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- "$CHARMCRAFT_BIN" pack -v ${VAR_NO_CACHE_ARG:+"${VAR_NO_CACHE_ARG}"} --platform="${VAR_PLATFORM}"
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VAR_NO_CACHE_ARG: ${{ case(inputs.cache, '', '--command-name=charmcraft') }}
+          VAR_NO_CACHE_ARG: ${{ case(inputs.cache || inputs.monorepo, '', '--command-name=charmcraft') }}
           VAR_PLATFORM: ${{ matrix.platform.name }}
+          CHARMCRAFT_BIN: ${{ case(inputs.monorepo, 'charmcraft', 'charmcraftlocal') }}
           CHARMCRAFT_EXPERIMENTAL_MONOREPO: ${{ case(inputs.monorepo, '1', '0') }}
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
