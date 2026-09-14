@@ -33,3 +33,4 @@ jobs:
         env:
           LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
     permissions: {}
+    cache-mode: none

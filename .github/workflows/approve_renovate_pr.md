@@ -19,4 +19,5 @@ jobs:
     uses: canonical/data-platform-workflows/.github/workflows/approve_renovate_pr.yaml@v0.0.0
     permissions:
       pull-requests: write  # Needed to approve PR
+    cache-mode: none
 ```

@@ -87,3 +87,4 @@ jobs:
         run: cat ~/.local/state/charmcraft/log/*
     permissions:
       contents: write  # Needed to edit GitHub releases
+    cache-mode: none

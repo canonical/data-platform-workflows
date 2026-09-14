@@ -37,3 +37,4 @@ jobs:
           RELEASE_TAG: ${{ steps.create-tag.outputs.tag }}
     permissions:
       contents: write  # Needed to create release
+    cache-mode: none

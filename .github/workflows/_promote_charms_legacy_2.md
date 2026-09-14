@@ -49,6 +49,7 @@ jobs:
       charmhub-token: ${{ secrets.CHARMHUB_TOKEN_PROMOTION }}
     permissions:
       contents: write  # Needed to edit GitHub releases
+    cache-mode: none
 ```
 ### Step 2: Add `check_pr.yaml` file to `.github/workflows/`
 ```yaml
@@ -70,6 +71,7 @@ jobs:
     name: Check pull request
     uses: canonical/data-platform-workflows/.github/workflows/check_charm_pr.yaml@v0.0.0
     permissions: {}
+    cache-mode: none
 ```
 Update `branches` to include all branches that [`release_charm_edge.yaml`](release_charm_edge.md) runs on
 

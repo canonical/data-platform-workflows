@@ -43,3 +43,4 @@ jobs:
           VAR_REPOSITORY: ${{ inputs.repository }}
     permissions:
       contents: read
+    cache-mode: none

@@ -42,6 +42,7 @@ jobs:
       snapcraft-token: ${{ secrets.SNAPCRAFT_TOKEN }}
     permissions:
       contents: write  # Needed to edit GitHub releases
+    cache-mode: none
 ```
 
 ### Step 2: Add `.github/release.yaml` file

@@ -29,6 +29,7 @@ jobs:
       token: ${{ secrets.MIRROR_REPOS_PAT }}
     permissions:
       contents: read
+    cache-mode: none
 ```
 
 Add `MIRROR_REPOS_PAT` as an environment secret for the `mirror-repos` environment: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets#creating-secrets-for-an-environment. **Do not** add it as a repository secret.
