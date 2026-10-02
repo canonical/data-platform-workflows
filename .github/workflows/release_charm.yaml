@@ -54,6 +54,8 @@ jobs:
     name: Release charm
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    outputs:
+      charm-revisions: ${{ steps.release.outputs.charm-revisions }}
     steps:
       - name: Get workflow version
         id: workflow-version
