@@ -162,8 +162,12 @@ def rock():
     )
     digests.append(Revision(value=multi_arch_digest, architecture="all"))
 
+    if directory == pathlib.Path("."):
+        tag_prefix = "image-"
+    else:
+        tag_prefix = f"{yaml_data['name']}/image-"
     logging.info("Pushing git tag")
-    tag = f"image-{multi_arch_digest}"
+    tag = f"{tag_prefix}{multi_arch_digest}"
     subprocess.run(["git", "config", "user.name", "GitHub Actions"], check=True)
     subprocess.run(
         ["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"],
