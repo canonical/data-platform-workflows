@@ -157,7 +157,8 @@ jobs:
 
           VAR_COMMAND_NAME: ${{ case(inputs.cache, 'charmcraftcache', 'charmcraft') }}
           VAR_PLATFORM: ${{ matrix.platform.name }}
-          CHARMCRAFT_EXPERIMENTAL_MONOREPO: 1  # TODO doc link
+          # https://canonical.com/juju/docs/charmcraft/latest/howto/pack-a-charm-in-a-monorepo/
+          CHARMCRAFT_EXPERIMENTAL_MONOREPO: 1
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*
