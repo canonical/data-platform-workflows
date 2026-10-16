@@ -143,7 +143,7 @@ jobs:
           sudo iptables -P FORWARD ACCEPT
 
           sudo snap install charmcraft --classic ${VAR_CHARMCRAFT_FLAG:+"${VAR_CHARMCRAFT_FLAG}"}
-          pipx install charmcraftcache poetry charmcraftlocal
+          pipx install charmcraftcache poetry
         env:
           VAR_LXD_FLAG: ${{ steps.lxd-snap-version.outputs.install_flag }}
           VAR_CHARMCRAFT_FLAG: ${{ steps.charmcraft-snap-version.outputs.install_flag }}
@@ -151,12 +151,15 @@ jobs:
       - name: Pack charm
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
-        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v ${VAR_NO_CACHE_ARG:+"${VAR_NO_CACHE_ARG}"} --platform="${VAR_PLATFORM}"
+        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- "${VAR_COMMAND_NAME}" pack -v --platform="${VAR_PLATFORM}"
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VAR_NO_CACHE_ARG: ${{ case(inputs.cache, '', '--command-name=charmcraft') }}
+
+          VAR_COMMAND_NAME: ${{ case(inputs.cache, 'charmcraftcache', 'charmcraft') }}
           VAR_PLATFORM: ${{ matrix.platform.name }}
+          # https://canonical.com/juju/docs/charmcraft/latest/howto/pack-a-charm-in-a-monorepo/
+          CHARMCRAFT_EXPERIMENTAL_MONOREPO: 1
       - name: Charmcraft logs
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
         run: cat ~/.local/state/charmcraft/log/*

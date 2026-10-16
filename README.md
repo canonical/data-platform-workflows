@@ -14,7 +14,6 @@
 | [release_rock_edge.yaml](.github/workflows/release_rock_edge.md)               | Release rock to GitHub Container Registry                                                                         |
 | [release_charm_edge.yaml](.github/workflows/release_charm_edge.md)             | Release charm to Charmhub "edge" risk                                                                             |
 | [release_charm_pr.yaml](.github/workflows/release_charm_pr.md)                 | Release pull request charm to Charmhub branch                                                                     |
-| [_mirror_charm.yaml](.github/workflows/_mirror_charm.md)                       | **Experimental** Mirror subset of charm monorepo with local Python package to single-charm repo                   |
 | [_promote_charms.yaml](.github/workflows/_promote_charms.md)                   | **Experimental** Promote charms by revision & generate release notes                                              |
 | [_promote_charm_legacy_1.yaml](.github/workflows/_promote_charm_legacy_1.md)   | **Deprecated** `charmcraft promote` & generate release notes for charm without refresh compatibility version tags |
 | [_promote_charms_legacy_2.yaml](.github/workflows/_promote_charms_legacy_2.md) | **Deprecated** `charmcraft promote` & generate release notes                                                      |
