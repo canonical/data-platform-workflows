@@ -31,3 +31,4 @@ jobs:
           VAR_TRACK: ${{ inputs.track }}
     permissions:
       contents: write  # Needed to create git tag
+    cache-mode: none

@@ -22,6 +22,7 @@ jobs:
     uses: canonical/data-platform-workflows/.github/workflows/build_snap.yaml@v0.0.0
     permissions:
       contents: read
+    cache-mode: none
 
   release:
     name: Release snap
@@ -35,6 +36,7 @@ jobs:
       snap-store-token: ${{ secrets.SNAP_STORE_TOKEN_EDGE }}
     permissions:
       contents: write  # Needed to create git tags
+    cache-mode: none
 ```
 
 ### Step 2: Add Snap Store token
@@ -42,9 +44,9 @@ Add `SNAP_STORE_TOKEN_EDGE` as an environment secret for the `edge` environment:
 
 `SNAP_STORE_TOKEN_EDGE` generation:
 ```
-snapcraft export-login --snaps foo --channels latest/edge,foo/edge --expires 1970-01-01 -
+snapcraft export-login --snaps foo --channels latest/edge,bar/edge --expires 1970-01-01 -
 ```
 Replace:
 - `foo` with snap name
-- `latest` and `foo` with snap track(s)
+- `latest` and `bar` with snap track(s)
 - `1970-01-01` with expiration date (that complies with https://library.canonical.com/corporate-policies/information-security-policies/secrets-management-policy)

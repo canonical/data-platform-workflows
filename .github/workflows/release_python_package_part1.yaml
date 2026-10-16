@@ -30,7 +30,8 @@ jobs:
       tag: ${{ steps.create-tag.outputs.tag }}
     permissions:
       contents: write  # Needed to create git tag
-  
+    cache-mode: none
+
   build:
     name: Build package
     needs:
@@ -56,3 +57,4 @@ jobs:
           path: dist/
     permissions:
       contents: read
+    cache-mode: none

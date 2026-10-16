@@ -78,6 +78,7 @@ jobs:
       platforms: ${{ steps.collect.outputs.platforms }}
     permissions:
       contents: read
+    cache-mode: none
 
   build:
     strategy:
@@ -188,3 +189,4 @@ jobs:
           if-no-files-found: error
     permissions:
       contents: read
+    cache-mode: none

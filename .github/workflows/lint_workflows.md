@@ -11,6 +11,7 @@ jobs:
     uses: canonical/data-platform-workflows/.github/workflows/lint_workflows.yaml@v0.0.0
     permissions:
       contents: read
+    cache-mode: none
 ```
 
 ### Step 2: Add `.github/zizmor.yaml` file

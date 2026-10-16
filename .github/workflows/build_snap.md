@@ -10,6 +10,7 @@ jobs:
     uses: canonical/data-platform-workflows/.github/workflows/build_snap.yaml@v0.0.0
     permissions:
       contents: read
+    cache-mode: none
 ```
 
 ### Supported `platforms` and `architectures` syntax in snapcraft.yaml

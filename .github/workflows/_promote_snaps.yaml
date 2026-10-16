@@ -77,3 +77,4 @@ jobs:
         run: cat ~/.local/state/snapcraft/log/*
     permissions:
       contents: write  # Needed to edit GitHub releases
+    cache-mode: none

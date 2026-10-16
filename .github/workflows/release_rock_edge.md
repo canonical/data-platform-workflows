@@ -22,6 +22,7 @@ jobs:
     uses: canonical/data-platform-workflows/.github/workflows/build_rock.yaml@v0.0.0
     permissions:
       contents: read
+    cache-mode: none
 
   release:
     name: Release rock
@@ -33,6 +34,7 @@ jobs:
     permissions:
       packages: write  # Needed to publish to GitHub Container Registry
       contents: write  # Needed to create git tags
+    cache-mode: none
 ```
 
 Grant package `Write` role to GitHub Actions for the source GitHub repository: https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility#ensuring-workflow-access-to-your-package

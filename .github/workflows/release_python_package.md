@@ -45,6 +45,7 @@ jobs:
     uses: canonical/data-platform-workflows/.github/workflows/release_python_package_part1.yaml@v0.0.0
     permissions:
       contents: write  # Needed to create git tag
+    cache-mode: none
 
   # Separate job needed to workaround https://github.com/pypi/warehouse/issues/11096
   release-trusted-publishing:
@@ -66,6 +67,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
     permissions:
       id-token: write  # Needed for PyPI trusted publishing
+    cache-mode: none
 
   release-part2:
     name: Release to PyPI (part 2)
@@ -77,6 +79,7 @@ jobs:
       git-tag: ${{ needs.release-part1.outputs.git-tag }}
     permissions:
       contents: write  # Needed to create GitHub release
+    cache-mode: none
 ```
 
 ### Step 3: Add `check_pr.yaml` file to `.github/workflows/`
@@ -98,6 +101,7 @@ jobs:
     name: Check pull request
     uses: canonical/data-platform-workflows/.github/workflows/check_python_package_pr.yaml@v0.0.0
     permissions: {}
+    cache-mode: none
 ```
 
 ### Step 4: Configure GitHub repository settings
