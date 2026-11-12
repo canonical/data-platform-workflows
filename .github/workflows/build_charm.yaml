@@ -135,9 +135,9 @@ jobs:
             sudo snap refresh lxd ${VAR_LXD_FLAG:+"${VAR_LXD_FLAG}"}
           fi
           sudo adduser "$USER" lxd
-          # `newgrp` does not work in GitHub Actions; use `sudo --user` instead
-          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd waitready
-          sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxd init --auto
+          # Bare `newgrp` does not work in GitHub Actions; use `newgrp --command` instead
+          newgrp lxd --command 'lxd waitready'
+          newgrp lxd --command 'lxd init --auto'
           # Workaround for Docker & LXD on same machine
           sudo iptables -F FORWARD
           sudo iptables -P FORWARD ACCEPT
@@ -151,7 +151,7 @@ jobs:
       - name: Pack charm
         id: pack
         working-directory: ${{ inputs.path-to-charm-directory }}
-        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- charmcraftlocal pack -v ${VAR_NO_CACHE_ARG:+"${VAR_NO_CACHE_ARG}"} --platform="${VAR_PLATFORM}"
+        run: newgrp lxd --command 'charmcraftlocal pack -v ${VAR_NO_CACHE_ARG:+"${VAR_NO_CACHE_ARG}"} --platform="${VAR_PLATFORM}"'
         env:
           # Used by charmcraftcache (to avoid GitHub API rate limit)
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -162,7 +162,7 @@ jobs:
         run: cat ~/.local/state/charmcraft/log/*
       - name: lxc image list --all-projects
         if: ${{ success() || (failure() && steps.pack.outcome == 'failure') }}
-        run: sudo --user "$USER" --preserve-env --preserve-env=PATH -- env -- lxc image list --all-projects
+        run: newgrp lxd --command 'lxc image list --all-projects'
       - name: Check charm refresh compatibility version tags were present
         run: check-charm-contains-valid-refresh-version --directory="${VAR_DIRECTORY}"
         env:
