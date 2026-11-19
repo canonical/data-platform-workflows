@@ -24,9 +24,8 @@ from . import charmcraft_platforms
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 RUNNERS = {
-    craft.Architecture.X64: "ubuntu-24.04",
-    craft.Architecture.ARM64: "ubuntu-24.04-arm",
-    craft.Architecture.S390X: "self-hosted-linux-s390x-noble-medium",
+    craft.Architecture.X64: "ubuntu-22.04",
+    craft.Architecture.ARM64: "ubuntu-22.04-arm",
 }
 
 
